@@ -1,6 +1,9 @@
 import { prisma } from '@repo/database';
-import { User } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+
+// 使用 Prisma 的类型推断获取 User 类型
+type User = Prisma.UserGetPayload<{}>;
 
 /**
  * 生成 JWT token
