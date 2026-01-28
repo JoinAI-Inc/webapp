@@ -1,0 +1,21 @@
+{
+    "name": "@repo/auth-api",
+    "version": "1.0.0",
+    "description": "Reusable authentication API handlers for Next.js applications",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch"
+    },
+    "dependencies": {
+        "@repo/database": "*",
+        "jsonwebtoken": "^9.0.3",
+        "next": "^14.2.0"
+    },
+    "devDependencies": {
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/node": "^20",
+        "typescript": "^5"
+    }
+}
