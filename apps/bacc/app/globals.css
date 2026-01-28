@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cny-red: #B31C0F;
+  --cny-red-dark: #7D140B;
+  --cny-gold: #D4AF37;
+  --cny-gold-light: #F4CF67;
+  --cny-ivory: #FDFCF0;
+}
+
+body {
+  background-color: #0c0000;
+  color: var(--cny-ivory);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white bg-opacity-[0.03] backdrop-blur-xl border border-white border-opacity-[0.08] rounded-3xl transition-all duration-500 hover:bg-opacity-[0.05] hover:border-opacity-[0.15];
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .cny-button-primary {
+    @apply relative overflow-hidden bg-cny-gold text-cny-red-dark font-black py-4 px-10 rounded-full transition-all duration-500 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.5)] transform hover:-translate-y-1 active:scale-95;
+    letter-spacing: 0.05em;
+  }
+
+  .cny-button-primary::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full skew-x-[45deg] transition-transform duration-1000;
+  }
+
+  .cny-button-primary:hover::after {
+    @apply translate-x-[200%];
+  }
+
+  .cny-button-outline {
+    @apply border-2 border-cny-gold/40 text-cny-gold font-bold py-4 px-10 rounded-full transition-all duration-500 backdrop-blur-sm hover:bg-cny-gold hover:text-cny-red-dark hover:border-cny-gold;
+  }
+
+  .text-shimmer {
+    background: linear-gradient(135deg, #D4AF37 0%, #F4CF67 25%, #FFF 50%, #F4CF67 75%, #D4AF37 100%);
+    background-size: 200% auto;
+    color: #000;
+    background-clip: text;
+    text-fill-color: transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 4s ease-in-out infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      background-position: -100% center;
+    }
+
+    100% {
+      background-position: 100% center;
+    }
+  }
+
+  .cny-border-gold {
+    @apply border border-cny-gold/30 relative;
+  }
+
+  .cny-border-gold::before {
+    content: '';
+    @apply absolute -inset-[1px] rounded-[inherit] bg-gradient-to-r from-cny-gold/50 via-cny-gold/10 to-cny-gold/50 opacity-0 transition-opacity duration-500 pointer-events-none;
+  }
+
+  .cny-border-gold:hover::before {
+    @apply opacity-100;
+  }
+}
+
+.cny-gradient-bg {
+  background: radial-gradient(circle at 50% 0%, #300502 0%, #0c0000 70%);
+}
+
+.cny-text-gold-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-cny-gold via-cny-gold-light to-cny-gold;
+}

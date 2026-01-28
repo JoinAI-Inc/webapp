@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+}
+
+enum AppStatus {
+  DRAFT
+  PUBLISHED
+  UNLISTED
+  DISABLED
+  SUNSET
+  ARCHIVED
+}
+
+enum PlanStatus {
+  ACTIVE
+  RETIRED
+  ARCHIVED
+}
+
+enum PlanType {
+  SUBSCRIPTION
+  ONE_TIME
+}
+
+enum ScopeType {
+  GLOBAL
+  SPECIFIC_APP
+}
+
+enum BillingInterval {
+  MONTH
+  QUARTER
+  YEAR
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum EntitlementType {
+  SUBSCRIPTION
+  PERMANENT
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+model User {
+  id               BigInt      @id @default(autoincrement())
+  email            String      @unique
+  passwordHash     String?     @map("password_hash")
+  fullName         String?     @map("full_name")
+  status           UserStatus  @default(ACTIVE)
+  stripeCustomerId String?     @map("stripe_customer_id")
+  totalSpendAmount Decimal     @default(0.00) @map("total_spend_amount") @db.Decimal(10, 2)
+  totalOrderCount  Int         @default(0) @map("total_order_count")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  orders           Order[]
+  entitlements     UserEntitlement[]
+  socialBinds      UserSocialBind[]
+
+  @@map("users")
+}
+
+model App {
+  id              BigInt    @id @default(autoincrement())
+  appKey          String    @unique @map("app_key")
+  name            String
+  description     String?   @db.Text
+  accessUrl       String    @map("access_url")
+  status          AppStatus @default(DRAFT)
+  purchasable     Boolean   @default(true)
+  allowInNewPlan  Boolean   @default(true) @map("allow_in_new_plan")
+  sunsetAt        DateTime? @map("sunset_at")
+  archivedAt      DateTime? @map("archived_at")
+  archivedReason  String?   @map("archived_reason") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  pricingPlans        PricingPlanApp[]
+  entitlementApps     UserEntitlementApp[]
+
+  @@map("apps")
+}
+
+model PricingPlan {
+  id                BigInt           @id @default(autoincrement())
+  name              String
+  planType          PlanType         @map("plan_type")
+  scopeType         ScopeType        @map("scope_type")
+  price             Decimal          @db.Decimal(10, 2)
+  currency          String           @default("USD")
+  billingInterval   BillingInterval? @map("billing_interval")
+  
+  // Stripe集成字段
+  stripeProductId   String?          @map("stripe_product_id")
+  stripePriceId     String?          @map("stripe_price_id")
+  // 支持多个计费周期的Price ID
+  stripePriceIdMonthly  String?      @map("stripe_price_id_monthly")
+  stripePriceIdYearly   String?      @map("stripe_price_id_yearly")
+  stripePriceIdQuarterly String?     @map("stripe_price_id_quarterly")
+  stripeMetadata    Json?            @map("stripe_metadata") // 存储Stripe额外元数据
+  
+  isActive          Boolean          @default(true) @map("is_active")
+  status            PlanStatus       @default(ACTIVE)
+  sellable          Boolean          @default(true)
+  retiredAt         DateTime?        @map("retired_at")
+  archivedAt        DateTime?        @map("archived_at")
+  archivedReason    String?          @map("archived_reason") @db.Text
+  replacementPlanId BigInt?          @map("replacement_plan_id")
+  createdAt         DateTime         @default(now()) @map("created_at")
+
+  apps              PricingPlanApp[]
+  orders            Order[]
+
+  @@map("pricing_plans")
+}
+
+model PricingPlanApp {
+  id            BigInt      @id @default(autoincrement())
+  pricingPlanId BigInt      @map("pricing_plan_id")
+  appId         BigInt      @map("app_id")
+
+  pricingPlan   PricingPlan @relation(fields: [pricingPlanId], references: [id])
+  app           App         @relation(fields: [appId], references: [id])
+
+  @@unique([pricingPlanId, appId])
+  @@map("pricing_plan_apps")
+}
+
+model Order {
+  id                    BigInt      @id @default(autoincrement())
+  orderNo               String      @unique @map("order_no")
+  userId                BigInt      @map("user_id")
+  pricingPlanId         BigInt      @map("pricing_plan_id")
+  amount                Decimal     @db.Decimal(10, 2)
+  currency              String
+  status                OrderStatus @default(PENDING)
+  
+  // Stripe集成字段
+  stripeSessionId       String?     @map("stripe_session_id")
+  stripePaymentIntentId String?     @map("stripe_payment_intent_id")
+  stripeInvoiceId       String?     @map("stripe_invoice_id")
+  stripeSubscriptionId  String?     @map("stripe_subscription_id")
+  stripeMetadata        Json?       @map("stripe_metadata")
+  
+  paidAt                DateTime?   @map("paid_at")
+  createdAt             DateTime    @default(now()) @map("created_at")
+
+  user        User        @relation(fields: [userId], references: [id])
+  pricingPlan PricingPlan @relation(fields: [pricingPlanId], references: [id])
+  entitlements UserEntitlement[]
+
+  @@index([stripeSessionId])
+  @@index([stripeSubscriptionId])
+  @@map("orders")
+}
+
+model UserEntitlement {
+  id                   BigInt            @id @default(autoincrement())
+  userId               BigInt            @map("user_id")
+  sourceOrderId        BigInt?           @map("source_order_id")
+  entitlementType      EntitlementType   @map("entitlement_type")
+  scopeType            ScopeType         @map("scope_type")
+  startTime            DateTime          @default(now()) @map("start_time")
+  expireTime           DateTime?         @map("expire_time")
+  status               EntitlementStatus @default(ACTIVE)
+  stripeSubscriptionId String?           @map("stripe_subscription_id")
+  createdAt            DateTime          @default(now()) @map("created_at")
+
+  user                 User                  @relation(fields: [userId], references: [id])
+  order                Order?                @relation(fields: [sourceOrderId], references: [id])
+  apps                 UserEntitlementApp[]
+
+  @@index([userId, status, expireTime])
+  @@map("user_entitlements")
+}
+
+model UserEntitlementApp {
+  id            BigInt          @id @default(autoincrement())
+  entitlementId BigInt          @map("entitlement_id")
+  appId         BigInt          @map("app_id")
+
+  entitlement   UserEntitlement @relation(fields: [entitlementId], references: [id])
+  app           App             @relation(fields: [appId], references: [id])
+
+  @@unique([entitlementId, appId])
+  @@map("user_entitlement_apps")
+}
+
+// Keeping the social bind table, adjusted to match PostgreSQL and map style
+model UserSocialBind {
+  id             BigInt    @id @default(autoincrement())
+  userId         BigInt    @map("user_id")
+  provider       String
+  providerSub    String    @map("provider_sub")
+  socialEmail    String?   @map("social_email")
+  socialName     String?   @map("social_name")
+  socialAvatar   String?   @map("social_avatar")
+  accessToken    String?   @map("access_token")
+  refreshToken   String?   @map("refresh_token")
+  tokenExpiresAt DateTime? @map("token_expires_at")
+  rawData        String?   @map("raw_data") // JSON string
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerSub])
+  @@index([userId])
+  @@map("user_social_binds")
+}
