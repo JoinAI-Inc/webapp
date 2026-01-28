@@ -10,6 +10,13 @@
                 "!.next/cache/**",
                 "dist/**",
                 "build/**"
+            ],
+            "env": [
+                "DATABASE_URL",
+                "NANO_BANANA_API_KEY",
+                "NEXT_PUBLIC_API_BASE_URL",
+                "NEXT_PUBLIC_APP_ID",
+                "NEXT_PUBLIC_GOOGLE_CLIENT_ID"
             ]
         },
         "lint": {},
