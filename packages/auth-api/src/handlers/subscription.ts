@@ -90,13 +90,17 @@ export async function handleSubscriptionStatus(request: NextRequest) {
             (key, value) => typeof value === 'bigint' ? value.toString() : value
         ));
 
-        return NextResponse.json({
+        const response = {
             isActive,
             hasGlobalAccess,
             accessibleAppIds: Array.from(accessibleAppIds),
             entitlements: serializedEntitlements,
             timestamp: new Date().toISOString()
-        });
+        };
+
+        console.log('[Subscription Status] 返回数据:', JSON.stringify(response, null, 2));
+
+        return NextResponse.json(response);
 
     } catch (error: any) {
         console.error('Error getting subscription status:', error);
