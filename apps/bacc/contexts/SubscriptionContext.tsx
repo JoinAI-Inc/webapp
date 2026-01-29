@@ -45,19 +45,40 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
         try {
             setLoading(true);
+            console.log('[SubscriptionContext] 开始刷新订阅信息...');
+            console.log('[SubscriptionContext] APP_ID:', process.env.NEXT_PUBLIC_APP_ID);
 
             // 并发获取订阅状态、计费方案和授权信息
+            console.log('[SubscriptionContext] 调用 validateSubscription...');
+            const statusPromise = sdk.subscription.validateSubscription();
+
+            console.log('[SubscriptionContext] 调用 getPlans...');
+            const plansPromise = sdk.subscription.getPlans(process.env.NEXT_PUBLIC_APP_ID).catch((err) => {
+                console.error('[SubscriptionContext] getPlans 失败:', err);
+                return [];
+            });
+
+            console.log('[SubscriptionContext] 调用 getEntitlementsForApp...');
+            const entitlementsPromise = sdk.subscription.getEntitlementsForApp(process.env.NEXT_PUBLIC_APP_ID).catch((err) => {
+                console.error('[SubscriptionContext] getEntitlementsForApp 失败:', err);
+                return [];
+            });
+
             const [status, plansData, entitlementsData] = await Promise.all([
-                sdk.subscription.validateSubscription(),
-                sdk.subscription.getPlans(process.env.NEXT_PUBLIC_APP_ID).catch(() => []),
-                sdk.subscription.getEntitlementsForApp(process.env.NEXT_PUBLIC_APP_ID).catch(() => []),
+                statusPromise,
+                plansPromise,
+                entitlementsPromise,
             ]);
+
+            console.log('[SubscriptionContext] 订阅状态:', status);
+            console.log('[SubscriptionContext] 计费方案数量:', plansData.length);
+            console.log('[SubscriptionContext] 授权数量:', entitlementsData.length);
 
             setHasAccess(status.isActive);
             setPlans(plansData);
             setEntitlements(entitlementsData);
         } catch (error) {
-            console.error('刷新订阅信息失败:', error);
+            console.error('[SubscriptionContext] 刷新订阅信息失败:', error);
         } finally {
             setLoading(false);
         }
