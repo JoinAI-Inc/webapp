@@ -72,11 +72,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
             console.log('[SubscriptionContext] 订阅状态:', status);
             console.log('[SubscriptionContext] 计费方案数量:', plansData.length);
-            console.log('[SubscriptionContext] 授权数量:', entitlementsData.length);
+            console.log('[SubscriptionContext] 授权数量:', status.entitlements?.length || 0);
 
             setHasAccess(status.isActive);
             setPlans(plansData);
-            setEntitlements(entitlementsData);
+            setEntitlements(status.entitlements || []);
         } catch (error) {
             console.error('[SubscriptionContext] 刷新订阅信息失败:', error);
         } finally {
