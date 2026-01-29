@@ -26,15 +26,20 @@ function extractUserId(request: NextRequest): string | null {
  */
 export async function handleSubscriptionStatus(request: NextRequest) {
     try {
+        console.log('[Subscription Status] API called');
         const userId = extractUserId(request);
 
+        console.log('[Subscription Status] Extracted user ID:', userId);
+
         if (!userId) {
+            console.log('[Subscription Status] No user ID found, returning 401');
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
             );
         }
 
+        console.log('[Subscription Status] Querying entitlements for user:', userId);
         // 获取用户所有活跃的授权
         const entitlements = await prisma.userEntitlement.findMany({
             where: {
@@ -51,6 +56,8 @@ export async function handleSubscriptionStatus(request: NextRequest) {
             }
         });
 
+        console.log('[Subscription Status] Found entitlements:', entitlements.length);
+
         // 检查是否有有效授权
         const now = new Date();
         const activeEntitlements = entitlements.filter(e => {
@@ -59,6 +66,8 @@ export async function handleSubscriptionStatus(request: NextRequest) {
             // 订阅授权检查过期时间
             return e.expireTime && new Date(e.expireTime) > now;
         });
+
+        console.log('[Subscription Status] Active entitlements:', activeEntitlements.length);
 
         const isActive = activeEntitlements.length > 0;
 
