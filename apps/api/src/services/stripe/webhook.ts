@@ -376,4 +376,5 @@ async function processPaymentSuccess(
                 totalOrderCount: { increment: 1 }
             }
         });
-    }
+    });
+}
