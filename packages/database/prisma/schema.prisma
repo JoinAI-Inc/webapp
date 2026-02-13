@@ -33,6 +33,7 @@ enum PlanStatus {
 enum PlanType {
   SUBSCRIPTION
   ONE_TIME
+  USAGE_PACK
 }
 
 enum BillingInterval {
@@ -78,10 +79,12 @@ model User {
   sessions Session[]
 
   // Legacy/Business relations
-  orders       Order[]
-  entitlements UserEntitlement[]
-  socialBinds  UserSocialBind[]
-  mediaFiles   MediaFile[]
+  orders          Order[]
+  entitlements    UserEntitlement[]
+  socialBinds     UserSocialBind[]
+  mediaFiles      MediaFile[]
+  featureBalances UserFeatureBalance[]
+  usageLogs       UsageLog[]
 
   @@map("users")
 }
@@ -149,6 +152,7 @@ model App {
 
   pricingPlans    PricingPlanApp[]
   entitlementApps UserEntitlementApp[]
+  features        Feature[]
 
   @@map("apps")
 }
@@ -179,8 +183,9 @@ model PricingPlan {
   replacementPlanId BigInt?    @map("replacement_plan_id")
   createdAt         DateTime   @default(now()) @map("created_at")
 
-  apps   PricingPlanApp[]
-  orders Order[]
+  apps       PricingPlanApp[]
+  orders     Order[]
+  usagePacks UsagePack[]
 
   @@map("pricing_plans")
 }
@@ -219,6 +224,7 @@ model Order {
   user         User              @relation(fields: [userId], references: [id])
   pricingPlan  PricingPlan       @relation(fields: [pricingPlanId], references: [id])
   entitlements UserEntitlement[]
+  usageLogs    UsageLog[]
 
   @@index([stripeSessionId])
   @@index([stripeSubscriptionId])
@@ -325,4 +331,82 @@ model MediaFile {
   @@index([createdAt])
   @@index([userId, createdAt])
   @@map("media_files")
+}
+
+// ============================================
+// 按次数付费相关表
+// ============================================
+
+// 功能点定义
+model Feature {
+  id          BigInt   @id @default(autoincrement())
+  featureKey  String   @unique @map("feature_key") // 如: "bacc_hanfu_generation"
+  appId       BigInt   @map("app_id")
+  name        String
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  app          App                  @relation(fields: [appId], references: [id])
+  usagePacks   UsagePack[]
+  userBalances UserFeatureBalance[]
+  usageLogs    UsageLog[]
+
+  @@index([appId])
+  @@index([featureKey])
+  @@map("features")
+}
+
+// 次数包定义（关联到PricingPlan）
+model UsagePack {
+  id            BigInt @id @default(autoincrement())
+  pricingPlanId BigInt @map("pricing_plan_id")
+  featureId     BigInt @map("feature_id")
+  usageCount    Int    @map("usage_count") // 包含的使用次数
+
+  pricingPlan PricingPlan @relation(fields: [pricingPlanId], references: [id])
+  feature     Feature     @relation(fields: [featureId], references: [id])
+
+  @@unique([pricingPlanId, featureId])
+  @@map("usage_packs")
+}
+
+// 用户功能点余额
+model UserFeatureBalance {
+  id             BigInt    @id @default(autoincrement())
+  userId         String    @map("user_id")
+  featureId      BigInt    @map("feature_id")
+  remainingCount Int       @map("remaining_count") // 剩余次数
+  totalPurchased Int       @default(0) @map("total_purchased") // 累计购买次数
+  totalUsed      Int       @default(0) @map("total_used") // 累计使用次数
+  lastUsedAt     DateTime? @map("last_used_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id])
+  feature Feature @relation(fields: [featureId], references: [id])
+
+  @@unique([userId, featureId])
+  @@index([userId, featureId, remainingCount])
+  @@map("user_feature_balances")
+}
+
+// 使用记录日志
+model UsageLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String   @map("user_id")
+  featureId  BigInt   @map("feature_id")
+  sourceType String   @map("source_type") // "SUBSCRIPTION" | "USAGE_PACK"
+  orderId    BigInt?  @map("order_id") // 如果是次数包使用，记录订单ID
+  usedCount  Int      @default(1) @map("used_count")
+  metadata   Json? // 额外信息，如生成的图片ID等
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id])
+  feature Feature  @relation(fields: [featureId], references: [id])
+  order   Order?   @relation(fields: [orderId], references: [id])
+
+  @@index([userId, featureId, createdAt])
+  @@map("usage_logs")
 }
