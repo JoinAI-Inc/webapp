@@ -379,12 +379,19 @@ router.get('/plans', async (req: Request, res: Response) => {
 
 // POST /api/admin/plans
 router.post('/plans', async (req: Request, res: Response) => {
-    const { name, type, price, currency, interval, appIds } = req.body;
+    const { name, type, price, currency, interval, appIds, featureId, usageCount } = req.body;
 
     try {
         // All plans must have associated apps
         if (!appIds || appIds.length === 0) {
             return res.status(400).json({ error: 'At least one app must be selected' });
+        }
+
+        // For USAGE_PACK, validate feature and usage count
+        if (type === 'USAGE_PACK') {
+            if (!featureId || !usageCount) {
+                return res.status(400).json({ error: 'Feature and usage count are required for USAGE_PACK' });
+            }
         }
 
         const plan = await prisma.pricingPlan.create({
@@ -402,6 +409,17 @@ router.post('/plans', async (req: Request, res: Response) => {
             data: appIds.map((id: any) => ({ appId: BigInt(id), pricingPlanId: plan.id }))
         });
 
+        // For USAGE_PACK, create UsagePack record
+        if (type === 'USAGE_PACK') {
+            await prisma.usagePack.create({
+                data: {
+                    pricingPlanId: plan.id,
+                    featureId: BigInt(featureId),
+                    usageCount: parseInt(usageCount)
+                }
+            });
+        }
+
         const serializedPlan = JSON.parse(JSON.stringify(plan, (key, value) =>
             typeof value === 'bigint' ? value.toString() : value
         ));
@@ -414,12 +432,19 @@ router.post('/plans', async (req: Request, res: Response) => {
 // PUT /api/admin/plans/:id - Update pricing plan
 router.put('/plans/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, type, price, currency, interval, appIds } = req.body;
+    const { name, type, price, currency, interval, appIds, featureId, usageCount } = req.body;
 
     try {
         // All plans must have associated apps
         if (!appIds || appIds.length === 0) {
             return res.status(400).json({ error: 'At least one app must be selected' });
+        }
+
+        // For USAGE_PACK, validate feature and usage count
+        if (type === 'USAGE_PACK') {
+            if (!featureId || !usageCount) {
+                return res.status(400).json({ error: 'Feature and usage count are required for USAGE_PACK' });
+            }
         }
 
         const plan = await prisma.pricingPlan.update({
@@ -434,15 +459,31 @@ router.put('/plans/:id', async (req: Request, res: Response) => {
         });
 
         // Update app associations
-        // Delete existing links
         await prisma.pricingPlanApp.deleteMany({
             where: { pricingPlanId: plan.id }
         });
-
-        // Create new links
         await prisma.pricingPlanApp.createMany({
             data: appIds.map((appId: any) => ({ appId: BigInt(appId), pricingPlanId: plan.id }))
         });
+
+        // Handle UsagePack for USAGE_PACK type
+        if (type === 'USAGE_PACK') {
+            await prisma.usagePack.deleteMany({
+                where: { pricingPlanId: plan.id }
+            });
+            await prisma.usagePack.create({
+                data: {
+                    pricingPlanId: plan.id,
+                    featureId: BigInt(featureId),
+                    usageCount: parseInt(usageCount)
+                }
+            });
+        } else {
+            // If changing from USAGE_PACK to other type, delete usage pack
+            await prisma.usagePack.deleteMany({
+                where: { pricingPlanId: plan.id }
+            });
+        }
 
         const serializedPlan = JSON.parse(JSON.stringify(plan, (key, value) =>
             typeof value === 'bigint' ? value.toString() : value
