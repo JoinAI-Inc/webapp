@@ -17,7 +17,6 @@ import authRoutes from './routes/auth';
 import paymentRoutes from './routes/payment';
 import subscriptionRoutes from './routes/subscription';
 import nextauthRoutes from './routes/nextauth';
-import featuresRoutes from './routes/features';
 import usageRoutes from './routes/usage';
 
 // Configure global proxy if needed
@@ -42,7 +41,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auth', nextauthRoutes);  // NextAuth 专用路由
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
-app.use('/api/features', featuresRoutes);
 app.use('/api/usage', usageRoutes);
 
 // Health check
