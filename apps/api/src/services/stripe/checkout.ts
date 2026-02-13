@@ -27,6 +27,11 @@ export async function createCheckoutSession(
         include: {
             apps: {
                 include: { app: true }
+            },
+            usagePacks: {
+                include: {
+                    feature: true
+                }
             }
         }
     });
@@ -75,6 +80,9 @@ export async function createCheckoutSession(
             default:
                 stripePriceId = plan.stripePriceId || '';
         }
+    } else if (plan.planType === 'USAGE_PACK') {
+        // 次数包：使用默认Price ID
+        stripePriceId = plan.stripePriceId || '';
     } else {
         // 一次性购买
         stripePriceId = plan.stripePriceId || '';
@@ -119,6 +127,13 @@ export async function createCheckoutSession(
             orderId: order.id.toString(),
             pricingPlanId: pricingPlanId.toString(),
             planType: plan.planType,
+            ...(plan.planType === 'USAGE_PACK' && plan.usagePacks.length > 0 ? {
+                usagePackInfo: JSON.stringify(plan.usagePacks.map(up => ({
+                    featureId: up.featureId.toString(),
+                    featureKey: up.feature.featureKey,
+                    usageCount: up.usageCount
+                })))
+            } : {})
         },
         // 允许promotion codes
         allow_promotion_codes: true,

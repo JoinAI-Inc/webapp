@@ -254,7 +254,14 @@ async function processPaymentSuccess(
         where: { id: orderId },
         include: {
             pricingPlan: {
-                include: { apps: true }
+                include: {
+                    apps: true,
+                    usagePacks: {
+                        include: {
+                            feature: true
+                        }
+                    }
+                }
             }
         }
     });
@@ -280,39 +287,88 @@ async function processPaymentSuccess(
             }
         });
 
-        // 2. 计算权益到期时间
-        let expireTime: Date | null = null;
+        // 2. 处理不同类型的Plan
         const plan = order.pricingPlan;
 
-        if (plan.planType === 'SUBSCRIPTION' && order.stripeSubscriptionId) {
-            const subscription = await stripe.subscriptions.retrieve(order.stripeSubscriptionId);
-            expireTime = new Date((subscription as any).current_period_end * 1000);
-        }
+        if (plan.planType === 'USAGE_PACK') {
+            // 次数包类型：更新用户余额
+            if (plan.usagePacks && plan.usagePacks.length > 0) {
+                for (const usagePack of plan.usagePacks) {
+                    // 查找或创建用户余额
+                    const existingBalance = await tx.userFeatureBalance.findUnique({
+                        where: {
+                            userId_featureId: {
+                                userId: order.userId,
+                                featureId: usagePack.featureId
+                            }
+                        }
+                    });
 
-        // 3. 创建UserEntitlement
-        const entitlement = await tx.userEntitlement.create({
-            data: {
-                userId: order.userId,
-                sourceOrderId: order.id,
-                entitlementType: plan.planType === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PERMANENT',
-                startTime: new Date(),
-                expireTime,
-                status: 'ACTIVE',
-                stripeSubscriptionId: order.stripeSubscriptionId
+                    if (existingBalance) {
+                        // 更新现有余额
+                        await tx.userFeatureBalance.update({
+                            where: { id: existingBalance.id },
+                            data: {
+                                remainingCount: { increment: usagePack.usageCount },
+                                totalPurchased: { increment: usagePack.usageCount },
+                                updatedAt: new Date()
+                            }
+                        });
+                    } else {
+                        // 创建新的余额记录
+                        await tx.userFeatureBalance.create({
+                            data: {
+                                userId: order.userId,
+                                featureId: usagePack.featureId,
+                                remainingCount: usagePack.usageCount,
+                                totalPurchased: usagePack.usageCount,
+                                totalUsed: 0,
+                                updatedAt: new Date()
+                            }
+                        });
+                    }
+
+                    console.log(
+                        `[Webhook] Added ${usagePack.usageCount} uses of feature ${usagePack.feature.featureKey} for user ${order.userId}`
+                    );
+                }
             }
-        });
+        } else {
+            // 订阅或一次性购买：创建UserEntitlement
+            let expireTime: Date | null = null;
 
-        // 4. 关联应用 - 从pricingPlan复制apps关联
-        if (plan.apps && plan.apps.length > 0) {
-            await tx.userEntitlementApp.createMany({
-                data: plan.apps.map(app => ({
-                    entitlementId: entitlement.id,
-                    appId: app.appId
-                }))
+            if (plan.planType === 'SUBSCRIPTION' && order.stripeSubscriptionId) {
+                const subscription = await stripe.subscriptions.retrieve(order.stripeSubscriptionId);
+                expireTime = new Date((subscription as any).current_period_end * 1000);
+            }
+
+            // 创建UserEntitlement
+            const entitlement = await tx.userEntitlement.create({
+                data: {
+                    userId: order.userId,
+                    sourceOrderId: order.id,
+                    entitlementType: plan.planType === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PERMANENT',
+                    startTime: new Date(),
+                    expireTime,
+                    status: 'ACTIVE',
+                    stripeSubscriptionId: order.stripeSubscriptionId
+                }
             });
+
+            // 关联应用 - 从pricingPlan复制apps关联
+            if (plan.apps && plan.apps.length > 0) {
+                await tx.userEntitlementApp.createMany({
+                    data: plan.apps.map((app: any) => ({
+                        entitlementId: entitlement.id,
+                        appId: app.appId
+                    }))
+                });
+            }
+
+            console.log(`[Webhook] Created entitlement ${entitlement.id} for order ${orderId}`);
         }
 
-        // 5. 更新用户统计
+        // 3. 更新用户统计
         await tx.user.update({
             where: { id: order.userId },
             data: {
@@ -320,7 +376,4 @@ async function processPaymentSuccess(
                 totalOrderCount: { increment: 1 }
             }
         });
-
-        console.log(`[Webhook] Created entitlement ${entitlement.id} for order ${orderId}`);
-    });
-}
+    }
