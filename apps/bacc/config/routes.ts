@@ -6,7 +6,6 @@
 export const PUBLIC_ROUTES = [
     '/',
     '/login',
-    '/auth/callback',
 ];
 
 // 需要登录的路由 - 需要用户已登录

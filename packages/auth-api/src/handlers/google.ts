@@ -65,8 +65,29 @@ export async function handleGoogleCallback(request: NextRequest) {
         console.log('🔍 [Google OAuth Debug]');
         console.log('  OAUTH_CALLBACK_BASE:', callbackBase);
 
-        // 用 code 换取 access token
-        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        // 带重试的 fetch 函数
+        async function fetchWithRetry(url: string, options: RequestInit, retries = 3): Promise<Response> {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    return response;
+                } catch (error: any) {
+                    console.warn(`[Google OAuth] Fetch attempt ${i + 1} failed:`, error.message);
+
+                    // 如果是最后一次重试，抛出错误
+                    if (i === retries - 1) {
+                        throw error;
+                    }
+
+                    // 等待后重试（指数退避）
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+            throw new Error('All retry attempts failed');
+        }
+
+        // 用 code 换取 access token（带重试）
+        const tokenResponse = await fetchWithRetry('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -79,16 +100,16 @@ export async function handleGoogleCallback(request: NextRequest) {
         });
 
         if (!tokenResponse.ok) {
-            const error = await tokenResponse.json() as { error_description?: string };
+            const error = await tokenResponse.json() as { error?: string; error_description?: string };
             console.error('Google token exchange failed:', error);
-            throw new Error(error.error_description || 'Token exchange failed');
+            throw new Error(error.error_description || error.error || 'Token exchange failed');
         }
 
         const tokenData = await tokenResponse.json() as GoogleTokenResponse;
         const { access_token, refresh_token, expires_in } = tokenData;
 
-        // 获取用户信息
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        // 获取用户信息（带重试）
+        const userInfoResponse = await fetchWithRetry('https://www.googleapis.com/oauth2/v2/userinfo', {
             headers: { Authorization: `Bearer ${access_token}` }
         });
 

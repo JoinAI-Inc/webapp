@@ -21,6 +21,15 @@ export default function Navbar() {
                         Magic Studio
                     </Link>
 
+                    {user && (
+                        <Link
+                            href="/history"
+                            className="text-cny-ivory/60 hover:text-cny-gold transition-colors font-bold text-sm uppercase tracking-widest"
+                        >
+                            历史记录
+                        </Link>
+                    )}
+
                     {user ? (
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-cny-ivory/80 text-sm">

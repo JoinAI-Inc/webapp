@@ -51,11 +51,11 @@ export async function handleValidate(request: NextRequest) {
 
         // 查询用户
         const user = await prisma.user.findUnique({
-            where: { id: BigInt(payload.userId) },
+            where: { id: payload.userId },  // userId is now String
             select: {
                 id: true,
                 email: true,
-                fullName: true,
+                name: true,
                 status: true
             }
         });
@@ -87,7 +87,7 @@ export async function handleValidate(request: NextRequest) {
         const serializedUser = JSON.parse(JSON.stringify({
             id: user.id,
             email: user.email,
-            name: user.fullName
+            name: user.name
         }, (key, value) => typeof value === 'bigint' ? value.toString() : value));
 
         return NextResponse.json({
@@ -136,7 +136,7 @@ export async function handleRefresh(request: NextRequest) {
 
         // 查询用户
         const user = await prisma.user.findUnique({
-            where: { id: BigInt(payload.userId) }
+            where: { id: payload.userId }  // userId is now String
         });
 
         if (!user || user.status !== 'ACTIVE') {

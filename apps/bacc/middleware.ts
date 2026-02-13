@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isPublicRoute, PROTECTED_API_ROUTES } from './config/routes';
+import { auth } from './lib/auth';
+import { PROTECTED_API_ROUTES } from './config/routes';
 
 /**
  * Next.js 中间件
- * 保护需要认证的 API 路由
+ * 使用 Auth.js 保护需要认证的 API 路由
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // 只处理 API 路由
@@ -23,30 +24,20 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // 从 Cookie 获取令牌
-    const token = request.cookies.get('token')?.value;
+    // 使用 Auth.js 获取 session
+    const session = await auth();
 
-    // 如果需要认证但没有令牌,返回 401
-    if ((needsAuth || needsSubscription) && !token) {
+    // 如果需要认证但没有 session,返回 401
+    if ((needsAuth || needsSubscription) && !session) {
         return NextResponse.json(
             { error: 'Unauthorized', message: '需要登录' },
             { status: 401 }
         );
     }
 
-    // TODO: 验证令牌有效性
-    // 在真实应用中,应该调用后端 API 验证令牌
-    // const isValid = await validateToken(token);
-    // if (!isValid) {
-    //     return NextResponse.json(
-    //         { error: 'Unauthorized', message: '令牌无效或已过期' },
-    //         { status: 401 }
-    //     );
-    // }
-
     // TODO: 如果需要订阅,检查订阅状态
-    // if (needsSubscription) {
-    //     const hasSubscription = await checkSubscription(token);
+    // if (needsSubscription && session) {
+    //     const hasSubscription = await checkSubscription(session.user.id);
     //     if (!hasSubscription) {
     //         return NextResponse.json(
     //             { error: 'Forbidden', message: '需要订阅' },
@@ -65,7 +56,9 @@ export const config = {
         /*
          * 匹配所有 API 路由:
          * - /api/*
+         * 排除 Auth.js API 路由
          */
-        '/api/:path*',
+        '/api/((?!auth).*)',
     ],
 };
+

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { storage } from "@/app/lib/storage";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
     try {
+        // 获取用户 session
+        const session = await auth();
+        if (!session?.userId) {
+            return NextResponse.json({ error: "Unauthorized. Please login first." }, { status: 401 });
+        }
+
         const { image, scene, identity, voice, music, isMagic } = await req.json();
 
         if (!image) {
@@ -101,8 +109,47 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No image found in AI response" }, { status: 500 });
         }
 
+        // 上传到 R2
+        console.log(`📤 Uploading Video to R2 for user ${session.userId}...`);
+        const imageBuffer = Buffer.from(base64Image, 'base64');
+        const uploadResult = await storage.upload({
+            file: imageBuffer,
+            fileName: `video-${Date.now()}.png`,
+            appId: 'bacc',
+            tags: ['video', 'generated'],
+            metadata: {
+                generationType: 'video',
+                scene,
+                identity,
+                voice,
+                music,
+                isMagic
+            },
+            createdBy: session.userId.toString()
+        });
+
+        // 更新数据库记录
+        await storage['prisma'].mediaFile.update({
+            where: { id: uploadResult.id },
+            data: {
+                userId: session.userId,
+                generationType: 'video',
+                promptData: {
+                    scene,
+                    identity,
+                    voice,
+                    music,
+                    isMagic
+                }
+            }
+        });
+
+        console.log(`✅ Saved to R2: ${uploadResult.url}`);
+
         return NextResponse.json({
-            videoUrl: `data:${mimeType};base64,${base64Image}`,
+            videoUrl: uploadResult.url,
+            thumbnailUrl: uploadResult.thumbnailUrl,
+            fileId: uploadResult.id,
             mimeType
         });
     } catch (error: any) {

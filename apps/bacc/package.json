@@ -9,14 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@media/storage": "*",
     "@repo/auth-api": "*",
     "@repo/database": "*",
-    "@repo/platform-sdk": "*",
     "autoprefixer": "^10.4.23",
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.363.0",
     "next": "14.2.0",
+    "next-auth": "5.0.0-beta.25",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.2.2"

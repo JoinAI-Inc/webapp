@@ -70,16 +70,18 @@ export async function handleGetAppById(id: string) {
             );
         }
 
-        // 只返回针对此应用的一次性购买计划
+        // 查询所有与该应用关联的计划
+        // 必须在 PricingPlanApp 表中有明确的关联记录
         const plans = await prisma.pricingPlan.findMany({
             where: {
                 isActive: true,
                 status: 'ACTIVE',
-                scopeType: 'SPECIFIC_APP',
-                planType: 'ONE_TIME',
                 apps: {
                     some: { appId: app.id }
                 }
+            },
+            include: {
+                apps: { include: { app: true } }
             }
         });
 
@@ -114,7 +116,7 @@ export async function handleGetEntitlements(request: NextRequest) {
 
         const entitlements = await prisma.userEntitlement.findMany({
             where: {
-                userId: BigInt(userId),
+                userId,
                 status: 'ACTIVE'
             },
             include: {

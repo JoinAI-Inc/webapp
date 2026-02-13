@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 
@@ -19,11 +20,13 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.className} cny-gradient-bg min-h-screen`}>
-                <AuthProvider>
-                    <SubscriptionProvider>
-                        {children}
-                    </SubscriptionProvider>
-                </AuthProvider>
+                <SessionProvider>
+                    <AuthProvider>
+                        <SubscriptionProvider>
+                            {children}
+                        </SubscriptionProvider>
+                    </AuthProvider>
+                </SessionProvider>
             </body>
         </html>
     );

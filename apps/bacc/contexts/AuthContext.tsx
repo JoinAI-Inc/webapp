@@ -1,22 +1,14 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import AppSDK, { User } from '@repo/platform-sdk';
+import { useSession, signOut } from 'next-auth/react';
 
-// 创建SDK实例
-const sdk = new AppSDK({
-    apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
-    appId: process.env.NEXT_PUBLIC_APP_ID,
-    oauth: {
-        google: {
-            clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
-        },
-    },
-    autoValidate: {
-        enabled: true,
-        interval: 5 * 60 * 1000, // 每5分钟校验一次
-    },
-});
+// 本地类型定义
+interface User {
+    id: string;
+    email: string;
+    name: string;
+}
 
 interface AuthContextType {
     user: User | null;
@@ -24,59 +16,53 @@ interface AuthContextType {
     login: (provider: 'google' | 'apple' | 'discord' | 'twitter') => void;
     logout: () => void;
     refreshAuth: () => void;
-    sdk: AppSDK;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+    const { data: session, status } = useSession();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // 从 NextAuth session 同步到 AuthContext
+    useEffect(() => {
+        if (status === 'loading') {
+            setLoading(true);
+            return;
+        }
+
+        if (status === 'authenticated' && session?.user) {
+            // 直接使用 NextAuth session 中的用户信息
+            const userData = {
+                id: (session.user as any).id || session.user.email!,
+                email: session.user.email!,
+                name: session.user.name || '',
+            };
+            setUser(userData);
+            setLoading(false);
+        } else {
+            setUser(null);
+            setLoading(false);
+        }
+    }, [session, status]);
+
     // 手动刷新认证状态
     const refreshAuth = () => {
-        console.log('[AuthContext] 刷新认证状态...');
-        if (sdk.auth.isAuthenticated()) {
-            const currentUser = sdk.auth.getCurrentUser();
-            console.log('[AuthContext] 当前用户:', currentUser);
-            setUser(currentUser);
-        } else {
-            console.log('[AuthContext] 未登录');
-            setUser(null);
-        }
+        // NextAuth 会自动管理 session
     };
-
-    useEffect(() => {
-        // 检查现有登录状态
-        refreshAuth();
-        setLoading(false);
-
-        // 监听认证状态变更
-        const unsubscribe = sdk.onAuthStateChange((result) => {
-            console.log('[AuthContext] 认证状态变更:', result);
-            if (!result.isValid) {
-                console.log('[AuthContext] 认证已失效:', result.message);
-                setUser(null);
-            } else if (result.user) {
-                console.log('[AuthContext] 认证有效，更新用户:', result.user);
-                setUser(result.user);
-            }
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     const login = (provider: 'google' | 'apple' | 'discord' | 'twitter') => {
-        sdk.auth.login(provider);
+        // 请直接使用 signIn 方法登录
     };
 
-    const logout = () => {
-        sdk.auth.logout();
-        setUser(null);
+    const logout = async () => {
+        // 调用 NextAuth signOut
+        await signOut({ callbackUrl: '/' });
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, refreshAuth, sdk }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, refreshAuth }}>
             {children}
         </AuthContext.Provider>
     );

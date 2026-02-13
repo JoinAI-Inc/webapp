@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { storage } from "@/app/lib/storage";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
     try {
+        // 获取用户 session
+        const session = await auth();
+        if (!session?.userId) {
+            return NextResponse.json({ error: "Unauthorized. Please login first." }, { status: 401 });
+        }
+
         const { image, style } = await req.json();
 
         if (!image) {
@@ -114,8 +122,39 @@ export async function POST(req: NextRequest) {
 
         console.log(`Extraction SUCCESS. Mime: ${mimeType}, Size: ${base64Image.length}`);
 
+        // 上传到 R2
+        console.log(`📤 Uploading Hanfu to R2 for user ${session.userId}...`);
+        const imageBuffer = Buffer.from(base64Image, 'base64');
+        const uploadResult = await storage.upload({
+            file: imageBuffer,
+            fileName: `hanfu-${Date.now()}.png`,
+            appId: 'bacc',
+            tags: ['hanfu', 'generated'],
+            metadata: {
+                generationType: 'hanfu',
+                style
+            },
+            createdBy: session.userId.toString()
+        });
+
+        // 更新数据库记录
+        await storage['prisma'].mediaFile.update({
+            where: { id: uploadResult.id },
+            data: {
+                userId: session.userId,
+                generationType: 'hanfu',
+                promptData: {
+                    style
+                }
+            }
+        });
+
+        console.log(`✅ Saved to R2: ${uploadResult.url}`);
+
         return NextResponse.json({
-            image: `data:${mimeType};base64,${base64Image}`
+            image: uploadResult.url,
+            thumbnailUrl: uploadResult.thumbnailUrl,
+            fileId: uploadResult.id
         });
     } catch (error: any) {
         console.error("Hanfu API Route Error:", error);

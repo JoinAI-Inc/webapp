@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -10,7 +9,6 @@ type SyncStatus = 'syncing' | 'success' | 'error' | 'retrying';
 
 export default function PaymentSuccessPage() {
     const router = useRouter();
-    const { sdk } = useAuth();
     const { refreshSubscription } = useSubscription();
     const [status, setStatus] = useState<SyncStatus>('syncing');
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -25,9 +23,22 @@ export default function PaymentSuccessPage() {
             console.log(`[支付同步] 尝试同步支付状态 (第 ${attempt + 1}/${MAX_RETRIES + 1} 次)`, { sessionId });
 
             try {
-                // 尝试同步支付状态
-                await sdk.subscription.syncPaymentStatus(sessionId);
-                console.log('[支付同步] ✓ 支付状态同步成功');
+                // 直接调用 API，不使用 SDK
+                const response = await fetch('/api/payment/sync-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sessionId }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '同步支付状态失败');
+                }
+
+                const result = await response.json();
+                console.log('[支付同步] ✓ 支付状态同步成功', result);
 
                 // 刷新订阅状态
                 setStatus('success');
@@ -82,7 +93,7 @@ export default function PaymentSuccessPage() {
         }
 
         handleSuccess();
-    }, [sdk, refreshSubscription, router]);
+    }, [refreshSubscription, router]);
 
     // 手动跳转到首页
     const handleManualRedirect = () => {

@@ -17,7 +17,7 @@ import {
     History
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { withSubscription } from "@/components/withAuth";
+import SubscriptionGuard from "@/components/SubscriptionGuard";
 
 // Define the Modules
 const MODULES = [
@@ -84,6 +84,7 @@ function MagicStudio() {
         setIsPortraitGenerating(true);
         // Reuse the magic image API but focusing on character generation
         try {
+            // NextAuth middleware 会自动处理认证
             const response = await fetch("/api/generate/magic/image", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -120,6 +121,7 @@ function MagicStudio() {
         setIsAtmosphereGenerating(true);
         setGeneratedAtmosphere(null);
         try {
+            // NextAuth middleware 会自动处理认证
             const response = await fetch("/api/generate/magic/image", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -163,6 +165,7 @@ function MagicStudio() {
         }, 1000);
 
         try {
+            // NextAuth middleware 会自动处理认证
             const response = await fetch("/api/generate/video", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -433,4 +436,10 @@ function MagicStudio() {
 }
 
 // 使用订阅守卫保护此页面
-export default withSubscription(MagicStudio);
+export default function MagicStudioPage() {
+    return (
+        <SubscriptionGuard>
+            <MagicStudio />
+        </SubscriptionGuard>
+    );
+}

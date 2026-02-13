@@ -43,7 +43,7 @@ export async function handleSubscriptionStatus(request: NextRequest) {
         // 获取用户所有活跃的授权
         const entitlements = await prisma.userEntitlement.findMany({
             where: {
-                userId: BigInt(userId),
+                userId,
                 status: 'ACTIVE'
             },
             include: {
@@ -71,17 +71,10 @@ export async function handleSubscriptionStatus(request: NextRequest) {
 
         const isActive = activeEntitlements.length > 0;
 
-        // 判断是否有全局授权
-        const hasGlobalAccess = activeEntitlements.some(e => e.scopeType === 'GLOBAL');
-
-        // 获取可访问的应用列表
+        // 获取可访问的应用列表（基于apps关联）
         const accessibleAppIds = new Set<string>();
         activeEntitlements.forEach(e => {
-            if (e.scopeType === 'GLOBAL') {
-                // 全局授权
-            } else if (e.scopeType === 'SPECIFIC_APP') {
-                e.apps?.forEach(a => accessibleAppIds.add(a.app.id.toString()));
-            }
+            e.apps?.forEach(a => accessibleAppIds.add(a.app.id.toString()));
         });
 
         // 序列化授权信息
@@ -92,7 +85,6 @@ export async function handleSubscriptionStatus(request: NextRequest) {
 
         const response = {
             isActive,
-            hasGlobalAccess,
             accessibleAppIds: Array.from(accessibleAppIds),
             entitlements: serializedEntitlements,
             timestamp: new Date().toISOString()

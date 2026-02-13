@@ -88,11 +88,7 @@ function SubscribePageContent() {
 
                                             {/* 应用范围 */}
                                             <div className="mt-3">
-                                                {entitlement.scopeType === 'GLOBAL' ? (
-                                                    <p className="text-sm text-cny-ivory/60">
-                                                        ✨ 全局权限：可使用所有应用
-                                                    </p>
-                                                ) : entitlement.apps && entitlement.apps.length > 0 ? (
+                                                {entitlement.apps && entitlement.apps.length > 0 ? (
                                                     <div className="text-sm text-cny-ivory/60">
                                                         <p className="mb-1">包含应用:</p>
                                                         <div className="flex flex-wrap gap-2">
@@ -175,9 +171,9 @@ function SubscribePageContent() {
                                     <span className="text-4xl font-bold text-cny-gold">
                                         ¥{plan.price}
                                     </span>
-                                    {plan.interval && (
+                                    {plan.billingInterval && (
                                         <span className="text-cny-ivory/40">
-                                            /{plan.interval === 'MONTH' ? '月' : plan.interval === 'YEAR' ? '年' : plan.interval}
+                                            /{plan.billingInterval === 'MONTH' ? '月' : plan.billingInterval === 'YEAR' ? '年' : plan.billingInterval}
                                         </span>
                                     )}
                                 </div>

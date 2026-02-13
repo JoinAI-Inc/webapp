@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
 
 interface AuthGuardProps {
     children: React.ReactNode;
@@ -38,18 +39,7 @@ export default function AuthGuard({
 
     // 加载中或检查中
     if (loading || isChecking) {
-        if (fallback) {
-            return <>{fallback}</>;
-        }
-
-        return (
-            <div className="min-h-screen bg-black text-white flex items-center justify-center">
-                <div className="text-center space-y-4">
-                    <div className="w-16 h-16 border-4 border-cny-gold border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-xl text-cny-ivory/60">验证中...</p>
-                </div>
-            </div>
-        );
+        return fallback ? <>{fallback}</> : <LoadingSpinner message="验证中..." />;
     }
 
     // 如果需要认证但用户未登录,不渲染内容(正在重定向)

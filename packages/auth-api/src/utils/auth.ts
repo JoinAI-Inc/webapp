@@ -12,7 +12,7 @@ export function generateAuthToken(user: User): string {
     const payload = {
         userId: user.id.toString(),
         email: user.email,
-        name: user.fullName
+        name: user.name
     };
 
     const secret = process.env.JWT_SECRET;
@@ -28,18 +28,31 @@ export function generateAuthToken(user: User): string {
  */
 export function verifyAuthToken(token: string): { userId: string; email: string; name: string } {
     const secret = process.env.JWT_SECRET;
+
+    console.log('[verifyAuthToken] Debug:', {
+        hasSecret: !!secret,
+        secretPreview: secret ? `${secret.substring(0, 10)}...` : 'none',
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'none'
+    });
+
     if (!secret) {
+        console.error('[verifyAuthToken] JWT_SECRET is not configured!');
         throw new Error('JWT_SECRET is not configured');
     }
 
     try {
         const payload = jwt.verify(token, secret) as any;
+        console.log('[verifyAuthToken] Token verified successfully:', {
+            userId: payload.userId,
+            email: payload.email
+        });
         return {
             userId: payload.userId,
             email: payload.email,
             name: payload.name
         };
     } catch (error) {
+        console.error('[verifyAuthToken] Verification failed:', error);
         throw new Error('Invalid token');
     }
 }
@@ -51,7 +64,7 @@ export function serializeUser(user: User) {
     return JSON.parse(JSON.stringify({
         id: user.id,
         email: user.email,
-        name: user.fullName
+        name: user.name
     }, (key, value) => typeof value === 'bigint' ? value.toString() : value));
 }
 
@@ -120,7 +133,7 @@ export async function findOrCreateUser(provider: string, providerData: ProviderD
         user = await prisma.user.create({
             data: {
                 email: email || `${provider}_${sub}@placeholder.com`,
-                fullName: name || `${provider} User`,
+
                 status: 'ACTIVE'
             }
         });
