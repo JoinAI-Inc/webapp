@@ -9,10 +9,18 @@ import { logger } from '@/lib/logger';
 interface Plan {
     id: number;
     name: string;
-    planType: 'SUBSCRIPTION' | 'ONE_TIME';
+    planType: 'SUBSCRIPTION' | 'ONE_TIME' | 'USAGE_PACK';
     price: string;
     currency: string;
     billingInterval?: 'MONTH' | 'QUARTER' | 'YEAR';
+    usagePacks?: Array<{
+        featureId: string;
+        usageCount: number;
+        feature: {
+            featureKey: string;
+            name: string;
+        };
+    }>;
 }
 
 interface Entitlement {

@@ -142,7 +142,10 @@ function SubscribePageContent() {
         );
     }
 
-    // 未订阅用户：显示订阅方案
+    // 未订阅用户：显示订阅方案和次数包
+    const subscriptionPlans = plans.filter(p => p.planType === 'SUBSCRIPTION' || p.planType === 'ONE_TIME');
+    const usagePlans = plans.filter(p => p.planType === 'USAGE_PACK');
+
     return (
         <div className="min-h-screen bg-black text-white py-20 px-6">
             <div className="max-w-6xl mx-auto">
@@ -153,60 +156,106 @@ function SubscribePageContent() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {plans.length === 0 && (
-                        <div className="col-span-full text-center py-12">
-                            <p className="text-cny-ivory/40">暂无可用的订阅方案</p>
+                {/* 订阅方案 */}
+                {subscriptionPlans.length > 0 && (
+                    <>
+                        <h2 className="text-3xl font-bold text-cny-ivory mb-8">订阅方案</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                            {subscriptionPlans.map((plan) => (
+                                <div
+                                    key={plan.id}
+                                    className="glass-card p-8 space-y-6 hover:border-cny-gold/50 transition-all"
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-bold text-cny-ivory">{plan.name}</h3>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-4xl font-bold text-cny-gold">
+                                                ¥{plan.price}
+                                            </span>
+                                            {plan.billingInterval && (
+                                                <span className="text-cny-ivory/40">
+                                                    /{plan.billingInterval === 'MONTH' ? '月' : plan.billingInterval === 'YEAR' ? '年' : plan.billingInterval}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
+                                            <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
+                                            <span>无限制使用所有功能</span>
+                                        </div>
+                                        <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
+                                            <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
+                                            <span>AI 汉服形象生成</span>
+                                        </div>
+                                        <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
+                                            <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
+                                            <span>拜年视频定制</span>
+                                        </div>
+                                        <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
+                                            <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
+                                            <span>家装过年化</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => subscribe(plan.id)}
+                                        className="w-full px-6 py-4 bg-gradient-to-r from-cny-red to-cny-red-dark rounded-xl font-bold shadow-[0_0_30px_rgba(238,45,47,0.3)] hover:scale-105 transition-all"
+                                    >
+                                        立即订阅
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-                    )}
+                    </>
+                )}
 
-                    {plans.map((plan) => (
-                        <div
-                            key={plan.id}
-                            className="glass-card p-8 space-y-6 hover:border-cny-gold/50 transition-all"
-                        >
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-cny-ivory">{plan.name}</h3>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-bold text-cny-gold">
-                                        ¥{plan.price}
-                                    </span>
-                                    {plan.billingInterval && (
-                                        <span className="text-cny-ivory/40">
-                                            /{plan.billingInterval === 'MONTH' ? '月' : plan.billingInterval === 'YEAR' ? '年' : plan.billingInterval}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+                {/* 次数包方案 */}
+                {usagePlans.length > 0 && (
+                    <>
+                        <h2 className="text-3xl font-bold text-cny-ivory mb-8">次数包方案</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {usagePlans.map((plan) => (
+                                <div
+                                    key={plan.id}
+                                    className="glass-card p-6 space-y-4 hover:border-cny-gold/50 transition-all"
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="text-xl font-bold text-cny-ivory">{plan.name}</h3>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-3xl font-bold text-cny-gold">
+                                                ¥{plan.price}
+                                            </span>
+                                        </div>
+                                    </div>
 
-                            <div className="space-y-3">
-                                <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
-                                    <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
-                                    <span>无限制使用所有功能</span>
-                                </div>
-                                <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
-                                    <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
-                                    <span>AI 汉服形象生成</span>
-                                </div>
-                                <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
-                                    <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
-                                    <span>拜年视频定制</span>
-                                </div>
-                                <div className="flex items-start gap-2 text-cny-ivory/80 text-sm">
-                                    <Check className="w-5 h-5 text-cny-gold flex-shrink-0 mt-0.5" />
-                                    <span>家装过年化</span>
-                                </div>
-                            </div>
+                                    <div className="space-y-2">
+                                        {plan.usagePacks?.map((pack, idx) => (
+                                            <div key={idx} className="flex items-center gap-2 text-cny-ivory/80 text-sm">
+                                                <Package className="w-4 h-4 text-cny-gold flex-shrink-0" />
+                                                <span>{pack.usageCount}次 {pack.feature.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
 
-                            <button
-                                onClick={() => subscribe(plan.id)}
-                                className="w-full px-6 py-4 bg-gradient-to-r from-cny-red to-cny-red-dark rounded-xl font-bold shadow-[0_0_30px_rgba(238,45,47,0.3)] hover:scale-105 transition-all"
-                            >
-                                立即订阅
-                            </button>
+                                    <button
+                                        onClick={() => subscribe(plan.id)}
+                                        className="w-full px-4 py-3 bg-gradient-to-r from-cny-red to-cny-red-dark rounded-lg font-bold shadow-[0_0_20px_rgba(238,45,47,0.2)] hover:scale-105 transition-all text-sm"
+                                    >
+                                        立即购买
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </>
+                )}
+
+                {plans.length === 0 && (
+                    <div className="text-center py-12">
+                        <p className="text-cny-ivory/40">暂无可用的方案</p>
+                    </div>
+                )}
             </div>
         </div>
     );

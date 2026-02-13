@@ -54,7 +54,8 @@ router.get('/apps/:id', async (req: Request, res: Response) => {
             }
         },
         include: {
-            apps: { include: { app: true } }
+            apps: { include: { app: true } },
+            usagePacks: { include: { feature: true } }
         }
     });
 
@@ -66,16 +67,23 @@ router.get('/apps/:id', async (req: Request, res: Response) => {
 });
 
 // GET /api/store/plans
-// Public: Get all SUBSCRIPTION plans (since all plans now have app associations)
+// Public: Get all active plans (SUBSCRIPTION, ONE_TIME, USAGE_PACK)
 router.get('/plans', async (req: Request, res: Response) => {
+    const { appId } = req.query;
+
     const plans = await prisma.pricingPlan.findMany({
         where: {
             isActive: true,
             status: 'ACTIVE',
-            planType: 'SUBSCRIPTION' // Only show subscription plans
+            ...(appId && {
+                apps: {
+                    some: { appId: BigInt(appId as string) }
+                }
+            })
         },
         include: {
-            apps: { include: { app: true } }
+            apps: { include: { app: true } },
+            usagePacks: { include: { feature: true } }
         },
         orderBy: { price: 'asc' }
     });
