@@ -134,7 +134,7 @@ router.post('/consume', async (req, res) => {
 
         // 使用事务处理消费逻辑
         const result = await prisma.$transaction(async (tx) => {
-            // 查找用户余额
+            // 1. 查找用户余额（获取快照）
             const balance = await tx.userFeatureBalance.findUnique({
                 where: {
                     userId_featureId: {
@@ -148,7 +148,37 @@ router.post('/consume', async (req, res) => {
                 throw new Error('Insufficient balance');
             }
 
-            // 扣减余额
+            const balanceBefore = balance.remainingCount;
+            const balanceAfter = balanceBefore - usedCount;
+
+            // 2. 找到可用的usage_pack（FIFO）
+            const availablePack = await tx.userUsagePack.findFirst({
+                where: {
+                    userId,
+                    featureId: feature.id,
+                    remainingCount: { gt: 0 },
+                    OR: [
+                        { expiresAt: null },
+                        { expiresAt: { gt: new Date() } }
+                    ]
+                },
+                orderBy: { purchasedAt: 'asc' }
+            });
+
+            let usagePackId = null;
+            let orderId = null;
+
+            // 3. 扣减pack余额
+            if (availablePack) {
+                await tx.userUsagePack.update({
+                    where: { id: availablePack.id },
+                    data: { remainingCount: { decrement: usedCount } }
+                });
+                usagePackId = availablePack.id;
+                orderId = availablePack.orderId;
+            }
+
+            // 4. 扣减汇总余额
             const updatedBalance = await tx.userFeatureBalance.update({
                 where: {
                     userId_featureId: {
@@ -163,16 +193,22 @@ router.post('/consume', async (req, res) => {
                 }
             });
 
-            // 创建使用日志
+            // 5. 创建使用日志（带快照）
             const log = await tx.usageLog.create({
                 data: {
                     userId,
                     featureId: feature.id,
                     sourceType: 'USAGE_PACK',
+                    usagePackId,
+                    orderId,
                     usedCount,
+                    balanceBefore,
+                    balanceAfter,
                     metadata
                 }
             });
+
+            console.log(`[Consume] User ${userId}: ${balanceBefore} → ${balanceAfter}${usagePackId ? ` (pack #${usagePackId})` : ''}`);
 
             return { balance: updatedBalance, log };
         });
