@@ -287,4 +287,80 @@ router.get('/logs/:userId', authenticateJWT, async (req, res) => {
     }
 });
 
+/**
+ * POST /api/usage/check-access
+ * 检查用户对功能的访问权限（仅用于前端UI判断，不执行扣减）
+ */
+router.post('/check-access', authenticateJWT, async (req, res) => {
+    try {
+        const { userId, featureKey } = req.body;
+
+        if (!userId || !featureKey) {
+            return res.status(400).json({
+                error: 'Missing required fields: userId, featureKey'
+            });
+        }
+
+        // 1. 查找feature
+        const feature = await prisma.feature.findUnique({
+            where: { featureKey }
+        });
+
+        if (!feature || !feature.isActive) {
+            return res.json({ hasAccess: false, source: null });
+        }
+
+        // 2. 检查订阅权益（优先）
+        const subscription = await prisma.userEntitlement.findFirst({
+            where: {
+                userId,
+                status: 'ACTIVE',
+                OR: [
+                    { expireTime: null },
+                    { expireTime: { gt: new Date() } }
+                ],
+                apps: {
+                    some: {
+                        app: {
+                            id: feature.appId
+                        }
+                    }
+                }
+            }
+        });
+
+        if (subscription) {
+            return res.json({
+                hasAccess: true,
+                source: 'SUBSCRIPTION',
+                unlimited: true
+            });
+        }
+
+        // 3. 检查次数包余额
+        const balance = await prisma.userFeatureBalance.findUnique({
+            where: {
+                userId_featureId: {
+                    userId,
+                    featureId: feature.id
+                }
+            }
+        });
+
+        if (balance && balance.remainingCount > 0) {
+            return res.json({
+                hasAccess: true,
+                source: 'USAGE_PACK',
+                remainingCount: balance.remainingCount
+            });
+        }
+
+        // 4. 无权限
+        res.json({ hasAccess: false, source: null });
+    } catch (error: any) {
+        console.error('[Usage API] Error checking access:', error);
+        res.status(500).json({ error: 'Failed to check access' });
+    }
+});
+
 export default router;

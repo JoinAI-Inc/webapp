@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { UsageProvider } from "@/contexts/UsageContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,9 @@ export default function RootLayout({
                 <SessionProvider>
                     <AuthProvider>
                         <SubscriptionProvider>
-                            {children}
+                            <UsageProvider>
+                                {children}
+                            </UsageProvider>
                         </SubscriptionProvider>
                     </AuthProvider>
                 </SessionProvider>
