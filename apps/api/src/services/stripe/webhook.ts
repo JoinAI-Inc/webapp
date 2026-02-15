@@ -294,7 +294,20 @@ async function processPaymentSuccess(
             // 次数包类型：更新用户余额
             if (plan.usagePacks && plan.usagePacks.length > 0) {
                 for (const usagePack of plan.usagePacks) {
-                    // 查找或创建用户余额
+                    // 1. 创建user_usage_pack记录
+                    await tx.userUsagePack.create({
+                        data: {
+                            userId: order.userId,
+                            orderId: order.id,
+                            featureId: usagePack.featureId,
+                            totalCount: usagePack.usageCount,
+                            remainingCount: usagePack.usageCount,
+                            purchasedAt: new Date(),
+                            expiresAt: null
+                        }
+                    });
+
+                    // 2. 查找或创建用户余额
                     const existingBalance = await tx.userFeatureBalance.findUnique({
                         where: {
                             userId_featureId: {
@@ -329,7 +342,7 @@ async function processPaymentSuccess(
                     }
 
                     console.log(
-                        `[Webhook] Added ${usagePack.usageCount} uses of feature ${usagePack.feature.featureKey} for user ${order.userId}`
+                        `[Webhook] Created pack #${order.id}:${usagePack.featureId} + added ${usagePack.usageCount} uses for user ${order.userId}`
                     );
                 }
             }
