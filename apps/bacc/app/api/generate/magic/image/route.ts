@@ -1,12 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MAGIC_STUDIO_PROMPTS } from "@/config/prompts";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
     try {
+        // 1. 获取当前登录用户
+        const session = await auth();
+        if (!session?.user) {
+            return NextResponse.json({ error: "未登录" }, { status: 401 });
+        }
+
+        const userId = (session as any).userId;
+        if (!userId) {
+            return NextResponse.json({ error: "用户ID未找到" }, { status: 401 });
+        }
+
         const { characters, backgroundType, backgroundDesc, elements, customBg } = await req.json();
 
         if (!characters || !Array.isArray(characters)) {
             return NextResponse.json({ error: "Invalid characters data." }, { status: 400 });
+        }
+
+        // 2. 检查用户是否有权限访问该功能
+        const featureKey = 'bacc_hanfu_generation'; // 使用汉服生成功能
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+        console.log(`[Magic Generation] Checking access for user ${userId}, feature ${featureKey}`);
+
+        try {
+            const checkResponse = await fetch(`${apiUrl}/api/usage/check-access`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId,
+                    featureKey
+                })
+            });
+
+            const checkData = await checkResponse.json();
+
+            if (!checkResponse.ok || !checkData.hasAccess) {
+                console.log(`[Magic Generation] Access denied:`, checkData);
+                return NextResponse.json({
+                    error: checkData.message || "您没有权限使用此功能，请购买订阅或次数包"
+                }, { status: 403 });
+            }
+
+            console.log(`[Magic Generation] Access granted:`, checkData);
+        } catch (error: any) {
+            console.error(`[Magic Generation] Access check failed:`, error);
+            return NextResponse.json({ error: "权限检查失败，请稍后重试" }, { status: 500 });
         }
 
         const apiKey = process.env.NANO_BANANA_API_KEY;
@@ -119,6 +164,35 @@ export async function POST(req: NextRequest) {
 
         if (!base64Image) {
             return NextResponse.json({ error: "No image found in AI response" }, { status: 500 });
+        }
+
+        // 3. 生成成功，扣减次数
+        console.log(`[Magic Generation] Generation successful, consuming usage for user ${userId}`);
+
+        try {
+            const consumeResponse = await fetch(`${apiUrl}/api/usage/consume`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId,
+                    featureKey,
+                    count: 1
+                })
+            });
+
+            if (!consumeResponse.ok) {
+                const consumeData = await consumeResponse.json();
+                console.error(`[Magic Generation] Failed to consume usage:`, consumeData);
+                // 即使扣减失败也返回图片，但记录错误
+            } else {
+                const consumeData = await consumeResponse.json();
+                console.log(`[Magic Generation] Usage consumed successfully:`, consumeData);
+            }
+        } catch (error: any) {
+            console.error(`[Magic Generation] Consume usage failed:`, error);
+            // 即使扣减失败也返回图片，但记录错误
         }
 
         return NextResponse.json({

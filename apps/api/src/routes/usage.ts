@@ -110,9 +110,10 @@ router.get('/balance/:userId/:featureKey', authenticateJWT, async (req, res) => 
 
 /**
  * POST /api/usage/consume
- * 消耗使用次数
+ * 消费次数（扣减余额）
+ * 不需要JWT认证，使用请求体中的userId
  */
-router.post('/consume', authenticateJWT, async (req, res) => {
+router.post('/consume', async (req, res) => {
     try {
         const { userId, featureKey, usedCount = 1, metadata } = req.body;
 
@@ -273,9 +274,10 @@ router.get('/logs/:userId', authenticateJWT, async (req, res) => {
 
 /**
  * POST /api/usage/check-access
- * 检查用户对功能的访问权限（仅用于前端UI判断，不执行扣减）
+ * 检查用户是否有访问特定功能的权限（订阅或次数包）
+ * 不需要JWT认证，使用请求体中的userId
  */
-router.post('/check-access', authenticateJWT, async (req, res) => {
+router.post('/check-access', async (req, res) => {
     try {
         const { userId, featureKey } = req.body;
 
