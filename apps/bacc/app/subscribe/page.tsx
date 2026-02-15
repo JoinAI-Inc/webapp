@@ -22,13 +22,15 @@ function SubscribePageContent() {
     console.log('[Subscribe Page] Balance loading:', balanceLoading);
     console.log('[Subscribe Page] User:', user);
 
-    // 手动刷新余额
+    // 手动刷新余额 - 只在用户ID变化时执行一次
     useEffect(() => {
-        console.log('[Subscribe Page] Manually refreshing balances');
+        console.log('[Subscribe Page] User ID changed, refreshing balances');
         if (user?.id && refreshBalances) {
             refreshBalances();
         }
-    }, [user?.id, refreshBalances]);
+        // 不依赖refreshBalances，避免无限循环
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     // 如果已订阅且有重定向参数,自动跳转
     useEffect(() => {

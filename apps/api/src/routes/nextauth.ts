@@ -99,7 +99,7 @@ router.post('/nextauth/callback', async (req: Request, res: Response) => {
             } else {
                 // 更新现有绑定
                 await prisma.userSocialBind.update({
-                    where: { id: googleBind.id },
+                    where: { id: socialBind.id },
                     data: {
                         socialEmail: email,
                         socialName: name,
