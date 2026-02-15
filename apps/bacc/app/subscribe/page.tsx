@@ -3,8 +3,10 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useUsage } from '@/contexts/UsageContext';
 import { Check, Crown, Calendar, Package } from 'lucide-react';
 import AuthGuard from '@/components/AuthGuard';
+import { BalanceCard } from '@/components/BalanceCard';
 import { useEffect } from 'react';
 
 
@@ -14,6 +16,7 @@ function SubscribePageContent() {
     const redirectTo = searchParams.get('redirectTo');
     const { user } = useAuth();
     const { plans, loading, hasAccess, entitlements, subscribe } = useSubscription();
+    const { balances, loading: balanceLoading } = useUsage();
 
     // 如果已订阅且有重定向参数,自动跳转
     useEffect(() => {
