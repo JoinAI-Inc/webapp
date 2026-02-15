@@ -27,18 +27,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 从 NextAuth session 同步到 AuthContext
     useEffect(() => {
+        console.log('[AuthContext] Session status:', status);
+        console.log('[AuthContext] Session data:', session);
+
         if (status === 'loading') {
             setLoading(true);
             return;
         }
 
         if (status === 'authenticated' && session?.user) {
-            // 直接使用 NextAuth session 中的用户信息
+            // 使用后端返回的数据库user ID，而不是OAuth provider ID
+            const dbUserId = (session as any).userId; // 从后端callback返回的真实数据库ID
             const userData = {
-                id: (session.user as any).id || session.user.email!,
+                id: dbUserId || session.user.email!, // fallback到email
                 email: session.user.email!,
                 name: session.user.name || '',
             };
+            console.log('[AuthContext] User data:', userData);
             setUser(userData);
             setLoading(false);
         } else {

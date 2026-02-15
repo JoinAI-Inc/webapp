@@ -23,18 +23,18 @@ function generateAuthToken(user: User) {
  */
 router.post('/nextauth/callback', async (req: Request, res: Response) => {
     try {
-        const { googleId, email, name, image } = req.body;
+        const { provider, providerAccountId, email, name, image } = req.body;
 
-        if (!googleId || !email) {
+        if (!providerAccountId || !email) {
             return res.status(400).json({
                 error: 'Missing required fields',
-                message: 'googleId and email are required'
+                message: 'providerAccountId and email are required'
             });
         }
 
-        console.log('[NextAuth Callback] 收到用户信息:', { googleId, email, name });
+        console.log('[NextAuth Callback] 收到用户信息:', { provider, providerAccountId, email, name });
 
-        // 查找或创建用户（基于 Google ID 和 email）
+        // 查找或创建用户（基于 provider ID 和 email）
         let user = await prisma.user.findFirst({
             where: {
                 OR: [
@@ -42,8 +42,8 @@ router.post('/nextauth/callback', async (req: Request, res: Response) => {
                     {
                         socialBinds: {
                             some: {
-                                provider: 'google',
-                                providerSub: googleId
+                                provider: provider || 'google',
+                                providerSub: providerAccountId
                             }
                         }
                     }
@@ -64,8 +64,8 @@ router.post('/nextauth/callback', async (req: Request, res: Response) => {
                     status: 'ACTIVE',
                     socialBinds: {
                         create: {
-                            provider: 'google',
-                            providerSub: googleId,
+                            provider: provider || 'google',
+                            providerSub: providerAccountId,
                             socialEmail: email,
                             socialName: name,
                             socialAvatar: image,
@@ -79,18 +79,18 @@ router.post('/nextauth/callback', async (req: Request, res: Response) => {
         } else {
             console.log('[NextAuth Callback] 用户已存在，更新信息');
 
-            // 检查是否已有 Google 绑定
-            const googleBind = user.socialBinds?.find(
-                bind => bind.provider === 'google' && bind.providerSub === googleId
+            // 检查是否已有 provider 绑定
+            const socialBind = user.socialBinds?.find(
+                bind => bind.provider === (provider || 'google') && bind.providerSub === providerAccountId
             );
 
-            if (!googleBind) {
-                // 添加 Google 绑定
+            if (!socialBind) {
+                // 添加 provider 绑定
                 await prisma.userSocialBind.create({
                     data: {
                         userId: user.id,
-                        provider: 'google',
-                        providerSub: googleId,
+                        provider: provider || 'google',
+                        providerSub: providerAccountId,
                         socialEmail: email,
                         socialName: name,
                         socialAvatar: image,
