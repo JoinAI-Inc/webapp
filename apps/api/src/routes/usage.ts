@@ -8,8 +8,9 @@ const router = Router();
 /**
  * GET /api/usage/balance/:userId
  * 获取用户所有功能点余额
+ * (不需要JWT认证，使用URL参数中的userId)
  */
-router.get('/balance/:userId', authenticateJWT, async (req, res) => {
+router.get('/balance/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
 
@@ -18,36 +19,19 @@ router.get('/balance/:userId', authenticateJWT, async (req, res) => {
             include: {
                 feature: {
                     include: {
-                        app: {
-                            select: {
-                                id: true,
-                                name: true,
-                                appKey: true
-                            }
-                        }
+                        app: true
                     }
                 }
             },
             orderBy: { updatedAt: 'desc' }
         });
 
-        // Serialize BigInt fields
-        const serializedBalances = balances.map((b: any) => ({
-            ...b,
-            id: b.id.toString(),
-            featureId: b.featureId.toString(),
-            feature: {
-                ...b.feature,
-                id: b.feature.id.toString(),
-                appId: b.feature.appId.toString(),
-                app: b.feature.app ? {
-                    ...b.feature.app,
-                    id: b.feature.app.id.toString()
-                } : null
-            }
-        }));
+        // 序列化BigInt
+        const serialized = JSON.parse(JSON.stringify(balances, (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        ));
 
-        res.json(serializedBalances);
+        res.json(serialized);
     } catch (error: any) {
         console.error('[Usage API] Error fetching balance:', error);
         res.status(500).json({ error: 'Failed to fetch balance' });
