@@ -16,7 +16,19 @@ function SubscribePageContent() {
     const redirectTo = searchParams.get('redirectTo');
     const { user } = useAuth();
     const { plans, loading, hasAccess, entitlements, subscribe } = useSubscription();
-    const { balances, loading: balanceLoading } = useUsage();
+    const { balances, loading: balanceLoading, refreshBalances } = useUsage();
+
+    console.log('[Subscribe Page] Balances:', balances);
+    console.log('[Subscribe Page] Balance loading:', balanceLoading);
+    console.log('[Subscribe Page] User:', user);
+
+    // 手动刷新余额
+    useEffect(() => {
+        console.log('[Subscribe Page] Manually refreshing balances');
+        if (user?.id && refreshBalances) {
+            refreshBalances();
+        }
+    }, [user?.id, refreshBalances]);
 
     // 如果已订阅且有重定向参数,自动跳转
     useEffect(() => {

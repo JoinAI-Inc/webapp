@@ -26,7 +26,17 @@ import usageRoutes from './routes/usage';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS配置 - 允许前端应用访问
+app.use(cors({
+    origin: [
+        'http://localhost:3003', // BACC前端
+        'http://localhost:3000', // 其他前端应用
+        'http://localhost:3002', // Admin前端
+    ],
+    credentials: true, // 允许携带cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Stripe webhook需要raw body，所以要在这个路由上使用express.raw
 // 其他路由使用bodyParser.json

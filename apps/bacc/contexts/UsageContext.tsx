@@ -23,9 +23,14 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
     // 初始化加载余额
     useEffect(() => {
+        console.log('[UsageContext] useEffect triggered, user:', user);
+        console.log('[UsageContext] user?.id:', user?.id);
+
         if (user?.id) {
+            console.log('[UsageContext] User ID exists, calling loadBalances');
             loadBalances();
         } else {
+            console.log('[UsageContext] No user ID, clearing balances');
             setBalances([]);
         }
     }, [user?.id]);
@@ -33,6 +38,7 @@ export function UsageProvider({ children }: { children: ReactNode }) {
     const loadBalances = async () => {
         if (!user?.id) return;
 
+        console.log('[UsageContext] Loading balances for user:', user.id);
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/api/usage/balance/${user.id}`, {
@@ -42,15 +48,19 @@ export function UsageProvider({ children }: { children: ReactNode }) {
                 credentials: 'include'
             });
 
+            console.log('[UsageContext] Balance API response status:', res.status);
+
             if (res.ok) {
                 const data = await res.json();
+                console.log('[UsageContext] Balance data received:', data);
                 setBalances(data);
             } else {
-                console.error('Failed to load balances:', await res.text());
+                const errorText = await res.text();
+                console.error('[UsageContext] Failed to load balances:', errorText);
                 setBalances([]);
             }
         } catch (error) {
-            console.error('Error loading balances:', error);
+            console.error('[UsageContext] Error loading balances:', error);
             setBalances([]);
         } finally {
             setLoading(false);
