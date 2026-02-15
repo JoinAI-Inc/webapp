@@ -38,16 +38,25 @@ function SubscribePageContent() {
         );
     }
 
-    // 已订阅用户：显示订阅详情
+    // 已订阅用户：显示订阅详情 + 余额 + 次数包
     if (hasAccess) {
+        const usagePlans = plans.filter(p => p.planType === 'USAGE_PACK');
+
         return (
             <div className="min-h-screen bg-black text-white py-20 px-6">
-                <div className="max-w-4xl mx-auto">
+                <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-12 space-y-4">
                         <Crown className="w-20 h-20 text-cny-gold mx-auto" />
                         <h1 className="text-4xl font-bold text-cny-gold">感谢订阅 BACC</h1>
                         <p className="text-cny-ivory/60">您已拥有完整使用权限</p>
                     </div>
+
+                    {/* 余额卡片 */}
+                    {balances.length > 0 && (
+                        <div className="mb-12">
+                            <BalanceCard balances={balances} loading={balanceLoading} />
+                        </div>
+                    )}
 
                     {/* 订阅详情卡片 */}
                     <div className="space-y-6">
@@ -113,6 +122,52 @@ function SubscribePageContent() {
                             ))
                         )}
                     </div>
+
+                    {/* 次数包购买区域 */}
+                    {usagePlans.length > 0 && (
+                        <div className="mb-12">
+                            <h2 className="text-2xl font-bold text-cny-ivory mb-4">按次购买</h2>
+                            <p className="text-sm text-cny-ivory/60 mb-6">
+                                购买次数包作为补充，叠加使用
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {usagePlans.map((plan) => (
+                                    <div
+                                        key={plan.id}
+                                        className="glass-card p-6 space-y-4 hover:border-cny-gold/50 transition-all"
+                                    >
+                                        <div className="space-y-2">
+                                            <div className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full mb-2">
+                                                按次购买
+                                            </div>
+                                            <h3 className="text-xl font-bold text-cny-ivory">{plan.name}</h3>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-3xl font-bold text-cny-gold">
+                                                    ¥{plan.price}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {plan.usagePacks?.map((pack: any, idx: number) => (
+                                                <div key={idx} className="flex items-center gap-2 text-cny-ivory/80 text-sm">
+                                                    <Package className="w-4 h-4 text-purple-300 flex-shrink-0" />
+                                                    <span>{pack.usageCount}次 {pack.feature.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            onClick={() => subscribe(plan.id)}
+                                            className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg font-bold shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:scale-105 transition-all text-sm"
+                                        >
+                                            立即购买
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* 操作按钮 */}
                     <div className="mt-12 flex gap-4 justify-center">
