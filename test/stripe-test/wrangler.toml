@@ -1,0 +1,39 @@
+# Cloudflare Workers 配置文件
+
+name = "stripe-subscription-worker"
+main = "worker-v3.js"
+compatibility_date = "2024-01-01"
+
+# Workers 路由配置
+# routes = [
+#   { pattern = "yourdomain.com/api/*", zone_name = "yourdomain.com" }
+# ]
+
+# KV 命名空间绑定（用于存储客户数据）
+kv_namespaces = [
+  { binding = "CUSTOMER_DATA", id = "your_kv_namespace_id", preview_id = "732a18631b814fb885350f12bc27f8f5" }
+]
+
+# 环境变量（敏感信息使用 wrangler secret 设置）
+# 本地开发：使用 .env 文件（或 .dev.vars，两者都支持）
+# 生产部署：wrangler secret put STRIPE_SECRET_KEY
+#          wrangler secret put STRIPE_WEBHOOK_SECRET
+
+[vars]
+# 非敏感的环境变量可以在这里设置
+ENVIRONMENT = "production"
+
+# 开发环境配置
+[env.dev]
+name = "stripe-subscription-worker-dev"
+kv_namespaces = [
+  { binding = "CUSTOMER_DATA", id = "your_dev_kv_namespace_id", preview_id = "your_preview_kv_namespace_id" }
+]
+
+[env.dev.vars]
+ENVIRONMENT = "development"
+
+# Workers 兼容性设置
+# [build]
+# command = ""
+

@@ -1,0 +1,25 @@
+# Python测试依赖
+
+# 核心测试框架
+pytest>=8.2.0
+pytest-cov>=4.1.0
+pytest-html>=4.1.1
+
+# HTTP请求库
+requests==2.31.0
+
+# Mock库
+responses==0.24.1
+
+# 数据验证
+jsonschema==4.20.0
+
+# 环境变量管理
+python-dotenv==1.0.0
+
+# 彩色输出
+colorama==0.4.6
+
+# 报告生成
+pytest-json-report==1.5.0
+

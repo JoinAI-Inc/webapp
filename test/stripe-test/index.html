@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订阅服务 - 选择您的方案</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .tab-button {
+            padding: 12px 32px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-button:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pricing-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .card-header h3 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .card-header p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .price {
+            font-size: 3em;
+            font-weight: 700;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .price span {
+            font-size: 0.4em;
+            color: #999;
+        }
+
+        .features {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .features li {
+            padding: 12px 0;
+            color: #555;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .cta-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .cta-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .app-card h4 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .app-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .manage-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .manage-link:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 选择您的方案</h1>
+            <p>解锁强大的 Web 应用套件，提升工作效率</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="switchTab('subscription')">订阅方案</button>
+            <button class="tab-button" onclick="switchTab('apps')">单独购买</button>
+        </div>
+
+        <!-- 订阅方案 Tab -->
+        <div id="subscription-tab" class="tab-content active">
+            <div class="pricing-section" id="subscription-list">
+                <!-- 动态加载订阅方案 -->
+            </div>
+        </div>
+
+        <!-- 单独购买 Tab -->
+        <div id="apps-tab" class="tab-content">
+            <div class="app-grid" id="apps-list">
+                <!-- 动态加载单独购买项 -->
+            </div>
+        </div>
+
+        <a href="dashboard.html" class="manage-link">管理我的订阅 →</a>
+    </div>
+
+    <script>
+        // Stripe 配置
+        const stripe = Stripe('pk_test_51Si7fQ9taR4K6AMKMqhTKvBrG3cQxZ6fQBm3VZoLFJ7nFu9KxWfJX7rLQzLFPaKmvqqKZpXA9LqX6MwNzJNJ5k2400vJ3qZvCk'); // 替换为你的 Stripe 可发布密钥
+        const API_URL = '/api'; // Cloudflare Worker API 地址
+
+        // 价格数据（动态加载）
+        let priceConfig = {};
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPriceConfig();
+        });
+
+        // 加载价格配置
+        async function loadPriceConfig() {
+            try {
+                const response = await fetch(`${API_URL}/admin/prices`);
+                const data = await response.json();
+                priceConfig = data;
+                
+                // 更新页面显示的价格
+                updatePriceDisplay();
+                console.log('价格配置加载成功');
+            } catch (error) {
+                console.error('加载价格失败:', error);
+            }
+        }
+
+        // 更新页面价格显示 - 动态渲染所有产品
+        function updatePriceDisplay() {
+            const subscriptionList = document.getElementById('subscription-list');
+            const appsList = document.getElementById('apps-list');
+            
+            subscriptionList.innerHTML = '';
+            appsList.innerHTML = '';
+            
+            // 遍历所有价格配置
+            Object.entries(priceConfig).forEach(([key, config]) => {
+                if (config.type === 'recurring') {
+                    // 渲染订阅方案
+                    const card = createSubscriptionCard(key, config);
+                    subscriptionList.appendChild(card);
+                } else if (config.type === 'one_time') {
+                    // 渲染一次性购买
+                    const card = createAppCard(key, config);
+                    appsList.appendChild(card);
+                }
+            });
+        }
+
+        // 创建订阅卡片
+        function createSubscriptionCard(key, config) {
+            const card = document.createElement('div');
+            card.className = 'pricing-card';
+            
+            const interval = config.recurring?.interval || 'month';
+            const intervalText = interval === 'month' ? '月' : interval === 'year' ? '年' : interval;
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3>${config.productName}</h3>
+                    <p>灵活的付费方式，随时取消</p>
+                </div>
+                <div class="price">$${config.amount / 100}<span>/${intervalText}</span></div>
+                <ul class="features">
+                    <li>访问所有应用</li>
+                    <li>无限使用次数</li>
+                    <li>实时更新和新功能</li>
+                    <li>优先技术支持</li>
+                    <li>随时取消订阅</li>
+                </ul>
+                <button class="cta-button" onclick="createCheckoutSession('${key}')">
+                    立即订阅
+                </button>
+            `;
+            
+            return card;
+        }
+
+        // 创建应用卡片
+        function createAppCard(key, config) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            
+            // 提取应用名称和描述
+            const productName = config.productName || key;
+            const icon = getAppIcon(productName);
+            
+            card.innerHTML = `
+                <div class="app-icon">${icon}</div>
+                <h4>${productName}</h4>
+                <p>${config.productName}</p>
+                <div class="price" style="font-size: 2.5em; margin: 15px 0;">
+                    $${config.amount / 100}<span style="font-size: 0.5em;"> 一次性</span>
+                </div>
+                <button class="cta-button" onclick="createCheckoutSession('${key}')">
+                    购买永久使用权
+                </button>
+            `;
+            
+            return card;
+        }
+
+        // 根据产品名称获取图标
+        function getAppIcon(productName) {
+            const name = productName.toLowerCase();
+            if (name.includes('项目') || name.includes('project')) return '📊';
+            if (name.includes('数据') || name.includes('data') || name.includes('分析')) return '📈';
+            if (name.includes('客户') || name.includes('crm') || name.includes('关系')) return '👥';
+            if (name.includes('邮件') || name.includes('email')) return '📧';
+            if (name.includes('存储') || name.includes('storage')) return '💾';
+            return '📦'; // 默认图标
+        }
+
+        // Tab 切换
+        function switchTab(tabName) {
+            // 更新按钮状态
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // 创建 Checkout Session
+        async function createCheckoutSession(plan) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // 显示加载状态
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span>';
+
+            try {
+                // 获取当前用户信息（假设已登录）
+                const userId = getUserId(); // 从 localStorage 或 cookie 获取
+                const userEmail = getUserEmail();
+
+                // 调用后端 API 创建 checkout session
+                const response = await fetch(`${API_URL}/create-checkout-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        plan: plan,
+                        userId: userId,
+                        userEmail: userEmail,
+                        successUrl: window.location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+                        cancelUrl: window.location.origin + '/index.html',
+                    }),
+                });
+
+                const { sessionId, url, error } = await response.json();
+
+                if (error) {
+                    throw new Error(error);
+                }
+
+                // ✅ 使用官方推荐的方式：直接跳转到 session.url
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    throw new Error('未收到 Checkout URL');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('创建支付会话失败: ' + error.message);
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+
+        // 获取用户 ID（示例函数）
+        function getUserId() {
+            // 在实际应用中，这应该从你的认证系统获取
+            let userId = localStorage.getItem('userId');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('userId', userId);
+            }
+            return userId;
+        }
+
+        // 获取用户邮箱（示例函数）
+        function getUserEmail() {
+            // 在实际应用中，这应该从你的认证系统获取
+            let email = localStorage.getItem('userEmail');
+            if (!email) {
+                email = prompt('请输入您的邮箱地址:');
+                if (email) {
+                    localStorage.setItem('userEmail', email);
+                }
+            }
+            return email;
+        }
+    </script>
+</body>
+</html>

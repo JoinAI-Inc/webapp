@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .actions {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e68900;
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .user-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-info .email {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .user-info .customer-id {
+            color: #999;
+            font-size: 0.85em;
+            font-family: monospace;
+            margin-top: 5px;
+        }
+
+        .user-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box .label {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .value {
+            color: #333;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .badge-inactive {
+            background: #999;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .empty-state h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .pagination button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination .page-info {
+            color: #666;
+            font-size: 1em;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .page-size-selector select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 用户管理系统</h1>
+            <p>管理所有测试用户和他们的 Stripe 数据</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="openCreateUserModal()">➕ 创建新用户</button>
+            <button class="btn btn-success" onclick="loadAllUsers()">🔄 刷新数据</button>
+            <a href="prices-admin.html"><button class="btn btn-secondary">💰 价格管理</button></a>
+            
+            <div style="display: inline-block; margin-left: 20px;">
+                <label style="margin-right: 10px; color: #666;">数据源：</label>
+                <select id="dataSource" onchange="loadAllUsers()" style="padding: 10px; border-radius: 8px; border: 2px solid #ddd; font-size: 1em;">
+                    <option value="stripe">🔴 实时从 Stripe 读取（推荐）</option>
+                    <option value="kv">💾 从缓存读取（快速）</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="users-container">
+            <div class="loading">正在加载用户数据...</div>
+        </div>
+
+        <!-- 分页控件 -->
+        <div id="pagination" class="pagination" style="display: none;">
+            <button id="prevPage" onclick="changePage(-1)">← 上一页</button>
+            <span class="page-info" id="pageInfo">第 1 页</span>
+            <button id="nextPage" onclick="changePage(1)">下一页 →</button>
+            <div class="page-size-selector">
+                <label>每页显示：</label>
+                <select id="pageSize" onchange="changePageSize()">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建用户弹窗 -->
+    <div id="create-user-modal" class="modal">
+        <div class="modal-content">
+            <h2>创建新用户</h2>
+            <form onsubmit="createUser(event)">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="username" required placeholder="例如: 张三">
+                </div>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="email" required placeholder="例如: zhangsan@example.com">
+                </div>
+                <div class="form-group">
+                    <label>电话（可选）</label>
+                    <input type="tel" id="phone" placeholder="例如: +86 138 0000 0000">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">创建</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateUserModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8787/api';
+
+        // 分页状态
+        let currentPage = 1;
+        let currentPageSize = 20;
+        let hasMorePages = false;
+
+        // 页面加载时获取所有用户
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllUsers();
+        });
+
+        // 加载所有用户
+        async function loadAllUsers(page = currentPage) {
+            const container = document.getElementById('users-container');
+            const dataSource = document.getElementById('dataSource')?.value || 'stripe';
+            const pageSize = parseInt(document.getElementById('pageSize')?.value || currentPageSize);
+            
+            const sourceText = dataSource === 'stripe' ? '实时从 Stripe 读取中...' : '从缓存加载中...';
+            container.innerHTML = `<div class="loading">${sourceText}</div>`;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/users?source=${dataSource}&page=${page}&pageSize=${pageSize}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.users && data.users.length > 0) {
+                    displayUsers(data.users, data.source);
+                    
+                    // 更新分页状态
+                    currentPage = data.page || page;
+                    currentPageSize = data.pageSize || pageSize;
+                    hasMorePages = data.hasMore || false;
+                    
+                    // 显示和更新分页控件
+                    updatePagination(data.count, data.source === 'stripe');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>还没有用户</h3>
+                            <p>点击"创建新用户"开始</p>
+                            <button class="btn btn-primary" onclick="openCreateUserModal()">➕ 创建新用户</button>
+                        </div>
+                    `;
+                    document.getElementById('pagination').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>⚠️ 加载失败</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="loadAllUsers()">重试</button>
+                    </div>
+                `;
+                document.getElementById('pagination').style.display = 'none';
+            }
+        }
+
+        // 更新分页控件
+        function updatePagination(count, isRealtime) {
+            const pagination = document.getElementById('pagination');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+
+            if (isRealtime) {
+                // 实时模式：使用 Stripe 的分页
+                pagination.style.display = 'flex';
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = !hasMorePages;
+                pageInfo.textContent = `第 ${currentPage} 页 · 本页 ${count} 个用户`;
+            } else {
+                // 缓存模式：目前不分页，隐藏分页控件
+                pagination.style.display = 'none';
+            }
+        }
+
+        // 切换页面
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1) {
+                loadAllUsers(newPage);
+            }
+        }
+
+        // 改变每页大小
+        function changePageSize() {
+            currentPage = 1; // 重置到第一页
+            loadAllUsers(1);
+        }
+
+        // 显示用户列表
+        function displayUsers(users, source = 'kv') {
+            const container = document.getElementById('users-container');
+            
+            // 添加信息栏
+            const infoBar = document.createElement('div');
+            infoBar.style.cssText = 'background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;';
+            const sourceIcon = source === 'stripe' ? '🔴' : '💾';
+            const sourceText = source === 'stripe' ? '实时数据（来自 Stripe）' : '缓存数据（来自 KV）';
+            infoBar.innerHTML = `
+                <div>
+                    <strong>${sourceIcon} ${sourceText}</strong>
+                    <span style="margin-left: 20px; color: #666;">共 ${users.length} 个用户</span>
+                </div>
+                ${source === 'kv' ? '<small style="color: #ff9800;">💡 提示：切换到"实时从 Stripe 读取"可查看最新数据</small>' : '<small style="color: #4CAF50;">✅ 显示的是最新数据</small>'}
+            `;
+            
+            const grid = document.createElement('div');
+            grid.className = 'users-grid';
+
+            users.forEach(user => {
+                const card = createUserCard(user);
+                grid.appendChild(card);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(infoBar);
+            container.appendChild(grid);
+        }
+
+        // 创建用户卡片
+        function createUserCard(user) {
+            const card = document.createElement('div');
+            card.className = 'user-card';
+
+            const hasActiveSubscription = user.subscriptions && user.subscriptions.some(s => s.status === 'active');
+            const statusBadge = hasActiveSubscription ? 
+                '<span class="badge badge-active">活跃订阅</span>' : 
+                '<span class="badge badge-inactive">无订阅</span>';
+
+            card.innerHTML = `
+                <div class="user-header">
+                    <div class="user-info">
+                        <h3>${user.name || user.email}</h3>
+                        <div class="email">${user.email}</div>
+                        <div class="customer-id">User ID: ${user.userId}</div>
+                        ${user.customerId ? `<div class="customer-id">Stripe: ${user.customerId}</div>` : ''}
+                    </div>
+                    ${statusBadge}
+                </div>
+
+                <div class="user-stats">
+                    <div class="stat-box">
+                        <div class="label">活跃订阅</div>
+                        <div class="value">${user.subscriptionCount || 0}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">一次性购买</div>
+                        <div class="value">${user.purchaseCount || 0}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">总支付</div>
+                        <div class="value">$${(user.totalSpent || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">创建时间</div>
+                        <div class="value" style="font-size: 0.9em;">${new Date(user.createdAt).toLocaleDateString()}</div>
+                    </div>
+                </div>
+
+                <div class="user-actions">
+                    <button class="btn btn-primary btn-small" onclick="startTest('${user.userId}', '${user.customerId}')">🧪 开始测试</button>
+                    <button class="btn btn-primary btn-small" onclick="viewUserDetails('${user.customerId}', '${user.name || user.email}')">📊 查看详情</button>
+                    <button class="btn btn-danger btn-small" onclick="deleteUser('${user.userId}')">删除</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 打开创建用户弹窗
+        function openCreateUserModal() {
+            document.getElementById('create-user-modal').classList.add('active');
+        }
+
+        // 关闭创建用户弹窗
+        function closeCreateUserModal() {
+            document.getElementById('create-user-modal').classList.remove('active');
+        }
+
+        // 创建用户
+        async function createUser(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, phone }),
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                alert(`用户创建成功！\n用户ID: ${data.userId}\nStripe Customer: ${data.customerId}`);
+                closeCreateUserModal();
+                loadAllUsers();
+
+                // 清空表单
+                document.getElementById('username').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('phone').value = '';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('创建用户失败: ' + error.message);
+            }
+        }
+
+        // 开始测试
+        function startTest(userId, customerId) {
+            // 如果有 customerId，优先使用 customerId（确保关联到正确的 Stripe Customer）
+            const targetId = customerId || userId;
+            window.open(`test.html?userId=${targetId}&customerId=${customerId || ''}`, '_blank');
+        }
+
+        // 查看用户详情
+        function viewUserDetails(customerId, userName) {
+            window.open(`user-details.html?customerId=${customerId}&userName=${encodeURIComponent(userName)}`, '_blank');
+        }
+
+        // 同步用户数据（已废弃：现在直接从 Stripe 实时读取）
+        async function syncUserData(userId) {
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${userId}/sync`, {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                alert('数据同步成功！');
+                loadAllUsers();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('同步失败: ' + error.message);
+            }
+        }
+
+        // 删除用户
+        async function deleteUser(userId) {
+            if (!confirm('确定要删除这个用户吗？这将删除所有相关数据（但不会删除 Stripe 中的数据）。')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                    method: 'DELETE',
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                alert('用户删除成功！');
+                loadAllUsers();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 从 Stripe 导入所有客户（已废弃：现在默认从 Stripe 实时读取）
+        async function importCustomers() {
+            if (!confirm('这将从 Stripe 导入所有客户数据（包括未在系统中的客户）。继续吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/import-customers`, {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                alert(`导入完成！\n新导入客户: ${data.importedCount}\n更新客户: ${data.updatedCount}\nStripe 总客户数: ${data.totalCustomers}`);
+                loadAllUsers();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('导入失败: ' + error.message);
+            }
+        }
+
+        // 同步所有 Stripe 数据（已废弃：现在默认从 Stripe 实时读取）
+        async function syncWithStripe() {
+            if (!confirm('这将从 Stripe 同步所有数据，可能需要一些时间。继续吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/sync-all`, {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                alert(`同步完成！\n同步用户数: ${data.syncedUsers}\n更新订阅数: ${data.updatedSubscriptions}`);
+                loadAllUsers();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('同步失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+

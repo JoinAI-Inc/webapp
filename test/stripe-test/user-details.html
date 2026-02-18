@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户详情</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header .customer-id {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .close-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #e0e0e0;
+            color: #333;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .list-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .list-item-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-canceled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .amount {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1 id="userName">用户详情</h1>
+                <div class="customer-id" id="customerId">加载中...</div>
+            </div>
+            <button class="close-btn" onclick="window.close()">关闭</button>
+        </div>
+
+        <!-- 统计总览 -->
+        <div class="section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">活跃订阅</div>
+                    <div class="stat-value" id="subscriptionCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">一次性购买</div>
+                    <div class="stat-value" id="purchaseCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">总支付金额</div>
+                    <div class="stat-value" id="totalSpent">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 订阅列表 -->
+        <div class="section">
+            <h2 class="section-title">🔄 订阅列表</h2>
+            <div id="subscriptions-list">
+                <div class="loading">正在加载订阅数据...</div>
+            </div>
+        </div>
+
+        <!-- 一次性购买列表 -->
+        <div class="section">
+            <h2 class="section-title">🛍️ 一次性购买</h2>
+            <div id="purchases-list">
+                <div class="loading">正在加载购买记录...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8787/api';
+
+        // 从 URL 获取参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerId = urlParams.get('customerId');
+        const userName = urlParams.get('userName') || '未知用户';
+
+        // 设置用户名
+        document.getElementById('userName').textContent = decodeURIComponent(userName);
+        document.getElementById('customerId').textContent = `Customer ID: ${customerId}`;
+
+        // 加载用户详情
+        async function loadUserDetails() {
+            if (!customerId) {
+                alert('缺少客户 ID');
+                return;
+            }
+
+            try {
+                // 使用 customerId 获取订阅信息
+                const response = await fetch(`${API_URL}/subscription/${customerId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // 显示统计数据
+                const activeSubscriptions = data.subscription && data.subscription.status === 'active' ? 1 : 0;
+                document.getElementById('subscriptionCount').textContent = activeSubscriptions;
+                document.getElementById('purchaseCount').textContent = data.purchases?.length || 0;
+                
+                // 计算总支付（从订阅和购买）
+                let totalSpent = 0;
+                if (data.subscription) {
+                    totalSpent += (data.subscription.amount || 0) / 100;
+                }
+                data.purchases?.forEach(p => {
+                    totalSpent += p.amount || 0;
+                });
+                document.getElementById('totalSpent').textContent = `$${totalSpent.toFixed(2)}`;
+
+                // 显示订阅列表
+                displaySubscriptions(data.subscription);
+
+                // 显示购买列表
+                displayPurchases(data.purchases);
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('加载用户详情失败: ' + error.message);
+            }
+        }
+
+        // 显示订阅列表
+        function displaySubscriptions(subscription) {
+            const container = document.getElementById('subscriptions-list');
+            
+            if (!subscription) {
+                container.innerHTML = '<div class="empty-state">暂无订阅</div>';
+                return;
+            }
+
+            const statusBadge = subscription.status === 'active' 
+                ? '<span class="badge badge-active">活跃</span>'
+                : '<span class="badge badge-canceled">已取消</span>';
+
+            const periodEnd = new Date(subscription.current_period_end * 1000).toLocaleDateString();
+
+            container.innerHTML = `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <h3>${subscription.planName || '订阅'}</h3>
+                        <p>周期：${subscription.interval}</p>
+                        <p>当前周期结束：${periodEnd}</p>
+                        <p>订阅 ID: ${subscription.id}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        ${statusBadge}
+                        <div class="amount">$${((subscription.amount || 0) / 100).toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 显示购买列表
+        function displayPurchases(purchases) {
+            const container = document.getElementById('purchases-list');
+            
+            if (!purchases || purchases.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无一次性购买记录</div>';
+                return;
+            }
+
+            container.innerHTML = purchases.map(purchase => {
+                const date = purchase.createdDate || new Date(purchase.created * 1000).toLocaleDateString();
+                const typeLabel = purchase.type === 'charge' ? '直接支付' : '发票支付';
+                const idLabel = purchase.type === 'charge' ? 'Charge ID' : 'Invoice ID';
+                return `
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <h3>${purchase.description || '一次性购买'}</h3>
+                            <p>购买日期：${date} · ${typeLabel}</p>
+                            <p>${idLabel}: ${purchase.id}</p>
+                        </div>
+                        <div class="amount">$${(purchase.amount || 0).toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 页面加载时获取数据
+        loadUserDetails();
+    </script>
+</body>
+</html>
+
