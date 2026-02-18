@@ -32,6 +32,9 @@ export interface UploadOptions {
     tags?: string[];                  // 标签
     metadata?: Record<string, any>;   // 扩展元数据
     createdBy?: string;               // 创建用户
+    userId?: string;                  // BACC 用户ID
+    generationType?: string;          // BACC 生成类型
+    promptData?: Record<string, any>; // BACC 提示词数据
 }
 
 export interface UploadResult {

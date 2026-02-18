@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Users,
@@ -46,6 +46,7 @@ function MagicStudio() {
     const [generatedPortrait, setGeneratedPortrait] = useState<string | null>(null);
     const [isPortraitGenerating, setIsPortraitGenerating] = useState(false);
     const portraitInputRef = useRef<HTMLInputElement>(null);
+    const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Atmosphere State
     const [bgType, setBgType] = useState<'preset' | 'custom'>('preset');
@@ -61,6 +62,94 @@ function MagicStudio() {
     const [isSynthesizing, setIsSynthesizing] = useState(false);
     const [videoProgress, setVideoProgress] = useState(0);
     const videoInputRef = useRef<HTMLInputElement>(null);
+
+    // 页面加载时检查是否有进行中的任务
+    useEffect(() => {
+        checkCurrentTask();
+
+        // 组件卸载时清除轮询
+        return () => {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+            }
+        };
+    }, []);
+
+    const checkCurrentTask = async () => {
+        try {
+            const res = await fetch('/api/queue/current-task');
+            const data = await res.json();
+
+            if (data.taskId && data.status && data.status !== 'completed' && data.status !== 'failed') {
+                // 有进行中的任务，恢复 UI 状态
+                console.log('[Magic Studio] Resuming task:', data.taskId);
+
+                // 从 metadata 恢复 payload
+                if (data.metadata?.payload) {
+                    const { characters } = data.metadata.payload;
+                    if (characters && Array.isArray(characters)) {
+                        // 恢复上传的图片
+                        setPortraits(characters);
+                        console.log('[Magic Studio] Restored', characters.length, 'portraits from metadata');
+                    }
+                }
+
+                setIsPortraitGenerating(true);
+                startPolling();
+            }
+        } catch (error) {
+            console.error('[Magic Studio] Failed to check current task:', error);
+        }
+    };
+
+    const startPolling = () => {
+        // 清除之前的轮询
+        if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+        }
+
+        pollIntervalRef.current = setInterval(async () => {
+            try {
+                const res = await fetch('/api/queue/current-task');
+                const data = await res.json();
+
+                if (!data.taskId || !data.status) {
+                    // 没有任务或任务已清除
+                    if (pollIntervalRef.current) {
+                        clearInterval(pollIntervalRef.current);
+                        pollIntervalRef.current = null;
+                    }
+                    setIsPortraitGenerating(false);
+                    return;
+                }
+
+                console.log('[Magic Studio] Task status:', data.status);
+
+                if (data.status === 'completed') {
+                    if (pollIntervalRef.current) {
+                        clearInterval(pollIntervalRef.current);
+                        pollIntervalRef.current = null;
+                    }
+                    setIsPortraitGenerating(false);
+
+                    if (data.result?.imageUrl) {
+                        setGeneratedPortrait(data.result.imageUrl);
+                        setVideoSourceImage(data.result.imageUrl);
+                    }
+                } else if (data.status === 'failed') {
+                    if (pollIntervalRef.current) {
+                        clearInterval(pollIntervalRef.current);
+                        pollIntervalRef.current = null;
+                    }
+                    setIsPortraitGenerating(false);
+                    alert('生成失败: ' + (data.error || '未知错误'));
+                }
+                // pending 或 processing 状态继续轮询
+            } catch (error) {
+                console.error('[Magic Studio] Polling error:', error);
+            }
+        }, 3000); // 每3秒轮询一次
+    };
 
 
     // --- Portrait Logic ---
@@ -82,6 +171,8 @@ function MagicStudio() {
     const generatePortrait = async () => {
         if (portraits.length === 0) return;
         setIsPortraitGenerating(true);
+        setGeneratedPortrait(null); // 清除之前的结果
+
         // Reuse the magic image API but focusing on character generation
         try {
             // NextAuth middleware 会自动处理认证
@@ -98,11 +189,12 @@ function MagicStudio() {
             });
             if (!response.ok) throw new Error("Failed");
             const data = await response.json();
-            setGeneratedPortrait(data.imageUrl);
-            setVideoSourceImage(data.imageUrl); // Optional: Auto-forward to video
+
+            // 开始轮询任务状态
+            console.log('[Magic Studio] Task submitted:', data.taskId);
+            startPolling();
         } catch (e) {
             console.error(e);
-        } finally {
             setIsPortraitGenerating(false);
         }
     };
@@ -157,38 +249,9 @@ function MagicStudio() {
     };
 
     const synthesizeVideo = async () => {
-        if (!videoSourceImage) return;
-        setIsSynthesizing(true);
-        setVideoProgress(5);
-        const interval = setInterval(() => {
-            setVideoProgress(prev => prev < 90 ? prev + Math.random() * 2 : prev);
-        }, 1000);
-
-        try {
-            // NextAuth middleware 会自动处理认证
-            const response = await fetch("/api/generate/video", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    image: videoSourceImage,
-                    scene: "Festive Celebration",
-                    voice: "Gentle Scholarly",
-                    music: "Lunar New Year Strings",
-                    isMagic: true
-                }),
-            });
-
-            if (!response.ok) throw new Error("Synthesis failed");
-            const data = await response.json();
-            setFinalVideo(data.videoUrl);
-            setVideoProgress(100);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            clearInterval(interval);
-            setIsSynthesizing(false);
-        }
+        alert("Motion Studio 功能暂未开放，敬请期待。");
     };
+
 
 
     const renderModuleContent = () => {
@@ -232,9 +295,14 @@ function MagicStudio() {
                                 <button
                                     onClick={generatePortrait}
                                     disabled={portraits.length === 0 || isPortraitGenerating}
-                                    className="w-full py-4 bg-cny-gold text-black font-bold rounded-xl hover:bg-cny-gold-light transition-colors disabled:opacity-50"
+                                    className="w-full py-4 bg-cny-gold text-black font-bold rounded-xl hover:bg-cny-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {isPortraitGenerating ? "Generating..." : "Generate Portrait"}
+                                    {isPortraitGenerating ? (
+                                        <span className="flex items-center justify-center gap-2">
+                                            <span className="animate-spin">⏳</span>
+                                            生成中...
+                                        </span>
+                                    ) : generatedPortrait ? "重新生成" : "生成肖像"}
                                 </button>
                             </div>
 
@@ -242,6 +310,12 @@ function MagicStudio() {
                             <div className="aspect-[4/5] bg-neutral-900 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center relative">
                                 {generatedPortrait ? (
                                     <img src={generatedPortrait} className="w-full h-full object-cover" />
+                                ) : isPortraitGenerating ? (
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 mx-auto mb-4 border-4 border-cny-gold border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-sm font-bold text-cny-gold uppercase">正在生成...</p>
+                                        <p className="text-xs text-cny-ivory/40 mt-2">预计需要 30-60 秒</p>
+                                    </div>
                                 ) : (
                                     <div className="text-center opacity-20">
                                         <Users className="w-12 h-12 mx-auto mb-2" />

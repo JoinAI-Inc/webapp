@@ -95,9 +95,10 @@ export default function HistoryPage() {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            magic: "魔法合成",
+            portrait: "肖像工作室",
+            magic: "肖像工作室",    // 兼容旧数据
+            hanfu: "肖像工作室",    // 兼容旧数据
             decor: "装饰",
-            hanfu: "汉服",
             video: "视频"
         };
         return labels[type] || type;
@@ -122,7 +123,7 @@ export default function HistoryPage() {
 
                 {/* 筛选器 */}
                 <div className="flex gap-4 mb-8">
-                    {["", "magic", "decor", "hanfu", "video"].map((type) => (
+                    {["", "portrait", "decor", "video"].map((type) => (
                         <button
                             key={type}
                             onClick={() => {
@@ -130,8 +131,8 @@ export default function HistoryPage() {
                                 setPage(1);
                             }}
                             className={`px-4 py-2 rounded-lg font-medium transition-all ${filter === type
-                                    ? "bg-cny-gold text-black"
-                                    : "bg-white/5 text-cny-ivory/60 hover:bg-white/10"
+                                ? "bg-cny-gold text-black"
+                                : "bg-white/5 text-cny-ivory/60 hover:bg-white/10"
                                 }`}
                         >
                             {type === "" ? "全部" : getTypeLabel(type)}

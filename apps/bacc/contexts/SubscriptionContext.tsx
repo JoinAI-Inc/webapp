@@ -102,11 +102,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const refreshSubscription = async () => {
+    const refreshSubscription = async (silent = false) => {
         if (!user) return;
 
         try {
-            setLoading(true);
+            // 首次加载时显示 loading，后续静默更新不闪烁
+            if (!silent) setLoading(true);
 
             // 直接调用 API
             const [entitlementsRes, plansRes] = await Promise.all([
@@ -202,7 +203,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (user) {
-            refreshSubscription();
+            // 已有数据时静默刷新，避免切换标签页闪烁
+            const silent = entitlements.length > 0;
+            refreshSubscription(silent);
         } else {
             setHasAccess(false);
             setPlans([]);

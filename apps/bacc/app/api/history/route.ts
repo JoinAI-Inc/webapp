@@ -26,7 +26,9 @@ export async function GET(req: NextRequest) {
         };
 
         if (type) {
-            where.generationType = type;
+            // 统一 magic/hanfu 为 portrait
+            const mappedType = (type === 'magic' || type === 'hanfu') ? 'portrait' : type;
+            where.generationType = mappedType;
         }
 
         const [items, total] = await Promise.all([
