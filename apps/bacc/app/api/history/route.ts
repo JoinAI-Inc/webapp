@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         ]);
 
         return NextResponse.json({
-            items: items.map(item => ({
+            items: items.map((item: (typeof items)[number]) => ({
                 id: item.id,
                 fileName: item.fileName,
                 fileType: item.fileType,

@@ -24,6 +24,7 @@ import subscriptionRoutes from './routes/subscription.js';
 import nextauthRoutes from './routes/nextauth.js';
 import usageRoutes from './routes/usage.js';
 import queueRoutes from './routes/queue.js';
+import templateRoutes from './routes/templates.js';
 
 // Configure global proxy if needed
 // Proxy removed by request
@@ -60,6 +61,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/usage', usageRoutes);
 app.use('/api/queue', queueRoutes);  // 队列路由
+app.use('/api/templates', templateRoutes); // 模板路由
 
 // Health check
 app.get('/health', (req, res) => {

@@ -879,5 +879,240 @@ router.post('/stripe/sync-subscriptions', async (req: Request, res: Response) =>
     }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 模板管理
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/admin/templates
+ * 管理端获取所有模板（含草稿）
+ */
+router.get('/templates', async (req: Request, res: Response) => {
+    try {
+        const { status, page = '1', pageSize = '20' } = req.query;
+        const pageNum = Math.max(1, parseInt(page as string));
+        const sizeNum = Math.min(100, Math.max(1, parseInt(pageSize as string)));
+        const skip = (pageNum - 1) * sizeNum;
+
+        const where: any = {};
+        if (status) where.status = status;
+
+        const [templates, total] = await Promise.all([
+            (prisma as any).template.findMany({
+                where,
+                skip,
+                take: sizeNum,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    tags: { include: { tag: true } },
+                    slots: { orderBy: { sortOrder: 'asc' } }
+                }
+            }),
+            (prisma as any).template.count({ where })
+        ]);
+
+        res.json({ data: templates, total, page: pageNum, pageSize: sizeNum });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/admin/templates/:id
+ */
+router.get('/templates/:id', async (req: Request, res: Response) => {
+    try {
+        const template = await (prisma as any).template.findUnique({
+            where: { id: req.params.id },
+            include: {
+                tags: { include: { tag: true } },
+                slots: { orderBy: { sortOrder: 'asc' } }
+            }
+        });
+        if (!template) return res.status(404).json({ error: 'Template not found' });
+        res.json(template);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/admin/templates
+ * 创建模板
+ * Body: { name, imageId?, imageUrl, descriptor, tagIds?, slots? }
+ *
+ * descriptor 示例见方案文档
+ * slots: [{ slotType: 'PERSON'|'OOTD'|'DECORATION', refId, label, description?, sortOrder? }]
+ */
+router.post('/templates', async (req: Request, res: Response) => {
+    try {
+        const { name, imageId, imageUrl, descriptor, tagIds = [], slots = [], status } = req.body;
+
+        if (!name || !imageUrl || !descriptor) {
+            return res.status(400).json({ error: 'name, imageUrl, descriptor are required' });
+        }
+
+        // 从 descriptor 提取冗余字段
+        const resolution = descriptor.resolution ?? null;
+        const theme = descriptor.global_config?.theme ?? null;
+
+        const template = await (prisma as any).template.create({
+            data: {
+                id: crypto.randomUUID(),
+                name,
+                imageId: imageId ?? null,
+                imageUrl,
+                descriptor,
+                resolution,
+                theme,
+                status: status ?? 'DRAFT',
+                tags: {
+                    create: (tagIds as string[]).map((tagId: string) => ({ tagId }))
+                },
+                slots: {
+                    create: (slots as any[]).map((s: any, i: number) => ({
+                        id: crypto.randomUUID(),
+                        slotType: s.slotType,
+                        refId: s.refId,
+                        label: s.label,
+                        description: s.description ?? null,
+                        sortOrder: s.sortOrder ?? i
+                    }))
+                }
+            },
+            include: {
+                tags: { include: { tag: true } },
+                slots: { orderBy: { sortOrder: 'asc' } }
+            }
+        });
+
+        res.status(201).json(template);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+/**
+ * PUT /api/admin/templates/:id
+ * 更新模板（支持部分更新）
+ * Body: { name?, imageId?, imageUrl?, descriptor?, tagIds?, slots?, status? }
+ */
+router.put('/templates/:id', async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name, imageId, imageUrl, descriptor, tagIds, slots, status } = req.body;
+
+        const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
+        if (imageId !== undefined) updateData.imageId = imageId;
+        if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+        if (status !== undefined) updateData.status = status;
+        if (descriptor !== undefined) {
+            updateData.descriptor = descriptor;
+            updateData.resolution = descriptor.resolution ?? null;
+            updateData.theme = descriptor.global_config?.theme ?? null;
+        }
+
+        // 更新标签（全量替换）
+        if (tagIds !== undefined) {
+            await (prisma as any).templateTag.deleteMany({ where: { templateId: id } });
+            if (tagIds.length > 0) {
+                await (prisma as any).templateTag.createMany({
+                    data: (tagIds as string[]).map((tagId: string) => ({ templateId: id, tagId }))
+                });
+            }
+        }
+
+        // 更新槽位（全量替换）
+        if (slots !== undefined) {
+            await (prisma as any).templateSlot.deleteMany({ where: { templateId: id } });
+            if (slots.length > 0) {
+                await (prisma as any).templateSlot.createMany({
+                    data: (slots as any[]).map((s: any, i: number) => ({
+                        id: crypto.randomUUID(),
+                        templateId: id,
+                        slotType: s.slotType,
+                        refId: s.refId,
+                        label: s.label,
+                        description: s.description ?? null,
+                        sortOrder: s.sortOrder ?? i
+                    }))
+                });
+            }
+        }
+
+        const template = await (prisma as any).template.update({
+            where: { id },
+            data: updateData,
+            include: {
+                tags: { include: { tag: true } },
+                slots: { orderBy: { sortOrder: 'asc' } }
+            }
+        });
+
+        res.json(template);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/admin/templates/:id
+ */
+router.delete('/templates/:id', async (req: Request, res: Response) => {
+    try {
+        await (prisma as any).template.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 标签管理
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/admin/tags
+ */
+router.get('/tags', async (_req: Request, res: Response) => {
+    try {
+        const tags = await (prisma as any).tag.findMany({ orderBy: { name: 'asc' } });
+        res.json(tags);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/admin/tags
+ * Body: { name }
+ */
+router.post('/tags', async (req: Request, res: Response) => {
+    try {
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ error: 'name is required' });
+        const tag = await (prisma as any).tag.create({
+            data: { id: crypto.randomUUID(), name }
+        });
+        res.status(201).json(tag);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/admin/tags/:id
+ */
+router.delete('/tags/:id', async (req: Request, res: Response) => {
+    try {
+        await (prisma as any).tag.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 export default router;
+
 

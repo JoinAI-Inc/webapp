@@ -82,10 +82,11 @@ model User {
   orders          Order[]
   entitlements    UserEntitlement[]
   socialBinds     UserSocialBind[]
-  mediaFiles      MediaFile[]
-  featureBalances UserFeatureBalance[]
-  usagePacks      UserUsagePack[] // 用户购买的次数包
-  usageLogs       UsageLog[]
+  mediaFiles         MediaFile[]
+  featureBalances    UserFeatureBalance[]
+  usagePacks         UserUsagePack[] // 用户购买的次数包
+  usageLogs          UsageLog[]
+  templateFavorites  TemplateFavorite[]
 
   @@map("users")
 }
@@ -441,4 +442,114 @@ model UserUsagePack {
   @@index([userId, featureId, expiresAt])
   @@index([userId, featureId, remainingCount])
   @@map("user_usage_packs")
+}
+
+// ============================================
+// 模板系统
+// ============================================
+
+enum TemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SlotType {
+  OOTD        // 穿搭替换（针对特定人物）
+  DECORATION  // 装饰/道具替换
+  PERSON      // 人物整体替换
+}
+
+// 模板主表
+model Template {
+  id            String         @id @default(cuid())
+  name          String
+  status        TemplateStatus @default(DRAFT)
+
+  // 图片信息
+  imageId       String?        @map("image_id")   // 关联 MediaFile.id
+  imageUrl      String         @map("image_url")  // 冗余存储直接读取
+
+  // JSON 描述文件内容
+  descriptor    Json
+  resolution    String?                           // 如 "2:3"，从 descriptor 提取
+  theme         String?                           // 从 descriptor.global_config.theme 提取
+
+  // 统计（冗余存储避免聚合查询）
+  favoriteCount Int            @default(0) @map("favorite_count")
+
+  // 审计
+  createdBy     String?        @map("created_by")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  tags      TemplateTag[]
+  favorites TemplateFavorite[]
+  slots     TemplateSlot[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("templates")
+}
+
+// 标签
+model Tag {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  templates TemplateTag[]
+
+  @@map("tags")
+}
+
+// 模板-标签关联
+model TemplateTag {
+  templateId String @map("template_id")
+  tagId      String @map("tag_id")
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([templateId, tagId])
+  @@map("template_tags")
+}
+
+// 用户收藏
+model TemplateFavorite {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  templateId String   @map("template_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id])
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, templateId])
+  @@index([userId])
+  @@map("template_favorites")
+}
+
+// 替换槽位配置
+model TemplateSlot {
+  id          String   @id @default(cuid())
+  templateId  String   @map("template_id")
+
+  slotType    SlotType @map("slot_type")   // OOTD | DECORATION | PERSON
+
+  // 关联到 descriptor 中的元素 ID
+  // OOTD/PERSON -> subjects[].subject_id
+  // DECORATION  -> interactive_props[].prop_id
+  refId       String   @map("ref_id")
+
+  label       String
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("template_slots")
 }

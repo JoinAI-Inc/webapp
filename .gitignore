@@ -94,3 +94,7 @@ temp/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# bacc public image assets (large files, managed separately)
+apps/bacc/public/new-home/
+apps/bacc/public/new-home-compressed/
