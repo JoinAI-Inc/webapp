@@ -27,45 +27,53 @@
 在 monorepo 根目录创建 `apps/api/Dockerfile`：
 
 ```dockerfile
-# 从 monorepo 根目录构建（因为依赖了内部包）
+# 从 monorepo 根目录构建（使用 turbo prune 优化并解决 Prisma 生成问题）
 FROM node:20-alpine AS builder
 
 WORKDIR /app
+RUN npm install -g turbo
+COPY . .
+# 剪裁出 api 及其内部依赖所需的代码
+RUN turbo prune --scope=api --docker
 
-# 复制 monorepo 配置
-COPY package.json yarn.lock ./
-COPY apps/api/package.json ./apps/api/
-COPY packages/database/package.json ./packages/database/
-COPY packages/storage/package.json ./packages/storage/
+FROM node:20-alpine AS installer
+WORKDIR /app
 
-# 安装依赖
+# 安装依赖前先复制 package.json 和 lockfile
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/yarn.lock ./yarn.lock
+
+# ⚠️ 关键点：如果是 Prisma，`yarn install` 的 postinstall 钩子需要 schema.prisma，
+# 因此提前把 Prisma 的 schema 拿过来。根据你的路径修改：
+COPY --from=builder /app/out/full/packages/database/prisma ./packages/database/prisma/
+
+# 安装所有依赖
 RUN yarn install --frozen-lockfile
 
-# 复制源码
-COPY apps/api/ ./apps/api/
-COPY packages/database/ ./packages/database/
-COPY packages/storage/ ./packages/storage/
+# 复制完整的项目代码
+COPY --from=builder /app/out/full/ .
 
-# 构建内部包
-RUN cd packages/database && yarn build 2>/dev/null || true
-RUN cd packages/storage && yarn build 2>/dev/null || true
-
-# 构建 api
-RUN cd apps/api && yarn build
+# 构建内部包和 api
+RUN npm install -g turbo
+RUN turbo run build --filter=api
 
 # 生产镜像
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/package.json ./
-COPY --from=builder /app/packages/database/dist ./node_modules/@repo/database/dist
-COPY --from=builder /app/packages/storage/dist ./node_modules/@media/storage/dist
+# 生产环境只需要复制必要文件，保留 yarn workspaces 结构
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/yarn.lock ./yarn.lock
+COPY --from=installer /app/packages/database/prisma ./packages/database/prisma/
+RUN yarn install --production --frozen-lockfile --ignore-scripts
 
-RUN yarn install --production --frozen-lockfile
+# 复制构建产物 (dist)
+COPY --from=installer /app/apps/api/dist ./apps/api/dist/
+COPY --from=installer /app/packages/database/dist ./packages/database/dist/
+COPY --from=installer /app/packages/storage/dist ./packages/storage/dist/
 
 EXPOSE 3001
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/api/dist/index.js"]
 ```
 
 > [!NOTE]
@@ -98,34 +106,14 @@ port = 3001
 export default {
   async fetch(request, env) {
     // 将所有请求转发到 Container
-    const container = env.CONTAINER;
+    // ⚠️ 这里的 binding 名称取决于 wrangler.toml 的 [[containers.ports]] 的 name 字段，上面定义为了 "api"
+    const container = env.api;
     return container.fetch(request);
   }
 };
 ```
 
-### 4. 配置环境变量
-
-在 Cloudflare Dashboard → Workers & Pages → bacc-api → Settings → Variables 中添加：
-
-| 变量名 | 值 |
-|---|---|
-| `NODE_ENV` | `production` |
-| `PORT` | `3001` |
-| `NANO_BANANA_API_KEY` | `sk-xxx...` |
-| `NANO_BANANA_BASE_URL` | `http://43.134.55.109:3000/v1beta` |
-| `NANO_BANANA_PORTRAIT_SINGLE_MODELS` | `gemini-3-pro-image-preview-2k` |
-| `NANO_BANANA_PORTRAIT_MULTI_MODELS` | `gemini-3-pro-image-preview-2k` |
-| `UPSTASH_REDIS_REST_URL` | `https://xxx.upstash.io` |
-| `UPSTASH_REDIS_REST_TOKEN` | `xxx` |
-| `DATABASE_URL` | `libsql://xxx.turso.io` |
-| `TURSO_AUTH_TOKEN` | `xxx` |
-| `STRIPE_SECRET_KEY` | `sk_live_xxx` |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_xxx` |
-| `JWT_SECRET` | `xxx` |
-| `WORKER_SECRET` | `xxx` |
-
-### 5. 构建并部署
+### 4. 构建并部署
 
 ```bash
 # 在 monorepo 根目录执行
@@ -136,10 +124,41 @@ docker build -f apps/api/Dockerfile -t bacc-api:latest .
 # 推送到 Cloudflare Container Registry
 wrangler containers push bacc-api:latest
 
-# 部署
+# 部署 Worker（此时容器还未启动，scale-to-zero 状态）
 cd apps/api
 wrangler deploy
 ```
+
+### 5. 立刻写入环境变量（deploy 后、第一次请求前）
+
+> [!IMPORTANT]
+> Cloudflare Containers 是 **scale-to-zero**，`wrangler deploy` 本身不启动容器，容器在收到第一个请求时才冷启动。必须在容器处理第一个真实请求**之前**把变量写好。
+>
+> `wrangler secret put` 要求 Worker 已存在，所以顺序是：先 deploy，立刻写入 secrets，才能接受流量。
+
+在 `apps/api/` 目录创建一个本地的 `.env.production`（**不要提交到 git**）：
+
+```bash
+NANO_BANANA_API_KEY=sk-xxx...
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+DATABASE_URL=libsql://xxx.turso.io
+TURSO_AUTH_TOKEN=xxx
+STRIPE_SECRET_KEY=sk_live_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+JWT_SECRET=xxx
+WORKER_SECRET=xxx
+```
+
+然后批量写入：
+
+```bash
+cd apps/api
+wrangler secret bulk .env.production
+```
+
+> [!NOTE]
+> `wrangler.toml` 中的 `[vars]` 已配置了非敏感变量（`NODE_ENV`、`PORT`、模型列表等），随代码一起部署，无需在这里写入。
 
 ### 6. 获取 api 的公网地址
 
@@ -163,8 +182,8 @@ https://bacc-api.<your-subdomain>.workers.dev
 | 配置项 | 值 |
 |---|---|
 | Framework preset | `Next.js` |
-| Build command | `cd ../.. && yarn build --filter=bacc` |
-| Build output directory | `apps/bacc/.next` |
+| Build command | `cd ../.. && npx @cloudflare/next-on-pages --experimental-minify --cwd apps/bacc` |
+| Build output directory | `apps/bacc/.vercel/output/static` |
 | Root directory | `/` |
 
 ### 2. 配置环境变量
