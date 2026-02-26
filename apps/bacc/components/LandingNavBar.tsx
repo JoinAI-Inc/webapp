@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 export default function LandingNavBar() {
     const navRef = useRef<HTMLElement>(null);
     const pathname = usePathname();
@@ -74,7 +76,7 @@ export default function LandingNavBar() {
                         style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}
                     >
                         <Image
-                            src="/new-home/icon-web.png"
+                            src={`${IMAGE_URL}/new-home/icon-web.png`}
                             alt="lucky-photo"
                             width={120}
                             height={32}

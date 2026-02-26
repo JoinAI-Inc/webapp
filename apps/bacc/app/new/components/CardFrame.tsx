@@ -1,5 +1,7 @@
 import React from "react";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 interface CardFrameProps {
     children?: React.ReactNode;
     width?: number | string;
@@ -31,7 +33,7 @@ export function CardFrame({
                 borderStyle: "solid",
                 borderColor: "transparent",
                 borderWidth: "50px",
-                borderImageSource: "url('/new-home/card-frame.svg')",
+                borderImageSource: "url(`${IMAGE_URL}/new-home/card-frame.svg`)",
                 borderImageSlice: "50 50 50 50 fill",
                 borderImageRepeat: "stretch",
                 boxSizing: "border-box",

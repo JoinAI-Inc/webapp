@@ -3,40 +3,42 @@
 import Image from "next/image";
 import { TryItFreeButton } from "./TryItFreeButton";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 // Hero 背景纹理 - 18% opacity 链状图案
-const imgHeroBg = "/ffadf5fb1f01ca6670a33456d4e265c872ccafab.png";
+const imgHeroBg = `${IMAGE_URL}/new-home/bg-hero.png`;
 
 // Hero 图片数组 (从Figma导出) - null 代表边缘灰色占位块
 const ROW_IMAGES: (string)[][] = [
     [
-        "/new-home/img-home-hero-1-1.png",
-        "/new-home/img-home-hero-1-2.png",
-        "/new-home/img-home-hero-1-3.png",
-        "/new-home/img-home-hero-1-4.png",
-        "/new-home/img-home-hero-1-5.png",
-        "/new-home/img-home-hero-1-6.png",
-        "/new-home/img-home-hero-1-7.png",
-        "/new-home/img-home-hero-1-8.png",
+        `${IMAGE_URL}/new-home/img-home-hero-1-1.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-2.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-3.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-4.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-5.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-6.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-7.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-1-8.png`,
     ],
     [
-        "/new-home/img-home-hero-2-1.png",
-        "/new-home/img-home-hero-2-2.png",
-        "/new-home/img-home-hero-2-3.png",
-        "/new-home/img-home-hero-2-4.png",
-        "/new-home/img-home-hero-2-5.png",
-        "/new-home/img-home-hero-2-6.png",
-        "/new-home/img-home-hero-2-7.png",
-        "/new-home/img-home-hero-2-8.png",
+        `${IMAGE_URL}/new-home/img-home-hero-2-1.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-2.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-3.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-4.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-5.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-6.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-7.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-2-8.png`,
     ],
     [
-        "/new-home/img-home-hero-3-1.png",
-        "/new-home/img-home-hero-3-2.png",
-        "/new-home/img-home-hero-3-3.png",
-        "/new-home/img-home-hero-3-4.png",
-        "/new-home/img-home-hero-3-5.png",
-        "/new-home/img-home-hero-3-6.png",
-        "/new-home/img-home-hero-3-7.png",
-        "/new-home/img-home-hero-3-8.png",
+        `${IMAGE_URL}/new-home/img-home-hero-3-1.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-2.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-3.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-4.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-5.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-6.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-7.png`,
+        `${IMAGE_URL}/new-home/img-home-hero-3-8.png`,
     ],
 ];
 
@@ -76,7 +78,7 @@ export function HeroSection() {
                 className="flex flex-col items-center pt-[134px]"
             >
                 <Image
-                    src="/new-home/icon-house.png"
+                    src={`${IMAGE_URL}/new-home/icon-house.png`}
                     alt="icon-house"
                     width={158}
                     height={89}
@@ -122,7 +124,7 @@ export function HeroSection() {
                         foto in
                     </h1>
                     <Image
-                        src="/new-home/icon-xiaohongshu.png"
+                        src={`${IMAGE_URL}/new-home/icon-xiaohongshu.png`}
                         alt="小红书"
                         width={150}
                         height={69}

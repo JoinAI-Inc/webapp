@@ -1,8 +1,10 @@
 import { FooterSection } from "../components/FooterSection";
 import { CardFrame } from "../components/CardFrame";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 // 灯笼图片（Figma MCP 导出到 new-home 目录）
-const imgLantern = "/new-home/img-poke-lantern.png";
+const imgLantern = `${IMAGE_URL}/new-home/img-poke-lantern.png`;
 
 // 参与者数据
 const participants = [

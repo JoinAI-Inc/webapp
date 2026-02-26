@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { FooterSection } from "../components/FooterSection";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 // 右侧马年插画
-const imgHorses = "/new-home/img-about-horses.png";
+const imgHorses = `${IMAGE_URL}/new-home/img-about-horses.png`;
 // 背景纹理（福马纹）
-const imgBg = "/new-home/bg-home-1.png";
+const imgBg = `${IMAGE_URL}/new-home/bg-home-1.png`;
 
 type Status = "idle" | "submitting" | "done" | "limitReached";
 

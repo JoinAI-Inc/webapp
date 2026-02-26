@@ -1,15 +1,17 @@
+
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
 // ─── Section 2: 红色品牌区 (46:1518) ──────────────────────────────────────────
 // 背景纹理 SVG
-const imgBgPattern = "/new-home/bg-pattern.svg";
+const imgBgPattern = `${IMAGE_URL}/new-home/bg-pattern.svg`;
 // 左侧装饰
-const imgLeft1 = "/new-home/bg-petal-landscape.png"; // 花瓣山水
-const imgLeft2 = "/new-home/bg-mid-autumn.png"; // 中秋祝福
-const imgLeft3 = "/new-home/bg-guo-chao.png"; // 国潮山水
+const imgLeft1 = `${IMAGE_URL}/new-home/bg-petal-landscape.png`; // 花瓣山水
+const imgLeft2 = `${IMAGE_URL}/new-home/bg-mid-autumn.png`; // 中秋祝福
+const imgLeft3 = `${IMAGE_URL}/new-home/bg-guo-chao.png`; // 国潮山水
 // 右侧装饰
-const imgRight1 = "/new-home/bg-feng-jing.png"; // 中国风古风山峰
-const imgRight2 = "/new-home/bg-dragon-boat.png"; // 端午素材
+const imgRight1 = `${IMAGE_URL}/new-home/bg-feng-jing.png`; // 中国风古风山峰
+const imgRight2 = `${IMAGE_URL}/new-home/bg-dragon-boat.png`; // 端午素材
 // 中央福字图标
-const imgFuIcon = "/new-home/icon-fu.png";
+const imgFuIcon = `${IMAGE_URL}/new-home/icon-fu.png`;
 
 export function RedBrandSection() {
     return (

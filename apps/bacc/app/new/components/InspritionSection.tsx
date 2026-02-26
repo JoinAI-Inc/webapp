@@ -1,13 +1,15 @@
 import React from "react";
 import { CardFrame } from "./CardFrame";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 // Section 4 - Insprition panel
-const imgInsprBg = "/ac834a30c719bcaec6b6214694b640cbb1850695.png";
-const imgInsprRight = "/9cea046ce8dd41cf4bc1cc1a1bc0b22af4bbd986.png";
+const imgInsprBg = `${IMAGE_URL}/new-home/bg-insprition-left.png`;
+const imgInsprRight = `${IMAGE_URL}/new-home/bg-insprition-right.png`;
 // SVG assets from Figma
-const imgDivider = "/eae1d5ba4a93242ba477ccb9d70f669c7795f65e.svg"; // 黄色虚线分隔线
-const imgFlower = "/new-home/bg-flower.svg"; // 花朵图标
-const imgBgPattern = "/new-home/bg-insprition.png"; // 背景纹理
+const imgDivider = `${IMAGE_URL}/new-home/bg-insprition-divider.svg`; // 黄色虚线分隔线
+const imgFlower = `${IMAGE_URL}/new-home/bg-flower.svg`; // 花朵图标
+// const imgBgPattern = `${IMAGE_URL}/new-home/bg-flower.svg`; // 背景纹理
 
 // ─── Section 4: Insprition (48:10031) ─────────────────────────────────────────
 export function InspritionSection() {
@@ -30,7 +32,7 @@ export function InspritionSection() {
             {/* 背景纹理图，居中覆盖，保持宽高比 */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-                src={imgBgPattern}
+                // src={imgBgPattern}
                 alt=""
                 style={{
                     position: "absolute",

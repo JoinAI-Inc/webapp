@@ -1,6 +1,8 @@
+
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
 // Section 5 - 马图
-const imgHorse = "/228d5b4859f7bf959099392feb1aab0172e97fce.png";
-const imgBg = "/new-home/bg-special.png";
+const imgHorse = `${IMAGE_URL}/new-home/bg-horse.png`;
+const imgBg = `${IMAGE_URL}/new-home/bg-special.png`;
 
 // ─── Section 5: Special Announcement (53:10156) ───────────────────────────────
 export function AnnouncementSection() {

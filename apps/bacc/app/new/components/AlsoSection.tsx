@@ -1,6 +1,8 @@
 import React from "react";
 import { TryItFreeButton } from "./TryItFreeButton";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+
 // Section 3 - Also / Pet / OOTD
 const BASE = "/new-home/";
 
@@ -325,7 +327,7 @@ function OotdSection() {
                         {/* 箭头 */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <div style={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
-                            <img src="/new-home/icon-arrow-g.png" alt="arrow" style={{ display: "block", marginLeft: 80, marginTop: 12 }} />
+                            <img src={`${IMAGE_URL}/new-home/icon-arrow-g.png`} alt="arrow" style={{ display: "block", marginLeft: 80, marginTop: 12 }} />
                         </div>
 
 
