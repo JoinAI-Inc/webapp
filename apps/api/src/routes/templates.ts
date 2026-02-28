@@ -1,16 +1,21 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@repo/database';
+import type { Prisma } from '@prisma/client';
 
 const router = express.Router();
 
 // ─── 工具函数 ─────────────────────────────────────────────────────────────────
 
-/** 从 Authorization header 获取 userId（复用现有 nextauth session 逻辑） */
+/** 从 Authorization header 获取 userId */
 async function getUserIdFromRequest(req: Request): Promise<string | null> {
+    // 内部服务调用（如 bacc Next.js 服务端 route）直接传 userId
+    const internalUserId = req.headers['x-internal-user-id'];
+    if (internalUserId && typeof internalUserId === 'string') return internalUserId;
+
     const token = req.headers['authorization'];
     if (!token || !token.startsWith('Bearer ')) return null;
     const sessionToken = token.replace('Bearer ', '');
-    const session = await (prisma as any).session.findUnique({
+    const session = await prisma.session.findUnique({
         where: { sessionToken },
         select: { userId: true, expires: true }
     });
@@ -38,38 +43,40 @@ router.get('/', async (req: Request, res: Response) => {
             ? (tagIds as string).split(',').filter(Boolean)
             : [];
 
-        const where: any = { status: 'PUBLISHED' };
+        const where: Prisma.TemplateWhereInput = { status: 'PUBLISHED' };
         if (tagIdList.length > 0) {
             where.tags = { some: { tagId: { in: tagIdList } } };
         }
 
+        const includeBase: Prisma.TemplateInclude = {
+            tags: { include: { tag: true } },
+            slots: { orderBy: { sortOrder: 'asc' } },
+        };
+        if (userId) {
+            includeBase.favorites = { where: { userId }, select: { id: true } };
+        }
+
         const [templates, total] = await Promise.all([
-            (prisma as any).template.findMany({
+            prisma.template.findMany({
                 where,
                 skip,
                 take: sizeNum,
                 orderBy: { createdAt: 'desc' },
-                include: {
-                    tags: { include: { tag: true } },
-                    slots: { orderBy: { sortOrder: 'asc' } },
-                    ...(userId
-                        ? { favorites: { where: { userId }, select: { id: true } } }
-                        : {})
-                }
+                include: includeBase,
             }),
-            (prisma as any).template.count({ where })
+            prisma.template.count({ where })
         ]);
 
-        const data = templates.map((t: any) => ({
+        const data = templates.map((t) => ({
             id: t.id,
             name: t.name,
             imageUrl: t.imageUrl,
             resolution: t.resolution,
             theme: t.theme,
             favoriteCount: t.favoriteCount,
-            isFavorited: userId ? t.favorites?.length > 0 : false,
+            isFavorited: userId ? (t.favorites?.length ?? 0) > 0 : false,
             tags: t.tags.map((tt: any) => ({ id: tt.tag.id, name: tt.tag.name })),
-            slots: t.slots.map((s: any) => ({
+            slots: t.slots.map((s) => ({
                 id: s.id,
                 slotType: s.slotType,
                 refId: s.refId,
@@ -86,6 +93,22 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/templates/tags/list
+ * 获取所有标签（用于过滤器）
+ * 注意：必须在 /:id 之前注册，否则 "tags" 会被当作 id
+ */
+router.get('/tags/list', async (_req: Request, res: Response) => {
+    try {
+        const tags = await prisma.tag.findMany({
+            orderBy: { name: 'asc' }
+        });
+        res.json(tags);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * GET /api/templates/:id
  * 获取模板详情（含完整 descriptor）
  */
@@ -94,15 +117,17 @@ router.get('/:id', async (req: Request, res: Response) => {
         const { id } = req.params;
         const userId = await getUserIdFromRequest(req);
 
-        const template = await (prisma as any).template.findUnique({
+        const includeBase: Prisma.TemplateInclude = {
+            tags: { include: { tag: true } },
+            slots: { orderBy: { sortOrder: 'asc' } },
+        };
+        if (userId) {
+            includeBase.favorites = { where: { userId }, select: { id: true } };
+        }
+
+        const template = await prisma.template.findUnique({
             where: { id },
-            include: {
-                tags: { include: { tag: true } },
-                slots: { orderBy: { sortOrder: 'asc' } },
-                ...(userId
-                    ? { favorites: { where: { userId }, select: { id: true } } }
-                    : {})
-            }
+            include: includeBase,
         });
 
         if (!template || template.status === 'ARCHIVED') {
@@ -117,7 +142,7 @@ router.get('/:id', async (req: Request, res: Response) => {
             theme: template.theme,
             descriptor: template.descriptor,
             favoriteCount: template.favoriteCount,
-            isFavorited: userId ? template.favorites?.length > 0 : false,
+            isFavorited: userId ? (template.favorites?.length ?? 0) > 0 : false,
             tags: template.tags.map((tt: any) => ({ id: tt.tag.id, name: tt.tag.name })),
             slots: template.slots
         });
@@ -139,27 +164,27 @@ router.post('/:id/favorite', async (req: Request, res: Response) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const template = await (prisma as any).template.findUnique({ where: { id } });
+        const template = await prisma.template.findUnique({ where: { id } });
         if (!template) return res.status(404).json({ error: 'Template not found' });
 
-        const existing = await (prisma as any).templateFavorite.findUnique({
+        const existing = await prisma.templateFavorite.findUnique({
             where: { userId_templateId: { userId, templateId: id } }
         });
 
         if (existing) {
             // 取消收藏
-            await (prisma as any).templateFavorite.delete({ where: { id: existing.id } });
-            await (prisma as any).template.update({
+            await prisma.templateFavorite.delete({ where: { id: existing.id } });
+            await prisma.template.update({
                 where: { id },
                 data: { favoriteCount: { decrement: 1 } }
             });
             return res.json({ isFavorited: false });
         } else {
             // 添加收藏
-            await (prisma as any).templateFavorite.create({
+            await prisma.templateFavorite.create({
                 data: { id: crypto.randomUUID(), userId, templateId: id }
             });
-            await (prisma as any).template.update({
+            await prisma.template.update({
                 where: { id },
                 data: { favoriteCount: { increment: 1 } }
             });
@@ -171,16 +196,85 @@ router.post('/:id/favorite', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/templates/tags/list
- * 获取所有标签（用于过滤器）
+ * POST /api/templates/:id/generate
+ * 基于模板生成图像（需要登录）
+ * Body: { slots: Array<{ refId: string; imageSource: string }> }
+ * 将任务提交到队列，返回 taskId 供轮询
  */
-router.get('/tags/list', async (_req: Request, res: Response) => {
+router.post('/:id/generate', async (req: Request, res: Response) => {
     try {
-        const tags = await (prisma as any).tag.findMany({
-            orderBy: { name: 'asc' }
+        const { id } = req.params;
+        const userId = await getUserIdFromRequest(req);
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { slots } = req.body as {
+            slots: Array<{ refId: string; slotType?: string; imageSource: string }>;
+        };
+
+        if (!slots || !Array.isArray(slots) || slots.length === 0) {
+            return res.status(400).json({ error: 'slots is required and must be a non-empty array' });
+        }
+
+        // 获取模板信息（descriptor + slots 定义）
+        const template = await prisma.template.findUnique({
+            where: { id },
+            include: { slots: { orderBy: { sortOrder: 'asc' } } }
         });
-        res.json(tags);
+
+        if (!template || template.status === 'ARCHIVED') {
+            return res.status(404).json({ error: 'Template not found' });
+        }
+
+        // 校验必填 slot 是否都已提供 (仅 PERSON 槽位为必填)
+        const requiredSlotIds = template.slots
+            .filter((s) => s.slotType === 'PERSON')
+            .map((s) => s.refId);
+        const providedIds = slots.map((s) => s.refId);
+        const missing = requiredSlotIds.filter((rid) => !providedIds.includes(rid));
+        if (missing.length > 0) {
+            return res.status(400).json({ error: `Missing required slots: ${missing.join(', ')}` });
+        }
+
+        // 构建生成 payload
+        const payload = {
+            templateId: id,
+            templateName: template.name,
+            descriptor: template.descriptor,
+            slots: slots.map((s) => ({
+                refId: s.refId,
+                slotType: s.slotType || 'IMAGE',
+                imageSource: s.imageSource,
+            })),
+        };
+
+        // 提交到队列
+        const { taskManager } = await import('../lib/queue/task-manager.js');
+        const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
+
+        const taskId = await taskManager.submitTask({
+            userId,
+            type: 'template',
+            payload,
+        });
+
+        await userTaskTracker.setCurrentTask(userId, taskId, {
+            type: 'template',
+            payload,
+            submittedAt: new Date().toISOString(),
+        });
+
+        console.log(`[Templates API] Template generation task ${taskId} submitted by user ${userId}`);
+
+        res.json({
+            taskId,
+            status: 'pending',
+            message: 'Task submitted. Poll /api/queue/status?taskId= to track progress.',
+        });
     } catch (error: any) {
+        console.error('[Templates API] Generate error:', error);
         res.status(500).json({ error: error.message });
     }
 });
