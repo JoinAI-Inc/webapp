@@ -1,16 +1,21 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@repo/database';
 import type { Prisma } from '@prisma/client';
+import { verifyInternalRequest } from '../lib/internal-auth.js';
 
 const router = express.Router();
 
 // ─── 工具函数 ─────────────────────────────────────────────────────────────────
 
-/** 从 Authorization header 获取 userId */
+/** 从请求中获取 userId：优先验证内部签名，其次验证 Bearer session token */
 async function getUserIdFromRequest(req: Request): Promise<string | null> {
-    // 内部服务调用（如 bacc Next.js 服务端 route）直接传 userId
-    const internalUserId = req.headers['x-internal-user-id'];
-    if (internalUserId && typeof internalUserId === 'string') return internalUserId;
+    // 内部服务调用：验证 HMAC 签名
+    const internalUserId = req.headers['x-internal-user-id'] as string | undefined;
+    const timestamp = req.headers['x-internal-timestamp'] as string | undefined;
+    const signature = req.headers['x-internal-signature'] as string | undefined;
+    if (internalUserId) {
+        return verifyInternalRequest(internalUserId, timestamp, signature);
+    }
 
     const token = req.headers['authorization'];
     if (!token || !token.startsWith('Bearer ')) return null;
@@ -22,6 +27,7 @@ async function getUserIdFromRequest(req: Request): Promise<string | null> {
     if (!session || session.expires < new Date()) return null;
     return session.userId;
 }
+
 
 // ─── 公开接口 ─────────────────────────────────────────────────────────────────
 

@@ -42,7 +42,7 @@ app.use(cors({
     ],
     credentials: true, // 允许携带cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-user-id']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-user-id', 'x-internal-timestamp', 'x-internal-signature']
 }));
 
 // Stripe webhook需要raw body，所以要在这个路由上使用express.raw
