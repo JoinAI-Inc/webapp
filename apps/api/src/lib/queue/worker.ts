@@ -1,19 +1,24 @@
 import { taskManager } from './task-manager.js';
 import { PortraitGenerator } from '../generators/portrait-generator.js';
-import { GenerationTask } from './types.js';
+import { TemplateGenerator } from '../generators/template-generator.js';
+
 
 const portraitGenerator = new PortraitGenerator();
+const templateGenerator = new TemplateGenerator();
 
 const generators = {
     portrait: portraitGenerator,
     magic: portraitGenerator,
+    template: templateGenerator,
 };
 
 export class QueueWorker {
+    /** 互斥锁：防止多次 setInterval 触发时 batch 重叠执行 */
+    private isProcessing = false;
+
     async processNext(): Promise<boolean> {
         const taskId = await taskManager.getNextPendingTask();
         if (!taskId) {
-            console.log('[Worker] No pending tasks');
             return false;
         }
 
@@ -37,13 +42,15 @@ export class QueueWorker {
             }
 
             // 根据任务类型准备payload
-            let generatorPayload: any = {
+            const generatorPayload: any = {
                 ...task.payload,
                 userId: task.userId,
             };
 
             // portrait/magic 都走 multi 模式
-            generatorPayload.mode = 'multi';
+            if (task.type !== 'template') {
+                generatorPayload.mode = 'multi';
+            }
 
             // 执行生成
             const result = await generator.generate(generatorPayload);
@@ -90,6 +97,23 @@ export class QueueWorker {
         }
         console.log(`[Worker] Batch complete. Processed ${processed} tasks.`);
         return processed;
+    }
+
+    /**
+     * 带并发保护的批量处理入口
+     * 如果上一次 batch 还未结束，跳过本次触发
+     */
+    async processBatchSafe(maxTasks = 5): Promise<number> {
+        if (this.isProcessing) {
+            console.log('[Worker] Previous batch still running, skipping this tick.');
+            return 0;
+        }
+        this.isProcessing = true;
+        try {
+            return await this.processBatch(maxTasks);
+        } finally {
+            this.isProcessing = false;
+        }
     }
 }
 

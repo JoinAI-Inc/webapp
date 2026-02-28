@@ -42,7 +42,7 @@ app.use(cors({
     ],
     credentials: true, // 允许携带cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-user-id']
 }));
 
 // Stripe webhook需要raw body，所以要在这个路由上使用express.raw
@@ -78,10 +78,7 @@ app.listen(PORT, () => {
 
         const processQueue = async () => {
             try {
-                const processed = await queueWorker.processBatch(5);
-                if (processed > 0) {
-                    console.log(`[Worker] Processed ${processed} tasks`);
-                }
+                await queueWorker.processBatchSafe(5);
             } catch (error) {
                 console.error('[Worker] Error:', error);
             }
