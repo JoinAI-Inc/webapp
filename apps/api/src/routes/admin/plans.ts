@@ -57,12 +57,12 @@ router.get('/:id/deletion-blockers', async (req: Request, res: Response) => {
         const plan = await prisma.pricingPlan.findUnique({ where: { id: BigInt(id) }, include: { orders: true } });
         if (!plan) return res.status(404).json({ error: 'Plan not found' });
 
-        const activeOrders = plan.orders.filter(o => o.status === 'PAID').length;
-        const pendingOrders = plan.orders.filter(o => o.status === 'PENDING').length;
+        const activeOrders = plan.orders.filter((o: any) => o.status === 'PAID').length;
+        const pendingOrders = plan.orders.filter((o: any) => o.status === 'PENDING').length;
         const activeSubscriptions = await prisma.userEntitlement.count({
-            where: { sourceOrderId: { in: plan.orders.map(o => o.id) }, entitlementType: 'SUBSCRIPTION', status: 'ACTIVE' }
+            where: { sourceOrderId: { in: plan.orders.map((o: any) => o.id) }, entitlementType: 'SUBSCRIPTION', status: 'ACTIVE' }
         });
-        const totalRevenue = plan.orders.filter(o => o.status === 'PAID').reduce((sum, o) => sum + Number(o.amount), 0);
+        const totalRevenue = plan.orders.filter((o: any) => o.status === 'PAID').reduce((sum: number, o: any) => sum + Number(o.amount), 0);
 
         res.json({
             activeOrders, activeSubscriptions, pendingOrders, totalRevenue,

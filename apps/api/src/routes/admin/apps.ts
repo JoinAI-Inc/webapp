@@ -57,12 +57,12 @@ router.get('/:id/deletion-blockers', async (req: Request, res: Response) => {
         });
         if (!app) return res.status(404).json({ error: 'App not found' });
 
-        const activePricingPlans = app.pricingPlans.filter(pp => pp.pricingPlan.status === 'ACTIVE');
-        const activeEntitlements = app.entitlementApps.filter(ea => ea.entitlement.status === 'ACTIVE');
-        const permanentPurchases = activeEntitlements.filter(ea => ea.entitlement.entitlementType === 'PERMANENT');
+        const activePricingPlans = app.pricingPlans.filter((pp: any) => pp.pricingPlan.status === 'ACTIVE');
+        const activeEntitlements = app.entitlementApps.filter((ea: any) => ea.entitlement.status === 'ACTIVE');
+        const permanentPurchases = activeEntitlements.filter((ea: any) => ea.entitlement.entitlementType === 'PERMANENT');
 
         res.json({
-            hasActivePricingPlans: activePricingPlans.map(pp => ({
+            hasActivePricingPlans: activePricingPlans.map((pp: any) => ({
                 id: pp.pricingPlan.id.toString(), name: pp.pricingPlan.name, status: pp.pricingPlan.status
             })),
             hasActiveEntitlements: activeEntitlements.length,
