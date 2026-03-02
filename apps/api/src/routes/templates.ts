@@ -73,7 +73,7 @@ router.get('/', async (req: Request, res: Response) => {
             prisma.template.count({ where })
         ]);
 
-        const data = templates.map((t) => ({
+        const data = templates.map((t: typeof templates[number]) => ({
             id: t.id,
             name: t.name,
             imageUrl: t.imageUrl,
@@ -82,7 +82,7 @@ router.get('/', async (req: Request, res: Response) => {
             favoriteCount: t.favoriteCount,
             isFavorited: userId ? (t.favorites?.length ?? 0) > 0 : false,
             tags: t.tags.map((tt: any) => ({ id: tt.tag.id, name: tt.tag.name })),
-            slots: t.slots.map((s) => ({
+            slots: t.slots.map((s: typeof t.slots[number]) => ({
                 id: s.id,
                 slotType: s.slotType,
                 refId: s.refId,
@@ -236,10 +236,10 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
 
         // 校验必填 slot 是否都已提供 (仅 PERSON 槽位为必填)
         const requiredSlotIds = template.slots
-            .filter((s) => s.slotType === 'PERSON')
-            .map((s) => s.refId);
-        const providedIds = slots.map((s) => s.refId);
-        const missing = requiredSlotIds.filter((rid) => !providedIds.includes(rid));
+            .filter((s: typeof template.slots[number]) => s.slotType === 'PERSON')
+            .map((s: typeof template.slots[number]) => s.refId);
+        const providedIds = slots.map((s: { refId: string; slotType?: string; imageSource: string }) => s.refId);
+        const missing = requiredSlotIds.filter((rid: string) => !providedIds.includes(rid));
         if (missing.length > 0) {
             return res.status(400).json({ error: `Missing required slots: ${missing.join(', ')}` });
         }
@@ -248,6 +248,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         const payload = {
             templateId: id,
             templateName: template.name,
+            templateImageUrl: template.imageUrl ?? undefined,   // 模板原图（第1张参考图）
             descriptor: template.descriptor,
             slots: slots.map((s) => ({
                 refId: s.refId,
