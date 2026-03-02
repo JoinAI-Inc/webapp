@@ -68,7 +68,7 @@ export function TemplateGallery({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {filteredTemplates.map(template => (
                     <Link
-                        href={`/new/generate/${template.id}`}
+                        href={`/generate/${template.id}`}
                         key={template.id}
                         className="group relative flex flex-col cursor-pointer transition-transform hover:-translate-y-1"
                     >

@@ -6,8 +6,8 @@ import { AnnouncementSection } from "./components/AnnouncementSection";
 import { FooterSection } from "./components/FooterSection";
 
 // ─── 主导出 ───────────────────────────────────────────────────────────────────
-// 导航栏由 new/layout.tsx 中的 LandingNavBar 统一提供
-export default function NewHomePage() {
+// 导航栏由 (landing)/layout.tsx 中的 LandingNavBar 统一提供
+export default function HomePage() {
     return (
         <main style={{ fontFamily: "Manrope, sans-serif", background: "#fff", minWidth: 1280 }}>
             <div className="flex flex-col items-center">

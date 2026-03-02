@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { SlotConfigPanel } from "@/app/new/components/SlotConfigPanel";
+import { SlotConfigPanel } from "../../components/SlotConfigPanel";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -26,7 +26,7 @@ export default async function TemplateGeneratePage({ params }: { params: { id: s
             <div className="w-full max-w-[1280px] px-8">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
-                    <Link href="/new/generate" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <Link href="/generate" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <ArrowLeft size={24} className="text-gray-600" />
                     </Link>
                     <div>

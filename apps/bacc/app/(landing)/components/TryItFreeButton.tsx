@@ -11,7 +11,7 @@ interface TryItFreeButtonProps {
 export function TryItFreeButton({
     variant = "primary",
     suffix = "›",
-    href = "/new/generate",
+    href = "/generate",
 }: TryItFreeButtonProps) {
     const isPrimary = variant === "primary";
     return (

@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { TemplateGallery } from "@/app/new/components/TemplateGallery";
+import { TemplateGallery } from "../components/TemplateGallery";
 
 export const dynamic = "force-dynamic";
 

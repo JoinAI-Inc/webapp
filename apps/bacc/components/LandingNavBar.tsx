@@ -12,10 +12,10 @@ export default function LandingNavBar() {
     const pathname = usePathname();
 
     const navItems = [
-        { label: "Home", href: "/new" },
-        { label: "Blog", href: "/new/blog" },
-        { label: "About", href: "/new/about" },
-        { label: "Poke", href: "/new/poke" },
+        { label: "Home", href: "/" },
+        { label: "Blog", href: "/blog" },
+        { label: "About", href: "/about" },
+        { label: "Poke", href: "/poke" },
     ];
 
     useEffect(() => {
@@ -72,7 +72,7 @@ export default function LandingNavBar() {
                 >
                     {/* Logo */}
                     <Link
-                        href="/new"
+                        href="/"
                         style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}
                     >
                         <Image
@@ -110,7 +110,7 @@ export default function LandingNavBar() {
 
                     {/* CTA 按钮 */}
                     <Link
-                        href="/new"
+                        href="/"
                         style={{
                             background: "#E8281E",
                             color: "#fff",
