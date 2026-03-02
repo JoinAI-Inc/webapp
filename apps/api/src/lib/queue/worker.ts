@@ -1,6 +1,7 @@
 import { taskManager } from './task-manager.js';
 import { PortraitGenerator } from '../generators/portrait-generator.js';
 import { TemplateGenerator } from '../generators/template-generator.js';
+import { prisma } from '@repo/database';
 
 
 const portraitGenerator = new PortraitGenerator();
@@ -11,6 +12,33 @@ const generators = {
     magic: portraitGenerator,
     template: templateGenerator,
 };
+
+/** 将生成结果持久化到 MediaFile */
+async function persistResult(task: any, result: any) {
+    try {
+        const imageUrl: string | undefined = result?.imageUrl;
+        if (!imageUrl) return;
+
+        await prisma.mediaFile.create({
+            data: {
+                appId: 'bacc',
+                fileName: imageUrl.split('/').pop() || 'generated.jpg',
+                fileType: 'image',
+                mimeType: 'image/jpeg',
+                fileSize: BigInt(0),
+                storageKey: imageUrl,
+                storageUrl: imageUrl,
+                userId: task.userId,
+                generationType: task.type,
+                templateId: task.payload?.templateId ?? null,
+            },
+        });
+        console.log(`[Worker] Result persisted to MediaFile for task ${task.id}`);
+    } catch (e: any) {
+        // 持久化失败不影响主流程
+        console.error(`[Worker] Failed to persist result:`, e.message);
+    }
+}
 
 export class QueueWorker {
     /** 互斥锁：防止多次 setInterval 触发时 batch 重叠执行 */
@@ -54,6 +82,9 @@ export class QueueWorker {
 
             // 执行生成
             const result = await generator.generate(generatorPayload);
+
+            // 持久化结果到 DB
+            await persistResult(task, result);
 
             // 标记完成
             await taskManager.updateTaskStatus(taskId, 'completed', { result });

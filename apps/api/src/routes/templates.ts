@@ -202,6 +202,40 @@ router.post('/:id/favorite', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/templates/:id/last-result
+ * 获取当前用户对此模板最近一次生成结果（用于页面恢复）
+ */
+router.get('/:id/last-result', async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = await getUserIdFromRequest(req);
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const media = await prisma.mediaFile.findFirst({
+            where: {
+                userId,
+                templateId: id,
+                generationType: 'template',
+                status: 'active',
+            },
+            orderBy: { createdAt: 'desc' },
+            select: { storageUrl: true, createdAt: true },
+        });
+
+        if (!media) {
+            return res.json({ imageUrl: null });
+        }
+
+        return res.json({ imageUrl: media.storageUrl, createdAt: media.createdAt });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * POST /api/templates/:id/generate
  * 基于模板生成图像（需要登录）
  * Body: { slots: Array<{ refId: string; imageSource: string }> }

@@ -323,8 +323,9 @@ model MediaFile {
 
   // BACC 专用字段
   userId         String? @map("user_id")
-  generationType String? @map("generation_type") // 'magic'|'decor'|'hanfu'|'video'
+  generationType String? @map("generation_type") // 'magic'|'decor'|'hanfu'|'video'|'template'
   promptData     Json?   @map("prompt_data") // 保存生成参数
+  templateId     String? @map("template_id") // 可选，模板生成时关联的模板ID
 
   user User? @relation(fields: [userId], references: [id])
 
@@ -333,6 +334,7 @@ model MediaFile {
   @@index([status])
   @@index([createdAt])
   @@index([userId, createdAt])
+  @@index([userId, templateId, createdAt])
   @@map("media_files")
 }
 

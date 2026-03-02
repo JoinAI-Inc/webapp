@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, X, UserSearch, Shuffle, Sparkles, Image as ImageIcon, Loader2, LogIn } from "lucide-react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -24,15 +24,15 @@ function fileToBase64(file: File): Promise<string> {
     });
 }
 
-// 轮询任务状态
-async function pollTaskStatus(maxAttempts = 60, intervalMs = 3000): Promise<{
+// 轮询任务状态（用 taskId 精准查询，最多等待 10 分钟）
+async function pollTaskStatus(taskId: string, maxAttempts = 120, intervalMs = 5000): Promise<{
     status: string;
     result?: { imageUrl?: string; fileId?: string };
     error?: string;
 }> {
     for (let i = 0; i < maxAttempts; i++) {
         await new Promise(r => setTimeout(r, intervalMs));
-        const res = await fetch('/api/queue/current-task');
+        const res = await fetch(`/api/queue/status?taskId=${taskId}`);
         if (!res.ok) continue;
         const data = await res.json();
         if (data.status === 'completed' || data.status === 'failed') {
@@ -50,6 +50,17 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
     const router = useRouter();
     const pathname = usePathname();
     const { data: session, status: sessionStatus } = useSession();
+
+    // 页面加载时恢复上次生成结果
+    useEffect(() => {
+        if (sessionStatus !== 'authenticated') return;
+        fetch(`/api/templates/${templateId}/last-result`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data?.imageUrl) setResultImage(data.imageUrl);
+            })
+            .catch(() => { });
+    }, [templateId, sessionStatus]);
 
     const handleFileChange = async (slotId: string, file: File | null) => {
         if (!file) {
@@ -101,8 +112,11 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
                 throw new Error(err.error || 'Failed to submit task');
             }
 
-            // 轮询结果
-            const pollResult = await pollTaskStatus();
+            const { taskId } = await submitRes.json();
+            if (!taskId) throw new Error('No taskId returned from server');
+
+            // 用 taskId 精准轮询结果（最多 10 分钟）
+            const pollResult = await pollTaskStatus(taskId);
 
             if (pollResult.status === 'completed' && pollResult.result?.imageUrl) {
                 setResultImage(pollResult.result.imageUrl);
@@ -228,8 +242,8 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
                         // 已登录：正常生成
                         <button
                             className={`mt-4 w-full py-4 px-6 rounded-full text-lg font-bold transition-all flex justify-center items-center gap-2 ${isReadyToGenerate && !loading
-                                    ? "bg-[#1a1a1a] text-white hover:bg-black shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                ? "bg-[#1a1a1a] text-white hover:bg-black shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                                : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                 }`}
                             disabled={!isReadyToGenerate || loading}
                             onClick={handleGenerate}

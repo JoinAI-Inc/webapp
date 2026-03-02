@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
@@ -29,6 +30,7 @@ export function TemplateGallery({
     initialTemplates: Template[];
 }) {
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
+    const router = useRouter();
 
     // Filter templates
     const filteredTemplates = selectedTag
@@ -42,8 +44,8 @@ export function TemplateGallery({
                 <button
                     onClick={() => setSelectedTag(null)}
                     className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${selectedTag === null
-                            ? "bg-gray-900 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-gray-900 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                 >
                     All
@@ -53,8 +55,8 @@ export function TemplateGallery({
                         key={tag.id}
                         onClick={() => setSelectedTag(tag.id)}
                         className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${selectedTag === tag.id
-                                ? "bg-gray-900 text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            ? "bg-gray-900 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                     >
                         {tag.name}
@@ -85,8 +87,8 @@ export function TemplateGallery({
                             <button
                                 className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/40 transition-colors z-10 flex items-center justify-center pointer-events-auto"
                                 onClick={(e) => {
-                                    e.preventDefault(); // prevent link navigation
-                                    alert("Login required to favorite templates.");
+                                    e.preventDefault();
+                                    router.push("/login");
                                 }}
                             >
                                 <Heart size={20} className="drop-shadow-sm" />
