@@ -90,7 +90,16 @@ export class MediaStorage {
             );
         }
 
-        // 5. 保存元数据到数据库
+        // 5. 校验用户是否存在以避免外键冲突
+        let validUserId = undefined;
+        if (userId) {
+            const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (userExists) {
+                validUserId = userId;
+            }
+        }
+
+        // 6. 保存元数据到数据库
         const mediaFile = await this.prisma.mediaFile.create({
             data: {
                 appId,
@@ -106,7 +115,7 @@ export class MediaStorage {
                 tags: tags || [],
                 metadata: metadata || {},
                 createdBy,
-                userId, // ✅ BACC userId
+                userId: validUserId, // ✅ 仅使用实际存在的 userId
                 generationType, // ✅ BACC generationType
                 promptData, // ✅ BACC promptData
             },

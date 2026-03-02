@@ -4,7 +4,7 @@ import { TryItFreeButton } from "./TryItFreeButton";
 const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
 
 // Section 3 - Also / Pet / OOTD
-const BASE = "/new-home/";
+const BASE = IMAGE_URL + "/new-home/";
 
 // Also section 4 photos
 const imgRect2720 = BASE + "img-also-1.png";

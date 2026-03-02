@@ -19,17 +19,16 @@ export const SUBSCRIPTION_REQUIRED_ROUTES = [
     '/studio',
 ];
 
-// 需要保护的 API 路由
 export const PROTECTED_API_ROUTES = {
     // 需要登录的 API
     authRequired: [
         '/api/payment',
         '/api/user',
+        '/api/generate',
+        '/api/queue',
     ],
     // 需要订阅的 API
-    subscriptionRequired: [
-        '/api/generate',
-    ],
+    subscriptionRequired: [],
 };
 
 /**

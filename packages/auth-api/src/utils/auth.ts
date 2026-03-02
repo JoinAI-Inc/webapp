@@ -142,7 +142,7 @@ export async function findOrCreateUser(provider: string, providerData: ProviderD
     // 创建社交绑定
     await prisma.userSocialBind.create({
         data: {
-            userId: user.id,
+            userId: user!.id,
             provider,
             providerSub: sub,
             socialEmail: email,
@@ -155,5 +155,5 @@ export async function findOrCreateUser(provider: string, providerData: ProviderD
         }
     });
 
-    return user;
+    return user!;
 }

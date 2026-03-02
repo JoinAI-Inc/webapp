@@ -1,4 +1,4 @@
-export type TaskType = 'portrait' | 'magic';
+export type TaskType = 'portrait' | 'magic' | 'template';
 
 
 export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';

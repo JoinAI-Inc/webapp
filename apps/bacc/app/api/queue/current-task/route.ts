@@ -10,11 +10,12 @@ const API_BASE_URL = process.env.API_BACKEND_URL || 'http://localhost:3001';
 export async function GET(req: NextRequest) {
     try {
         const session = await auth();
-        if (!session?.userId) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const userId = ((session as any).userId || session.user.id) as string;
 
-        const response = await fetch(`${API_BASE_URL}/api/queue/current-task?userId=${session.userId}`);
+        const response = await fetch(`${API_BASE_URL}/api/queue/current-task?userId=${userId}`);
 
         if (!response.ok) {
             const error = await response.json();

@@ -60,10 +60,8 @@ export async function handleSubscriptionStatus(request: NextRequest) {
 
         // 检查是否有有效授权
         const now = new Date();
-        const activeEntitlements = entitlements.filter(e => {
-            // 永久授权始终有效
+        const activeEntitlements = entitlements.filter((e: typeof entitlements[number]) => {
             if (e.entitlementType === 'PERMANENT') return true;
-            // 订阅授权检查过期时间
             return e.expireTime && new Date(e.expireTime) > now;
         });
 
@@ -73,8 +71,8 @@ export async function handleSubscriptionStatus(request: NextRequest) {
 
         // 获取可访问的应用列表（基于apps关联）
         const accessibleAppIds = new Set<string>();
-        activeEntitlements.forEach(e => {
-            e.apps?.forEach(a => accessibleAppIds.add(a.app.id.toString()));
+        activeEntitlements.forEach((e: typeof entitlements[number]) => {
+            e.apps?.forEach((a: typeof e.apps[number]) => accessibleAppIds.add(a.app.id.toString()));
         });
 
         // 序列化授权信息

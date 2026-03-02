@@ -1,6 +1,7 @@
 import { TryItFreeButton } from "./TryItFreeButton";
 
-const BASE = "/new-home"
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+const BASE = IMAGE_URL + "/new-home"
 // Footer - 转动相册
 const fImg21 = BASE + "/img-foot-21.png";
 const fImg22 = BASE + "/img-foot-22.png";

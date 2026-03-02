@@ -5,6 +5,8 @@ import plansRouter from './admin/plans.js';
 import statsRouter from './admin/stats.js';
 import stripeRouter from './admin/stripe.js';
 import templatesRouter from './admin/templates.js';
+import featuresRouter from './admin/features.js';
+import tagsRouter from './admin/tags.js';
 
 const router = express.Router();
 
@@ -26,6 +28,7 @@ router.use('/plans', plansRouter);
 router.use('/stats', statsRouter);
 router.use('/stripe', stripeRouter);
 router.use('/templates', templatesRouter);
-// features 和 tags 在 users.ts / templates.ts 中已定义
+router.use('/features', featuresRouter);
+router.use('/tags', tagsRouter);
 
 export default router;
