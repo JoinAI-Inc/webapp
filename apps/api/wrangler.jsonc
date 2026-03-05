@@ -1,0 +1,49 @@
+{
+    "name": "bacc-api",
+    "main": "worker-entry.js",
+    "compatibility_date": "2026-02-23",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "workers_dev": true,
+    "preview_urls": true,
+    "observability": {
+        "enabled": true
+    },
+    "containers": [
+        {
+            "class_name": "BaccApiContainer",
+            "image": "./Dockerfile",
+            "instance_type": "basic",
+            "max_instances": 3
+        }
+    ],
+    "durable_objects": {
+        "bindings": [
+            {
+                "name": "BACC_API",
+                "class_name": "BaccApiContainer"
+            }
+        ]
+    },
+    "migrations": [
+        {
+            "tag": "v1",
+            "new_sqlite_classes": [
+                "BaccApiContainer"
+            ]
+        }
+    ],
+    "vars": {
+        "NODE_ENV": "production",
+        "PORT": "3001",
+        "NANO_BANANA_BASE_URL": "http://43.134.55.109:3000/v1beta",
+        "NANO_BANANA_PORTRAIT_SINGLE_MODELS": "gemini-3-pro-image-preview-2k",
+        "NANO_BANANA_PORTRAIT_MULTI_MODELS": "gemini-3-pro-image-preview-2k",
+        "QUEUE_MAX_RETRIES": "3",
+        "QUEUE_RETRY_DELAY": "5000",
+        "QUEUE_WORKER_INTERVAL": "10000",
+        "R2_BUCKET_NAME": "webapp",
+        "R2_PUBLIC_DOMAIN": "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev"
+    }
+}

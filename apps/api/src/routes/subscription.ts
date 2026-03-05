@@ -5,8 +5,8 @@ import {
     cancelSubscription,
     reactivateSubscription,
     syncUserSubscription
-} from '../services/stripe';
-import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
+} from '../services/stripe/index.js';
+import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js';
 import { prisma } from '@repo/database';
 
 const router = express.Router();

@@ -1,7 +1,7 @@
 // Stripe数据同步和对账工具
 import { prisma } from '@repo/database';
-import { stripe } from './client';
-import type { ProductSyncResult, ReconciliationResult } from './types';
+import { stripe } from './client.js';
+import type { ProductSyncResult, ReconciliationResult } from './types.js';
 import type { PlanType, BillingInterval } from '@prisma/client';
 
 /**

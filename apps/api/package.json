@@ -10,6 +10,7 @@
     "lint": "eslint src/**/*.ts"
   },
   "dependencies": {
+    "@cloudflare/containers": "^0.1.1",
     "@media/storage": "*",
     "@repo/database": "*",
     "@upstash/redis": "^1.36.2",

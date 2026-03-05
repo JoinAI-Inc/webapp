@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/contexts/SubscriptionContext';
 import LoadingSpinner from './LoadingSpinner';
 
 interface SubscriptionGuardProps {
@@ -12,47 +11,34 @@ interface SubscriptionGuardProps {
 }
 
 /**
- * 订阅守卫组件
- * 保护需要订阅的路由,未登录时重定向到登录页,未订阅时重定向到订阅页
+ * 登录守卫组件
+ * 只检查登录状态，未登录时重定向到登录页
+ * 权限/次数检查移至生成时按需校验
  */
 export default function SubscriptionGuard({
     children,
     fallback
 }: SubscriptionGuardProps) {
     const { user, loading: authLoading } = useAuth();
-    const { hasAccess, loading: subscriptionLoading } = useSubscription();
     const router = useRouter();
     const pathname = usePathname();
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        // 等待认证和订阅状态都加载完成
-        if (!authLoading && !subscriptionLoading) {
+        if (!authLoading) {
             if (!user) {
-                // 未登录,重定向到登录页
-                const redirectUrl = `/login?redirectTo=${encodeURIComponent(pathname)}`;
-                router.push(redirectUrl);
-            } else if (!hasAccess) {
-                // 已登录但未订阅,重定向到订阅页
-                const redirectUrl = `/subscribe?redirectTo=${encodeURIComponent(pathname)}`;
-                router.push(redirectUrl);
+                router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
             } else {
-                // 已登录且已订阅,允许访问
                 setIsChecking(false);
             }
         }
-    }, [user, hasAccess, authLoading, subscriptionLoading, router, pathname]);
+    }, [user, authLoading, router, pathname]);
 
-    // 加载中或检查中
-    if (authLoading || subscriptionLoading || isChecking) {
-        return fallback ? <>{fallback}</> : <LoadingSpinner message="验证订阅状态..." />;
+    if (authLoading || isChecking) {
+        return fallback ? <>{fallback}</> : <LoadingSpinner message="验证登录状态..." />;
     }
 
-    // 如果用户未登录或未订阅,不渲染内容(正在重定向)
-    if (!user || !hasAccess) {
-        return null;
-    }
+    if (!user) return null;
 
-    // 渲染受保护的内容
     return <>{children}</>;
 }

@@ -1,0 +1,31 @@
+{
+    "name": "bacc",
+    "compatibility_date": "2026-02-23",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "pages_build_output_dir": ".vercel/output/static",
+    "vars": {
+        "NODE_ENV": "production",
+        "NEXT_PUBLIC_API_BASE_URL": "/api",
+        "NEXT_PUBLIC_APP_ID": "app_1770798978245",
+        "NEXT_PUBLIC_IMAGE_URL": "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image",
+        "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "501079351425-p6aho42dd4p2a8jq8unpvsph9mbskkgp.apps.googleusercontent.com",
+        "NEXT_PUBLIC_ENABLE_DEBUG_LOGS": "false",
+        "R2_BUCKET_NAME": "webapp",
+        "R2_PUBLIC_DOMAIN": "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev"
+    }
+    // 以下敏感变量需在 Cloudflare Dashboard → Pages → Settings → Environment Variables 中配置：
+    // NEXTAUTH_URL        = https://<your-pages-domain>
+    // NEXTAUTH_SECRET     = <secret>
+    // GOOGLE_CLIENT_ID    = <id>
+    // GOOGLE_CLIENT_SECRET= <secret>
+    // API_BACKEND_URL     = https://bacc-api.<account>.workers.dev
+    // WORKER_SECRET       = <same as api>
+    // DATABASE_URL        = <postgres url>
+    // DIRECT_DATABASE_URL = <postgres url>
+    // R2_ACCOUNT_ID       = <account id>
+    // R2_ACCESS_KEY_ID    = <key>
+    // R2_SECRET_ACCESS_KEY= <secret>
+    // NANO_BANANA_API_KEY = <key>
+}

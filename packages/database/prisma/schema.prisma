@@ -36,6 +36,11 @@ enum PlanType {
   USAGE_PACK
 }
 
+enum FeatureChargingType {
+  COUNT   // 按次数消费
+  TOGGLE  // 开关型（付费解锁永久/有期限）
+}
+
 enum BillingInterval {
   MONTH
   QUARTER
@@ -84,9 +89,10 @@ model User {
   socialBinds     UserSocialBind[]
   mediaFiles         MediaFile[]
   featureBalances    UserFeatureBalance[]
-  usagePacks         UserUsagePack[] // 用户购买的次数包
+  usagePacks         UserUsagePack[]
   usageLogs          UsageLog[]
   templateFavorites  TemplateFavorite[]
+  featureUnlocks     UserFeatureUnlock[]
 
   @@map("users")
 }
@@ -185,9 +191,10 @@ model PricingPlan {
   replacementPlanId BigInt?    @map("replacement_plan_id")
   createdAt         DateTime   @default(now()) @map("created_at")
 
-  apps       PricingPlanApp[]
-  orders     Order[]
-  usagePacks UsagePack[]
+  apps         PricingPlanApp[]
+  orders       Order[]
+  usagePacks   UsagePack[]            // 旧关联（兼容保留）
+  planFeatures PricingPlanFeature[]   // 新关联
 
   @@map("pricing_plans")
 }
@@ -226,8 +233,9 @@ model Order {
   user           User              @relation(fields: [userId], references: [id])
   pricingPlan    PricingPlan       @relation(fields: [pricingPlanId], references: [id])
   entitlements   UserEntitlement[]
-  userUsagePacks UserUsagePack[] // 该订单购买的次数包
+  userUsagePacks UserUsagePack[]
   usageLogs      UsageLog[]
+  featureUnlocks UserFeatureUnlock[]
 
   @@index([stripeSessionId])
   @@index([stripeSubscriptionId])
@@ -344,21 +352,24 @@ model MediaFile {
 
 // 功能点定义
 model Feature {
-  id          BigInt   @id @default(autoincrement())
-  featureKey  String   @unique @map("feature_key") // 如: "bacc_hanfu_generation"
-  appId       BigInt   @map("app_id")
-  name        String
-  description String?  @db.Text
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             BigInt               @id @default(autoincrement())
+  featureKey     String               @unique @map("feature_key")
+  appId          BigInt               @map("app_id")
+  name           String
+  description    String?              @db.Text
+  chargingType   FeatureChargingType  @default(COUNT) @map("charging_type")
+  isActive       Boolean              @default(true) @map("is_active")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
 
   app App @relation(fields: [appId], references: [id])
 
-  usagePacks      UsagePack[]
-  userUsagePacks  UserUsagePack[] // 用户购买的次数包
-  userBalances    UserFeatureBalance[]
-  usageLogs       UsageLog[]
+  usagePacks        UsagePack[]           // 旧关联（兼容保留）
+  planFeatures      PricingPlanFeature[]   // 新关联
+  userUsagePacks    UserUsagePack[]
+  userBalances      UserFeatureBalance[]
+  usageLogs         UsageLog[]
+  userUnlocks       UserFeatureUnlock[]
 
   @@index([appId])
   @@index([featureKey])
@@ -377,6 +388,38 @@ model UsagePack {
 
   @@unique([pricingPlanId, featureId])
   @@map("usage_packs")
+}
+
+// PricingPlan 直接关联 Feature（新设计：一个 plan 可关联多个 feature）
+model PricingPlanFeature {
+  id            BigInt  @id @default(autoincrement())
+  pricingPlanId BigInt  @map("pricing_plan_id")
+  featureId     BigInt  @map("feature_id")
+  usageCount    Int?    @map("usage_count")  // COUNT 类型时填写；TOGGLE 类型可为 null
+
+  pricingPlan PricingPlan @relation(fields: [pricingPlanId], references: [id])
+  feature     Feature     @relation(fields: [featureId], references: [id])
+
+  @@unique([pricingPlanId, featureId])
+  @@map("pricing_plan_features")
+}
+
+// 用户 TOGGLE 功能解锁记录
+model UserFeatureUnlock {
+  id         BigInt    @id @default(autoincrement())
+  userId     String    @map("user_id")
+  featureId  BigInt    @map("feature_id")
+  orderId    BigInt    @map("order_id")
+  unlockedAt DateTime  @default(now()) @map("unlocked_at")
+  expireAt   DateTime? @map("expire_at")  // null = 永久
+
+  user    User    @relation(fields: [userId], references: [id])
+  feature Feature @relation(fields: [featureId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
+
+  @@unique([userId, featureId])
+  @@index([userId, featureId])
+  @@map("user_feature_unlocks")
 }
 
 // 用户功能点余额

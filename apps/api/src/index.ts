@@ -24,6 +24,7 @@ import subscriptionRoutes from './routes/subscription.js';
 import nextauthRoutes from './routes/nextauth.js';
 import usageRoutes from './routes/usage.js';
 import queueRoutes from './routes/queue.js';
+import historyRoutes from './routes/history.js';
 import templateRoutes from './routes/templates.js';
 
 // Configure global proxy if needed
@@ -34,12 +35,17 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // CORS配置 - 允许前端应用访问
+const allowedOrigins = [
+    'http://localhost:3003', // BACC前端（本地）
+    'http://localhost:3000', // 其他前端（本地）
+    'http://localhost:3004', // Admin前端（本地）
+    // 生产环境域名 - 部署前替换为实际域名
+    process.env.BACC_ORIGIN || '',       // 例：https://app.yourdomain.com
+    process.env.ADMIN_ORIGIN || '',      // 例：https://admin.yourdomain.com
+].filter(Boolean);
+
 app.use(cors({
-    origin: [
-        'http://localhost:3003', // BACC前端
-        'http://localhost:3000', // 其他前端应用
-        'http://localhost:3004', // Admin前端
-    ],
+    origin: allowedOrigins,
     credentials: true, // 允许携带cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-user-id', 'x-internal-timestamp', 'x-internal-signature']
@@ -60,8 +66,9 @@ app.use('/api/auth', nextauthRoutes);  // NextAuth 专用路由
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/usage', usageRoutes);
-app.use('/api/queue', queueRoutes);  // 队列路由
-app.use('/api/templates', templateRoutes); // 模板路由
+app.use('/api/queue', queueRoutes);
+app.use('/api/history', historyRoutes); // 历史记录路由
+app.use('/api/templates', templateRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -84,10 +91,16 @@ app.listen(PORT, () => {
             }
         };
 
-        // 立即处理一次
-        processQueue();
-
-        // 每30秒处理一次
-        setInterval(processQueue, 30000);
+        // 先执行孤儿任务恢复，再启动 worker
+        import('./lib/queue/recovery.js').then(({ recoverOrphanTasks }) => {
+            recoverOrphanTasks()
+                .catch(e => console.error('[Recovery] Startup recovery failed:', e))
+                .finally(() => {
+                    // 立即处理一次（含刚恢复的任务）
+                    processQueue();
+                    // 每30秒处理一次
+                    setInterval(processQueue, 30000);
+                });
+        });
     });
 });

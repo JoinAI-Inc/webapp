@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { makeInternalHeaders } from "@/lib/internal-auth";
@@ -21,7 +22,7 @@ export async function GET(
         const userId = ((session as any).userId || session.user.id) as string;
         const response = await fetch(
             `${API_BASE_URL}/api/templates/${params.id}/last-result`,
-            { headers: makeInternalHeaders(userId) }
+            { headers: await makeInternalHeaders(userId) }
         );
 
         if (!response.ok) {

@@ -1,7 +1,7 @@
 // Stripe订阅管理服务
 import { prisma } from '@repo/database';
-import { stripe } from './client';
-import type { SubscriptionInfo } from './types';
+import { stripe } from './client.js';
+import type { SubscriptionInfo } from './types.js';
 
 /**
  * 获取用户的订阅信息

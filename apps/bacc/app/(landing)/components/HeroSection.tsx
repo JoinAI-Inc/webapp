@@ -191,7 +191,7 @@ export function HeroSection() {
                                         <img
                                             alt=""
                                             src={src}
-                                            loading="eager"
+                                            loading={ri === 0 && i < 3 ? "eager" : "lazy"}
                                             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                                         />
                                     )}

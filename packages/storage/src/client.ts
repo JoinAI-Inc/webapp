@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { R2Client } from './r2/client';
-import { FileValidator } from './validators/file';
-import { ImageProcessor } from './processors/image';
-import { VideoProcessor } from './processors/video';
-import { generateStoragePath, generateThumbnailPath } from './r2/utils';
+import { R2Client } from './r2/client.js';
+import { FileValidator } from './validators/file.js';
+import { ImageProcessor } from './processors/image.js';
+import { VideoProcessor } from './processors/video.js';
+import { generateStoragePath, generateThumbnailPath } from './r2/utils.js';
 import {
     MediaStorageConfig,
     UploadOptions,
@@ -12,7 +12,7 @@ import {
     QueryResult,
     DeleteOptions,
     DeleteResult,
-} from './types';
+} from './types/index.js';
 
 export class MediaStorage {
     private r2Client: R2Client;

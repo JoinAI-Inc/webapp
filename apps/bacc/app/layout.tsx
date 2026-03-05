@@ -5,6 +5,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { UsageProvider } from "@/contexts/UsageContext";
+import { NavigationProgress } from "@/components/NavigationProgress";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.className} cny-gradient-bg min-h-screen`}>
+                <NavigationProgress />
                 <SessionProvider>
                     <AuthProvider>
                         <SubscriptionProvider>

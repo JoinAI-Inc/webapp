@@ -16,6 +16,7 @@ export default function LandingNavBar() {
         { label: "Blog", href: "/blog" },
         { label: "About", href: "/about" },
         { label: "Poke", href: "/poke" },
+        { label: "My Gallery", href: "/generate#gallery" },
     ];
 
     useEffect(() => {
@@ -110,7 +111,7 @@ export default function LandingNavBar() {
 
                     {/* CTA 按钮 */}
                     <Link
-                        href="/"
+                        href="/generate"
                         style={{
                             background: "#E8281E",
                             color: "#fff",

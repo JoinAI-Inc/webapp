@@ -4,7 +4,7 @@ import https from 'https';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@repo/database';
 import { User, UserSocialBind } from '@prisma/client';
-import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 

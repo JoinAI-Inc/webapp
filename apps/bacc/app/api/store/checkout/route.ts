@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { auth } from '@/lib/auth';
 
 export async function POST(request: Request) {

@@ -1,6 +1,6 @@
 // Stripe Webhook事件处理器
 import { prisma } from '@repo/database';
-import { stripe, STRIPE_WEBHOOK_SECRET } from './client';
+import { stripe, STRIPE_WEBHOOK_SECRET } from './client.js';
 import type Stripe from 'stripe';
 import type { Request } from 'express';
 
@@ -256,11 +256,8 @@ async function processPaymentSuccess(
             pricingPlan: {
                 include: {
                     apps: true,
-                    usagePacks: {
-                        include: {
-                            feature: true
-                        }
-                    }
+                    planFeatures: { include: { feature: true } },  // 新：按 chargingType 分叉
+                    usagePacks: { include: { feature: true } }      // 旧：兼容降级
                 }
             }
         }
@@ -290,60 +287,55 @@ async function processPaymentSuccess(
         // 2. 处理不同类型的Plan
         const plan = order.pricingPlan;
 
-        if (plan.planType === 'USAGE_PACK') {
-            // 次数包类型：更新用户余额
-            if (plan.usagePacks && plan.usagePacks.length > 0) {
-                for (const usagePack of plan.usagePacks) {
-                    // 1. 创建user_usage_pack记录
+        if (plan.planType === 'USAGE_PACK' || plan.planType === 'ONE_TIME') {
+            // 优先从新表 planFeatures 读取；旧套餐降级到 usagePacks
+            const planFeatures = (plan as any).planFeatures as Array<{
+                featureId: bigint; usageCount: number | null;
+                feature: { chargingType: string };
+            }> | undefined;
+
+            const sourceFeatures: Array<{ featureId: bigint; usageCount: number | null; chargingType: string }> =
+                planFeatures && planFeatures.length > 0
+                    ? planFeatures.map(pf => ({ featureId: pf.featureId, usageCount: pf.usageCount, chargingType: pf.feature.chargingType }))
+                    : (plan.usagePacks ?? []).map((up: any) => ({ featureId: up.featureId, usageCount: up.usageCount, chargingType: 'COUNT' }));
+
+            for (const sf of sourceFeatures) {
+                if (sf.chargingType === 'TOGGLE') {
+                    // ── TOGGLE：解锁记录（幂等 upsert）
+                    await tx.userFeatureUnlock.upsert({
+                        where: { userId_featureId: { userId: order.userId, featureId: sf.featureId } },
+                        create: { userId: order.userId, featureId: sf.featureId, orderId: order.id },
+                        update: { orderId: order.id, unlockedAt: new Date(), expireAt: null },
+                    });
+                    console.log(`[Webhook] TOGGLE unlock feature ${sf.featureId} for user ${order.userId}`);
+                } else {
+                    // ── COUNT：次数包发放
+                    const count = sf.usageCount ?? 0;
+                    if (count <= 0) continue;
+
                     await tx.userUsagePack.create({
                         data: {
-                            userId: order.userId,
-                            orderId: order.id,
-                            featureId: usagePack.featureId,
-                            totalCount: usagePack.usageCount,
-                            remainingCount: usagePack.usageCount,
-                            purchasedAt: new Date(),
-                            expiresAt: null
+                            userId: order.userId, orderId: order.id,
+                            featureId: sf.featureId, totalCount: count,
+                            remainingCount: count, purchasedAt: new Date(), expiresAt: null
                         }
                     });
 
-                    // 2. 查找或创建用户余额
                     const existingBalance = await tx.userFeatureBalance.findUnique({
-                        where: {
-                            userId_featureId: {
-                                userId: order.userId,
-                                featureId: usagePack.featureId
-                            }
-                        }
+                        where: { userId_featureId: { userId: order.userId, featureId: sf.featureId } }
                     });
 
                     if (existingBalance) {
-                        // 更新现有余额
                         await tx.userFeatureBalance.update({
                             where: { id: existingBalance.id },
-                            data: {
-                                remainingCount: { increment: usagePack.usageCount },
-                                totalPurchased: { increment: usagePack.usageCount },
-                                updatedAt: new Date()
-                            }
+                            data: { remainingCount: { increment: count }, totalPurchased: { increment: count }, updatedAt: new Date() }
                         });
                     } else {
-                        // 创建新的余额记录
                         await tx.userFeatureBalance.create({
-                            data: {
-                                userId: order.userId,
-                                featureId: usagePack.featureId,
-                                remainingCount: usagePack.usageCount,
-                                totalPurchased: usagePack.usageCount,
-                                totalUsed: 0,
-                                updatedAt: new Date()
-                            }
+                            data: { userId: order.userId, featureId: sf.featureId, remainingCount: count, totalPurchased: count, totalUsed: 0, updatedAt: new Date() }
                         });
                     }
-
-                    console.log(
-                        `[Webhook] Created pack #${order.id}:${usagePack.featureId} + added ${usagePack.usageCount} uses for user ${order.userId}`
-                    );
+                    console.log(`[Webhook] COUNT pack +${count} for feature ${sf.featureId}, user ${order.userId}`);
                 }
             }
         } else {

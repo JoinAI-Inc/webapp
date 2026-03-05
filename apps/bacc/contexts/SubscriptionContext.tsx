@@ -202,15 +202,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        if (user) {
-            // 已有数据时静默刷新，避免切换标签页闪烁
-            const silent = entitlements.length > 0;
-            refreshSubscription(silent);
-        } else {
+        // 不再自动拉取 entitlements，权限检查移至生成时按需触发
+        setLoading(false);
+        if (!user) {
             setHasAccess(false);
             setPlans([]);
             setEntitlements([]);
-            setLoading(false);
         }
     }, [user]);
 

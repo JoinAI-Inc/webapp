@@ -5,7 +5,7 @@ import {
     syncCheckoutSession,
     constructWebhookEvent,
     handleWebhookEvent
-} from '../services/stripe';
+} from '../services/stripe/index.js';
 
 const router = express.Router();
 

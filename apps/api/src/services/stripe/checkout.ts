@@ -1,7 +1,7 @@
 // Stripe Checkout Session 创建和管理
 import { prisma } from '@repo/database';
-import { stripe, STRIPE_CONFIG } from './client';
-import type { CreateCheckoutSessionParams, CheckoutSessionResult, SyncSessionParams, SyncSessionResult } from './types';
+import { stripe, STRIPE_CONFIG } from './client.js';
+import type { CreateCheckoutSessionParams, CheckoutSessionResult, SyncSessionParams, SyncSessionResult } from './types.js';
 
 /**
  * 创建Stripe Checkout Session
@@ -25,14 +25,9 @@ export async function createCheckoutSession(
     const plan = await prisma.pricingPlan.findUnique({
         where: { id: pricingPlanId },
         include: {
-            apps: {
-                include: { app: true }
-            },
-            usagePacks: {
-                include: {
-                    feature: true
-                }
-            }
+            apps: { include: { app: true } },
+            planFeatures: { include: { feature: true } },  // 新关联
+            usagePacks: { include: { feature: true } }      // 旧：兼容
         }
     });
 
@@ -113,30 +108,18 @@ export async function createCheckoutSession(
     const session = await stripe.checkout.sessions.create({
         customer: customerId,
         mode,
-        line_items: [
-            {
-                price: stripePriceId,
-                quantity: 1,
-            }
-        ],
-        payment_method_types: ['card', 'alipay', 'paypal'],
+        line_items: [{ price: stripePriceId, quantity: 1 }],
+        // subscription 模式不能手动指定 payment_method_types
+        ...(mode === 'payment' ? { payment_method_types: ['card', 'alipay'] as any } : {}),
         success_url: successUrl,
         cancel_url: cancelUrl,
+        allow_promotion_codes: true,
         metadata: {
             userId: userId,
             orderId: order.id.toString(),
             pricingPlanId: pricingPlanId.toString(),
             planType: plan.planType,
-            ...(plan.planType === 'USAGE_PACK' && plan.usagePacks.length > 0 ? {
-                usagePackInfo: JSON.stringify(plan.usagePacks.map(up => ({
-                    featureId: up.featureId.toString(),
-                    featureKey: up.feature.featureKey,
-                    usageCount: up.usageCount
-                })))
-            } : {})
         },
-        // 允许promotion codes
-        allow_promotion_codes: true,
     });
 
     // 8. 更新Order记录，保存session ID

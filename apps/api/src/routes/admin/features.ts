@@ -16,10 +16,14 @@ router.get('/', async (req: Request, res: Response) => {
 
 // POST /api/admin/features
 router.post('/', async (req: Request, res: Response) => {
-    const { featureKey, appId, name, description, isActive } = req.body;
+    const { featureKey, appId, name, description, isActive, chargingType } = req.body;
     try {
         const feature = await prisma.feature.create({
-            data: { featureKey, appId: BigInt(appId), name, description, isActive: isActive !== undefined ? isActive : true },
+            data: {
+                featureKey, appId: BigInt(appId), name, description,
+                isActive: isActive !== undefined ? isActive : true,
+                chargingType: chargingType || 'COUNT',
+            },
             include: { app: true }
         });
         res.json(serializeBigInt(feature));
@@ -31,7 +35,7 @@ router.post('/', async (req: Request, res: Response) => {
 // PUT /api/admin/features/:id
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { featureKey, appId, name, description, isActive } = req.body;
+    const { featureKey, appId, name, description, isActive, chargingType } = req.body;
     try {
         const feature = await prisma.feature.update({
             where: { id: BigInt(id) },
@@ -40,7 +44,8 @@ router.put('/:id', async (req: Request, res: Response) => {
                 ...(appId && { appId: BigInt(appId) }),
                 ...(name && { name }),
                 ...(description !== undefined && { description }),
-                ...(isActive !== undefined && { isActive })
+                ...(isActive !== undefined && { isActive }),
+                ...(chargingType && { chargingType }),
             },
             include: { app: true }
         });

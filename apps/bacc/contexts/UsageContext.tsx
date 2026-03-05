@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 interface UsageContextValue {
     balances: UserBalance[];
     loading: boolean;
-    refreshBalances: () => Promise<void>;
+    refreshBalances: () => Promise<UserBalance[]>;
     getBalance: (featureKey: string) => UserBalance | null;
     checkAccess: (featureKey: string) => Promise<AccessCheckResult>;
 }
@@ -21,47 +21,35 @@ export function UsageProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
 
-    // 初始化加载余额
+    // 用户登出时清空余额，不在登录时自动加载（按需调用 refreshBalances）
     useEffect(() => {
-        console.log('[UsageContext] useEffect triggered, user:', user);
-        console.log('[UsageContext] user?.id:', user?.id);
-
-        if (user?.id) {
-            console.log('[UsageContext] User ID exists, calling loadBalances');
-            loadBalances();
-        } else {
-            console.log('[UsageContext] No user ID, clearing balances');
+        if (!user?.id) {
             setBalances([]);
         }
     }, [user?.id]);
 
-    const loadBalances = async () => {
-        if (!user?.id) return;
+    const loadBalances = async (): Promise<UserBalance[]> => {
+        if (!user?.id) return [];
 
-        console.log('[UsageContext] Loading balances for user:', user.id);
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/api/usage/balance/${user.id}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include'
             });
 
-            console.log('[UsageContext] Balance API response status:', res.status);
-
             if (res.ok) {
                 const data = await res.json();
-                console.log('[UsageContext] Balance data received:', data);
                 setBalances(data);
+                return data;
             } else {
-                const errorText = await res.text();
-                console.error('[UsageContext] Failed to load balances:', errorText);
                 setBalances([]);
+                return [];
             }
         } catch (error) {
             console.error('[UsageContext] Error loading balances:', error);
             setBalances([]);
+            return [];
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,5 @@
 // 导出主类
-export { MediaStorage } from './client';
+export { MediaStorage } from './client.js';
 
 // 导出所有类型
 export type {
@@ -13,4 +13,4 @@ export type {
     DeleteResult,
     FileMetadata,
     StorageInfo,
-} from './types';
+} from './types/index.js';

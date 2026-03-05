@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { prisma } from '@repo/database';
-import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -49,13 +49,12 @@ router.get('/apps/:id', async (req: Request, res: Response) => {
         where: {
             isActive: true,
             status: 'ACTIVE',
-            apps: {
-                some: { appId: app.id }
-            }
+            apps: { some: { appId: app.id } }
         },
         include: {
             apps: { include: { app: true } },
-            usagePacks: { include: { feature: true } }
+            planFeatures: { include: { feature: true } },  // 新
+            usagePacks: { include: { feature: true } }     // 旧兼容
         }
     });
 

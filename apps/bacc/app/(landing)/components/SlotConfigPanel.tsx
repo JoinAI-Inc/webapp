@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Upload, X, UserSearch, Shuffle, Sparkles, Image as ImageIcon, Loader2, LogIn } from "lucide-react";
+import { useState } from "react";
+import { Upload, X, UserSearch, Shuffle, Sparkles, Image as ImageIcon, Loader2, LogIn, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
+import { useUsage } from "@/contexts/UsageContext";
 
 interface Slot {
     id: string;
@@ -42,25 +43,60 @@ async function pollTaskStatus(taskId: string, maxAttempts = 120, intervalMs = 50
     return { status: 'timeout', error: 'Generation timed out' };
 }
 
-export function SlotConfigPanel({ templateId, slots }: { templateId: string; slots: Slot[] }) {
+// 余额不足弹窗
+function NoCreditsModal({ onClose, remainingCount }: { onClose: () => void; remainingCount: number }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl">
+                <div className="text-center mb-6">
+                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ShoppingCart size={28} className="text-orange-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {remainingCount === 0 ? "Counts Exhausted" : "Insufficient Counts"}
+                    </h2>
+                    <p className="text-gray-500 text-sm leading-relaxed">
+                        You have <span className="font-bold text-orange-500">{remainingCount}</span> generation counts remaining.
+                        Purchase more to continue creating stunning AI photos.
+                    </p>
+                </div>
+                <div className="flex flex-col gap-3">
+                    <a
+                        href="/subscribe"
+                        className="w-full py-3 px-6 bg-[#1a1a1a] text-white text-center rounded-full font-bold hover:bg-black transition-colors"
+                    >
+                        Buy Counts
+                    </a>
+                    <button
+                        onClick={onClose}
+                        className="w-full py-3 px-6 border border-gray-200 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export function SlotConfigPanel({
+    templateId,
+    slots,
+    onTaskSubmitted,
+}: {
+    templateId: string;
+    slots: Slot[];
+    onTaskSubmitted?: (taskId: string) => void;
+}) {
     const [uploads, setUploads] = useState<Record<string, { preview: string; base64: string } | null>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [resultImage, setResultImage] = useState<string | null>(null);
-    const router = useRouter();
+    const [showNoCredits, setShowNoCredits] = useState(false);
+    const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null);
     const pathname = usePathname();
     const { data: session, status: sessionStatus } = useSession();
-
-    // 页面加载时恢复上次生成结果
-    useEffect(() => {
-        if (sessionStatus !== 'authenticated') return;
-        fetch(`/api/templates/${templateId}/last-result`)
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
-                if (data?.imageUrl) setResultImage(data.imageUrl);
-            })
-            .catch(() => { });
-    }, [templateId, sessionStatus]);
+    const { balances, checkAccess, refreshBalances } = useUsage();
 
     const handleFileChange = async (slotId: string, file: File | null) => {
         if (!file) {
@@ -84,23 +120,47 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
     const personSlots = slots.filter(s => s.slotType === 'PERSON');
     const isReadyToGenerate = personSlots.length === 0 || personSlots.every(s => uploads[s.id] != null);
 
+    const FEATURE_KEY = 'bacc_generation';
+    // 找 bacc_generation 对应的余额
+    const baccBalance = balances.find(b => b.feature.featureKey === FEATURE_KEY);
+    const totalRemaining = baccBalance?.remainingCount ?? 0;
+
     const handleGenerate = async () => {
         if (!isReadyToGenerate || loading) return;
+
         setLoading(true);
         setError(null);
         setResultImage(null);
 
+        // 保存上传数据快照，切换 UI 后仍可发请求
+        const uploadsSnapshot = { ...uploads };
+
+        // ✅ 立即切换到 brewing UI，不等余额检查
+        setSubmittedTaskId('pending');
+        setUploads({});
+
         try {
-            // 构建 slots payload，仅包含已上传图片的槽位（可选槽位未上传则跳过）
+            // 已登录 → 检查 bacc_generation 余额
+            if (session) {
+                await refreshBalances();
+                const access = await checkAccess(FEATURE_KEY);
+                if (!access.hasAccess) {
+                    setShowNoCredits(true);
+                    setSubmittedTaskId(null);
+                    setUploads(uploadsSnapshot);
+                    setLoading(false);
+                    return;
+                }
+            }
+
             const slotsPayload = slots
-                .filter(slot => uploads[slot.id] != null)
+                .filter(slot => uploadsSnapshot[slot.id] != null)
                 .map(slot => ({
                     refId: slot.refId,
                     slotType: slot.slotType,
-                    imageSource: uploads[slot.id]!.base64,
+                    imageSource: uploadsSnapshot[slot.id]!.base64,
                 }));
 
-            // 提交任务
             const submitRes = await fetch('/api/generate/template', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -109,20 +169,24 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
 
             if (!submitRes.ok) {
                 const err = await submitRes.json();
+                setSubmittedTaskId(null);
+                setUploads(uploadsSnapshot);
                 throw new Error(err.error || 'Failed to submit task');
             }
 
             const { taskId } = await submitRes.json();
             if (!taskId) throw new Error('No taskId returned from server');
 
-            // 用 taskId 精准轮询结果（最多 10 分钟）
-            const pollResult = await pollTaskStatus(taskId);
+            setSubmittedTaskId(taskId);
+            onTaskSubmitted?.(taskId);
 
-            if (pollResult.status === 'completed' && pollResult.result?.imageUrl) {
-                setResultImage(pollResult.result.imageUrl);
-            } else {
-                throw new Error(pollResult.error || 'Generation failed');
-            }
+            // 后台轮询，完成后显示结果图
+            pollTaskStatus(taskId).then(pollResult => {
+                if (pollResult.status === 'completed' && pollResult.result?.imageUrl) {
+                    setResultImage(pollResult.result.imageUrl);
+                    setSubmittedTaskId(null);
+                }
+            });
         } catch (err: any) {
             setError(err.message || 'Unknown error');
         } finally {
@@ -132,6 +196,14 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
 
     return (
         <div className="flex flex-col gap-6 w-full">
+            {/* 余额不足弹窗 */}
+            {showNoCredits && (
+                <NoCreditsModal
+                    remainingCount={totalRemaining}
+                    onClose={() => setShowNoCredits(false)}
+                />
+            )}
+
             {/* 结果图展示 */}
             {resultImage && (
                 <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
@@ -157,8 +229,28 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
                 </div>
             )}
 
-            {/* Slot 配置 */}
-            {!resultImage && (
+            {/* 已提交：One More 提示卡片 */}
+            {submittedTaskId && !resultImage && (
+                <div className="rounded-2xl border border-[#FF3F2A]/30 bg-orange-50/50 p-6 flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <Loader2 size={18} className="text-[#FF3F2A] animate-spin" />
+                        <p className="text-sm font-semibold text-gray-800">✨ Your LuckyFoto is brewing!</p>
+                    </div>
+                    <p className="text-xs text-gray-500 text-center leading-relaxed">
+                        This may take 30–60 seconds and will automatically appear in your gallery below.
+                        <br />Feel free to keep creating — we&apos;ll let you know when it&apos;s done.
+                    </p>
+                    <button
+                        onClick={() => setSubmittedTaskId(null)}
+                        className="mt-1 px-6 py-2.5 bg-[#1a1a1a] text-white rounded-full text-sm font-bold hover:bg-black transition-all hover:-translate-y-0.5 shadow-md"
+                    >
+                        One More ✨
+                    </button>
+                </div>
+            )}
+
+            {/* Slot 配置（未提交且无结果图时显示） */}
+            {!resultImage && !submittedTaskId && (
                 <>
                     {slots.length === 0 ? (
                         <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-2xl">
@@ -228,7 +320,7 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
                         <p className="text-red-500 text-sm text-center bg-red-50 rounded-xl py-3 px-4">{error}</p>
                     )}
 
-                    {/* 生成按钮 */}
+                    {/* 生成按钮区域 */}
                     {sessionStatus !== 'loading' && !session ? (
                         // 未登录：引导登录
                         <button
@@ -239,27 +331,38 @@ export function SlotConfigPanel({ templateId, slots }: { templateId: string; slo
                             Login to Generate
                         </button>
                     ) : (
-                        // 已登录：正常生成
-                        <button
-                            className={`mt-4 w-full py-4 px-6 rounded-full text-lg font-bold transition-all flex justify-center items-center gap-2 ${isReadyToGenerate && !loading
-                                ? "bg-[#1a1a1a] text-white hover:bg-black shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                }`}
-                            disabled={!isReadyToGenerate || loading}
-                            onClick={handleGenerate}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={20} className="animate-spin" />
-                                    Generating...
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles size={20} />
-                                    Generate Now
-                                </>
+                        // 已登录：正常生成（含次数检查）
+                        <div className="flex flex-col gap-2">
+                            {/* 余额标签 */}
+                            {session && balances.length > 0 && (
+                                <p className="text-center text-sm text-gray-400">
+                                    {totalRemaining > 0
+                                        ? <><span className="font-semibold text-gray-700">{totalRemaining}</span> counts remaining</>
+                                        : <span className="text-orange-500 font-medium">No counts — <a href="/subscribe" className="underline">buy more</a></span>
+                                    }
+                                </p>
                             )}
-                        </button>
+                            <button
+                                className={`mt-2 w-full py-4 px-6 rounded-full text-lg font-bold transition-all flex justify-center items-center gap-2 ${isReadyToGenerate && !loading
+                                    ? "bg-[#1a1a1a] text-white hover:bg-black shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    }`}
+                                disabled={!isReadyToGenerate || loading}
+                                onClick={handleGenerate}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={20} className="animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={20} />
+                                        Generate Now
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     )}
 
                     {loading && (

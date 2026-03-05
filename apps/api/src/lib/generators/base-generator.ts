@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
 export abstract class BaseGenerator {
@@ -30,7 +32,7 @@ export abstract class BaseGenerator {
     }>;
 
     /**
-     * 通用的 Gemini API 调用（支持多模型回退）
+     * 通用的 Gemini API 调用（支持多模型回退），使用 axios 以支持大响应体
      */
     protected async callGeminiAPI(
         models: string[],
@@ -43,41 +45,45 @@ export abstract class BaseGenerator {
 
         for (const modelId of models) {
             const endpoint = `${this.baseUrl}/models/${modelId}:generateContent`;
-            // 日志中隐藏 key
-            const logUrl = `${this.baseUrl}/models/${modelId}:generateContent`;
-            console.log(`[Generator] Trying model: ${modelId} → ${logUrl}`);
+            console.log(`[Generator] Trying model: ${modelId} → ${endpoint}`);
 
             try {
                 const payload = payloadFn(modelId);
 
-                const response = await fetch(endpoint, {
-                    method: 'POST',
+                const response = await axios.post(endpoint, payload, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${this.apiKey}`,
                     },
-                    body: JSON.stringify(payload),
+                    timeout: 1_200_000,  // 20 分钟
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity,
+                    validateStatus: () => true,  // 不抛 HTTP 错误，手动判断
                 });
 
-                const data: any = await response.json();
+                const data = response.data;
 
-                if (response.ok) {
+                if (response.status >= 200 && response.status < 300) {
                     const result = this.extractImage(data);
                     if (result) {
                         console.log(`[Generator] ✅ Success with ${modelId}`);
                         return result;
                     } else {
                         console.warn(`[Generator] ⚠️ ${modelId} responded OK but no image found in response`);
+                        console.warn(`[Generator] Response data: ${JSON.stringify(data).substring(0, 300)}`);
                         lastError = `${modelId}: no image in response`;
                     }
                 } else {
-                    const errMsg = data.error?.message || JSON.stringify(data.error) || 'Unknown error';
+                    const errMsg = data?.error?.message || JSON.stringify(data?.error) || 'Unknown error';
                     console.error(`[Generator] ❌ ${modelId} failed (HTTP ${response.status}): ${errMsg}`);
                     lastError = errMsg;
                 }
             } catch (err: any) {
-                console.error(`[Generator] ❌ ${modelId} fetch error: ${err.message}`);
-                lastError = err.message;
+                const msg = err.code === 'ECONNABORTED'
+                    ? `timeout after 20min`
+                    : err.message;
+                console.error(`[Generator] ❌ ${modelId} request error: ${msg}`);
+                lastError = msg;
             }
         }
 
