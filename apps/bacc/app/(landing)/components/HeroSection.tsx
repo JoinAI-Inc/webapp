@@ -176,12 +176,12 @@ export function HeroSection() {
                             {images.map((src, i) => (
                                 <div
                                     key={i}
+                                    className="skeleton"
                                     style={{
                                         width: 200,
                                         height: 263,
                                         borderRadius: 15,
                                         flexShrink: 0,
-                                        background: src ? "transparent" : "#d9d9d9",
                                         position: "relative",
                                         overflow: "hidden",
                                     }}
@@ -192,6 +192,9 @@ export function HeroSection() {
                                             alt=""
                                             src={src}
                                             loading={ri === 0 && i < 3 ? "eager" : "lazy"}
+                                            onLoad={(e) => {
+                                                (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton');
+                                            }}
                                             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                                         />
                                     )}

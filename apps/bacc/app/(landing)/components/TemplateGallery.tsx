@@ -161,7 +161,7 @@ function TemplateCard({
             className="group relative flex flex-col cursor-pointer transition-transform hover:-translate-y-1"
             onClick={onSelect ? () => onSelect(template.id) : undefined}
         >
-            <div className={`relative w-full aspect-[2/3] overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-300 ${compact ? 'rounded-xl mb-0' : 'rounded-2xl mb-4'}`}>
+            <div className={`relative w-full aspect-[2/3] overflow-hidden skeleton shadow-sm group-hover:shadow-lg transition-all duration-300 ${compact ? 'rounded-xl mb-0' : 'rounded-2xl mb-4'}`}>
                 <Image
                     src={template.imageUrl}
                     alt={template.name}
