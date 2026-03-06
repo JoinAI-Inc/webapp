@@ -13,7 +13,7 @@ interface Tag { id: string; name: string; }
 interface Template {
     id: string; name: string; imageUrl: string;
     resolution: string | null; theme: string | null;
-    favoriteCount: number; tags: string[]; tagIds: string[];
+    favoriteCount: number; tags: { id: string; name: string }[];
 }
 
 type TabType = "templates" | "gallery";

@@ -51,9 +51,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-user-id', 'x-internal-timestamp', 'x-internal-signature']
 }));
 
-// Stripe webhook需要raw body，所以要在这个路由上使用express.raw
-// 其他路由使用bodyParser.json
-app.use('/api/payment/webhook', express.raw({ type: 'application/json' }), paymentRoutes);
+// Stripe webhook 需要 raw body，单独在 /webhook 子路径加中间件
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
 // 其他路由使用JSON parser（增加限制以支持图片 base64 上传）
 app.use(bodyParser.json({ limit: '50mb' }));

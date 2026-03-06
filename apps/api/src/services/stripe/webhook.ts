@@ -18,6 +18,8 @@ export function constructWebhookEvent(req: Request): Stripe.Event {
         throw new Error('STRIPE_WEBHOOK_SECRET is not configured');
     }
 
+    console.log('[Webhook Debug] body type:', typeof req.body, '| isBuffer:', Buffer.isBuffer(req.body), '| secret len:', STRIPE_WEBHOOK_SECRET?.length ?? 0);
+
     try {
         const event = stripe.webhooks.constructEvent(
             req.body,

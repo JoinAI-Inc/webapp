@@ -1,3 +1,4 @@
+import { prisma } from '@repo/database';
 import { taskManager } from './task-manager.js';
 import { PortraitGenerator } from '../generators/portrait-generator.js';
 import { TemplateGenerator } from '../generators/template-generator.js';

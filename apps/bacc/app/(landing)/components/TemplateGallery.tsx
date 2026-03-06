@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,8 +18,7 @@ interface Template {
     resolution: string | null;
     theme: string | null;
     favoriteCount: number;
-    tags: string[];
-    tagIds: string[];
+    tags: { id: string; name: string }[];
 }
 
 export function TemplateGallery({
@@ -34,18 +33,35 @@ export function TemplateGallery({
     onSelect?: (templateId: string) => void;
 }) {
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
+    const [templates, setTemplates] = useState<Template[]>(initialTemplates);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const filteredTemplates = selectedTag
-        ? initialTemplates.filter(t => t.tagIds.includes(selectedTag))
-        : initialTemplates;
+    const handleTagSelect = useCallback(async (tagId: string | null) => {
+        setSelectedTag(tagId);
+        setLoading(true);
+        try {
+            const url = tagId
+                ? `/api/templates?tagIds=${tagId}&pageSize=100`
+                : `/api/templates?pageSize=100`;
+            const res = await fetch(url);
+            const json = await res.json();
+            setTemplates(Array.isArray(json) ? json : (json.data || []));
+        } catch {
+            // 静默失败，保留当前数据
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const filteredTemplates = templates;
 
     return (
         <div>
             {/* Tag Filter */}
             <div className={`flex flex-wrap gap-2 ${compact ? 'mb-5' : 'mb-10'}`}>
                 <button
-                    onClick={() => setSelectedTag(null)}
+                    onClick={() => handleTagSelect(null)}
                     className={`${compact ? 'px-4 py-1' : 'px-5 py-2'} rounded-full text-sm font-medium transition-colors ${selectedTag === null
                         ? "bg-gray-900 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -56,7 +72,7 @@ export function TemplateGallery({
                 {initialTags.map(tag => (
                     <button
                         key={tag.id}
-                        onClick={() => setSelectedTag(tag.id)}
+                        onClick={() => handleTagSelect(tag.id)}
                         className={`${compact ? 'px-4 py-1' : 'px-5 py-2'} rounded-full text-sm font-medium transition-colors ${selectedTag === tag.id
                             ? "bg-gray-900 text-white"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -68,10 +84,15 @@ export function TemplateGallery({
             </div>
 
             {/* Template Grid */}
-            <div className={compact
+            <div className={`relative ${compact
                 ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
                 : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-            }>
+                }`}>
+                {loading && (
+                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 rounded-lg">
+                        <span className="text-sm text-gray-400">Loading...</span>
+                    </div>
+                )}
                 {filteredTemplates.map(template => (
                     <TemplateCard
                         key={template.id}
