@@ -8,11 +8,21 @@ const router = Router();
 
 /**
  * GET /api/usage/balance/:userId
- * 获取用户所有功能点余额
+ * 获取用户所有功能点余额（需携带 x-internal-* 签名头）
  */
 router.get('/balance/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
+
+        // 验证内部请求签名（bacc server-to-server 调用必须携带）
+        const authedUserId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
+        if (!authedUserId || authedUserId !== userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
 
         const balances = await prisma.userFeatureBalance.findMany({
             where: { userId },

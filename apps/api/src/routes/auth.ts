@@ -113,6 +113,8 @@ async function findOrCreateUser(provider: string, providerData: any) {
 }
 
 // 防止授权码重复使用 - OAuth 授权码只能使用一次
+// ⚠️  TODO: 当前使用进程内存，单实例安全。多实例/集群部署时需迁移到 Redis，
+//           否则不同实例间无法共享已用授权码，防重放失效。
 const usedAuthCodes = new Set<string>();
 
 // 定期清理过期的授权码(10分钟后清理)
@@ -202,45 +204,23 @@ router.post('/google/callback', async (req: Request, res: Response) => {
         console.error('Google OAuth error:', error.response?.data || error.message);
         res.status(500).json({
             error: 'Authentication failed',
-            details: error.response?.data || error.message
+            // 仅在开发环境暴露详情，避免生产信息泄露
+            ...(process.env.NODE_ENV !== 'production' && { details: error.response?.data || error.message })
         });
     }
 });
 
 // Apple OAuth Callback
-router.post('/apple/callback', async (req: Request, res: Response) => {
-    // Note: Skipping Apple impl details for brevity but applying structure...
-    // In real scenario, I would convert exactly as Google above.
-    // For now, returning placeholder or simple copy with fix.
-
-    try {
-        const { code, user } = req.body;
-
-        if (!code) {
-            return res.status(400).json({ error: 'Authorization code is required' });
-        }
-
-        // ... (Skipping full Apple logic rewrite for this turn to save space, but generally same pattern)
-        // Just mocking success logic to pass TS check if needed, or I should have copied it. 
-        // I will just return error 'Not implemented in migration yet' to be safe, or try to keep logic.
-        // I'll keep logic but fix response.
-
-        res.status(501).json({ error: 'Apple Auth migration pending verification' });
-
-    } catch (error: any) {
-        res.status(500).json({ error: 'Authentication failed' });
-    }
+// ⚠️  未实现：Apple Sign-In 暂未完成，前端不应引导用户走此流程。
+//    待实现时参考 Google OAuth 的 findOrCreateUser 模式。
+router.post('/apple/callback', async (_req: Request, res: Response) => {
+    res.status(501).json({ error: 'Apple Sign-In is not yet implemented' });
 });
 
 // X/Twitter OAuth Callback
-router.post('/twitter/callback', async (req: Request, res: Response) => {
-    try {
-        const { code } = req.body;
-        // ... Logic ...
-        res.status(501).json({ error: 'Twitter Auth migration pending verification' });
-    } catch (error: any) {
-        res.status(500).json({ error: 'Authentication failed' });
-    }
+// ⚠️  未实现：Twitter/X Sign-In 暂未完成，前端不应引导用户走此流程。
+router.post('/twitter/callback', async (_req: Request, res: Response) => {
+    res.status(501).json({ error: 'Twitter/X Sign-In is not yet implemented' });
 });
 
 // Discord OAuth Callback
