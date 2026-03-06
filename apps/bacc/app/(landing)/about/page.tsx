@@ -94,172 +94,177 @@ export default function AboutPage() {
                 {/* 内容容器（最大宽 1488，居中） */}
                 <div
                     style={{
-                        position: "relative",
                         zIndex: 2,
                         maxWidth: 1488,
                         margin: "0 auto",
                         padding: "0 0",
                     }}
                 >
-                    {/* ─── 右侧：马年插画（absolute，对应 Figma left:1090, top:144） ─── */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            left: 806,
-                            top: 144,
-                            width: 550,
-                            height: 723,
-                            overflow: "hidden",
-                            pointerEvents: "none",
-                        }}
-                    >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={imgHorses}
-                            alt="Lucky horses illustration"
-                            style={{
-                                position: "absolute",
-                                width: "104.36%",
-                                height: "105.4%",
-                                left: "-2.36%",
-                                top: "-5.4%",
-                                objectFit: "cover",
-                            }}
-                        />
-                    </div>
 
-                    {/* ─── 左侧：表单区域 ─── */}
                     <div
+
+                        className="flex flex-row justify-between w-full pb-[120px]"
                         style={{
                             paddingTop: 194,
-                            paddingLeft: 284,
-                            width: 727,
+                            paddingLeft: 50,
+                            paddingRight: 50,
                         }}
                     >
-                        {/* 标题 */}
-                        <p
-                            style={{
-                                fontFamily: "Manrope, sans-serif",
-                                fontWeight: 600,
-                                fontSize: 40,
-                                lineHeight: 1.3,
-                                color: "#ff3f2a",
-                                letterSpacing: 0.4,
-                                margin: "0 0 0",
-                            }}
-                        >
-                            Leave us a message 💌
-                        </p>
-                        <p
-                            style={{
+
+                        <div className="w-[60%] relative pt-[30px] ">
+                            <div className="absolute top-0 right-0">
+                                <img src="/bg-about-1.svg" height={175.66} width={186.48} />
+                            </div>
+                            {/* 标题第1行 */}
+                            <div className="flex flex-row items-center gap-2">
+                                <p
+                                    style={{
+                                        fontFamily: "Manrope, sans-serif",
+                                        fontWeight: 600,
+                                        fontSize: 40,
+                                        lineHeight: 1.3,
+                                        color: "#ff3f2a",
+                                        letterSpacing: 0.4,
+                                        margin: 0,
+                                    }}
+                                >
+                                    Leave us a message
+                                </p>
+                                <img src="/icon-heart.png" height={45} width={45} />
+                            </div>
+
+                            {/* 正文标题（换行显示） */}
+                            <div className="flex flex-row gap-4" style={{
                                 fontFamily: "Manrope, sans-serif",
                                 fontWeight: 600,
                                 fontSize: 40,
                                 lineHeight: 1.3,
                                 color: "#000",
                                 letterSpacing: 0.4,
-                                margin: "0 0 0",
-                            }}
-                        >
-                            just that your option is{" "}
-                            <span style={{ color: "#ff3f2a" }}>precious to us</span>
-                        </p>
-                        <p
-                            style={{
+                            }}>
+                                <span>just that your option is</span>
+                                <span style={{ color: "#ff3f2a" }}>precious to us</span>
+                            </div>
+
+                            <div className="flex flex-row gap-4  pb-[40px]" style={{
                                 fontFamily: "Manrope, sans-serif",
                                 fontWeight: 600,
                                 fontSize: 40,
                                 lineHeight: 1.3,
                                 color: "#000",
                                 letterSpacing: 0.4,
-                                margin: "0 0 24px",
-                            }}
-                        >
-                            feel free to write down anything
-                        </p>
+                            }}>
+                                feel free to write down anything
+                            </div>
 
-                        {/* 文本框 */}
-                        <textarea
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Leave us a message..."
-                            disabled={status === "done" || status === "limitReached"}
-                            style={{
-                                width: "100%",
-                                height: 327,
-                                background: "#fffbf5",
-                                border: "1px solid #e2d6c5",
-                                borderRadius: 16,
-                                padding: "16px",
-                                fontFamily: "Manrope, sans-serif",
-                                fontSize: 17,
-                                color: "#333",
-                                letterSpacing: 0.17,
-                                lineHeight: 1.4,
-                                resize: "none",
-                                outline: "none",
-                                boxSizing: "border-box",
-                            }}
-                        />
 
-                        {/* Send 按钮 */}
-                        <div style={{ marginTop: 16 }}>
-                            <button
-                                onClick={handleSend}
-                                disabled={!btnActive}
+
+                            {/* 文本框 */}
+                            <textarea
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Leave us a message..."
+                                disabled={status === "done" || status === "limitReached"}
                                 style={{
-                                    background: btnActive ? "#ff3f2a" : "#bebebe",
-                                    border: "none",
-                                    borderRadius: 81,
-                                    padding: "10px 28px",
-                                    fontFamily: "Inter, sans-serif",
+                                    width: "100%",
+                                    height: 327,
+                                    background: "#fffbf5",
+                                    border: "1px solid #e2d6c5",
+                                    borderRadius: 16,
+                                    padding: "16px",
+                                    fontFamily: "Manrope, sans-serif",
                                     fontSize: 17,
-                                    color: "#fff",
+                                    color: "#333",
                                     letterSpacing: 0.17,
-                                    cursor: btnActive ? "pointer" : "default",
-                                    transition: "background 0.2s",
                                     lineHeight: 1.4,
-                                    minWidth: 106,
+                                    resize: "none",
+                                    outline: "none",
+                                    boxSizing: "border-box",
                                 }}
-                            >
-                                {btnLabel}
-                            </button>
-                        </div>
+                            />
 
-                        {/* 错误提示 */}
-                        {error && (
+                            {/* Send 按钮 */}
+                            <div style={{ marginTop: 16 }}>
+                                <button
+                                    onClick={handleSend}
+                                    disabled={!btnActive}
+                                    style={{
+                                        background: btnActive ? "#ff3f2a" : "#bebebe",
+                                        border: "none",
+                                        borderRadius: 81,
+                                        padding: "10px 28px",
+                                        fontFamily: "Inter, sans-serif",
+                                        fontSize: 17,
+                                        color: "#fff",
+                                        letterSpacing: 0.17,
+                                        cursor: btnActive ? "pointer" : "default",
+                                        transition: "background 0.2s",
+                                        lineHeight: 1.4,
+                                        minWidth: 106,
+                                    }}
+                                >
+                                    {btnLabel}
+                                </button>
+                            </div>
+
+                            {/* 错误提示 */}
+                            {error && (
+                                <p
+                                    style={{
+                                        marginTop: 8,
+                                        fontSize: 13,
+                                        color: "#e53e3e",
+                                        fontFamily: "Manrope, sans-serif",
+                                    }}
+                                >
+                                    {error}
+                                </p>
+                            )}
+
+                            {/* 邮箱备选 */}
                             <p
                                 style={{
-                                    marginTop: 8,
-                                    fontSize: 13,
-                                    color: "#e53e3e",
-                                    fontFamily: "Manrope, sans-serif",
+                                    marginTop: 12,
+                                    fontFamily:
+                                        "Manrope, 'Noto Sans JP', 'Noto Sans SC', sans-serif",
+                                    fontSize: 14,
+                                    color: "#716b62",
+                                    letterSpacing: 0.14,
+                                    lineHeight: 1.4,
                                 }}
                             >
-                                {error}
+                                or sent us an E-Mail：
+                                <a
+                                    href="mailto:hello@joinai.com"
+                                    style={{ color: "#716b62", textDecoration: "underline" }}
+                                >
+                                    hello@joinai.com
+                                </a>
                             </p>
-                        )}
+                        </div>
 
-                        {/* 邮箱备选 */}
-                        <p
+
+                        <div
+
+                            className="w-[40%]"
                             style={{
-                                marginTop: 12,
-                                fontFamily:
-                                    "Manrope, 'Noto Sans JP', 'Noto Sans SC', sans-serif",
-                                fontSize: 14,
-                                color: "#716b62",
-                                letterSpacing: 0.14,
-                                lineHeight: 1.4,
+                                width: 550,
+                                height: 723,
+                                overflow: "hidden",
+                                pointerEvents: "none",
                             }}
                         >
-                            or sent us an E-Mail：
-                            <a
-                                href="mailto:hello@joinai.com"
-                                style={{ color: "#716b62", textDecoration: "underline" }}
-                            >
-                                hello@joinai.com
-                            </a>
-                        </p>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={imgHorses}
+                                alt="Lucky horses illustration"
+                                style={{
+                                    width: 550,
+                                    height: 723,
+                                    objectFit: "cover",
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
             </section>

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { TryItFreeButton } from "./TryItFreeButton";
 
@@ -117,9 +118,8 @@ function AlsoSubSection() {
                 {[imgRect2720, imgRect2717, imgRect2718, imgRect2719].map((src, i) => (
                     <div key={i} className="skeleton" style={{ flex: "1 0 0", height: "100%", borderRadius: 15, overflow: "hidden", position: "relative" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt="" loading="lazy"
-                            onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                        <img src={src} alt="" loading="eager"
+                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", zIndex: 1 }} />
                     </div>
                 ))}
             </div>
@@ -155,8 +155,7 @@ function PetSection() {
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imgPetSmall2} alt="" loading="lazy"
-                    onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
             </div>
 
             {/* 主标题 */}
@@ -210,8 +209,7 @@ function PetSection() {
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imgPetSmall1} alt="" loading="lazy"
-                    onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
             </div>
 
             {/* 主大图 - 左 */}
@@ -230,8 +228,7 @@ function PetSection() {
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imgPetMain} alt="" loading="lazy"
-                    onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
             </div>
 
             {/* 小图 - 右下 */}
@@ -250,8 +247,7 @@ function PetSection() {
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imgPetSmall3} alt="" loading="lazy"
-                    onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
             </div>
 
             {/* 占位高度 */}
@@ -323,8 +319,7 @@ function OotdSection() {
                             >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={card.before} alt="" loading="lazy"
-                                    onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
                             </div>
                             {/* OOTD 参考图 */}
                             <div
@@ -339,8 +334,7 @@ function OotdSection() {
                             >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={card.ootd} alt="" loading="lazy"
-                                    onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
                             </div>
                         </div>
 
@@ -368,8 +362,7 @@ function OotdSection() {
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={card.after} alt="" loading="lazy"
-                                onLoad={(e) => (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton')}
-                                style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none" }} />
+                                style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
                         </div>
                     </div>
                 ))}

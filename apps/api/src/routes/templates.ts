@@ -95,6 +95,44 @@ router.get('/tags/list', async (_req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/templates/favorites
+ * 必须在 /:id 之前注册
+ */
+router.get('/favorites', async (req: Request, res: Response) => {
+    try {
+        const userId = await getUserIdFromRequest(req);
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const favorites = await prisma.templateFavorite.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                template: {
+                    include: { tags: { include: { tag: true } } }
+                }
+            }
+        });
+
+        const data = favorites
+            .filter((f: any) => f.template && f.template.status !== 'ARCHIVED')
+            .map((f: any) => ({
+                id: f.template.id,
+                name: f.template.name,
+                imageUrl: f.template.imageUrl,
+                resolution: f.template.resolution,
+                theme: f.template.theme,
+                favoriteCount: f.template.favoriteCount,
+                isFavorited: true,
+                tags: f.template.tags.map((tt: any) => ({ id: tt.tag.id, name: tt.tag.name })),
+            }));
+
+        res.json(data);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * GET /api/templates/:id
  */
 router.get('/:id', async (req: Request, res: Response) => {

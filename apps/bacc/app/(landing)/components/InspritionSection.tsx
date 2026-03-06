@@ -8,8 +8,52 @@ const imgInsprBg = `${IMAGE_URL}/new-home/bg-insprition-left.png`;
 const imgInsprRight = `${IMAGE_URL}/new-home/bg-insprition-right.png`;
 // SVG assets from Figma
 const imgDivider = `${IMAGE_URL}/new-home/bg-insprition-divider.svg`; // 黄色虚线分隔线
-const imgFlower = `${IMAGE_URL}/new-home/bg-flower.svg`; // 花朵图标
-// const imgBgPattern = `${IMAGE_URL}/new-home/bg-flower.svg`; // 背景纹理
+const imgFlower = `/icon-xhs.svg`; // 花朵图标
+const imgBgPattern = `/bg-insprition.svg`; // 背景纹理
+
+// ─── 垂直无缝滚动列组件 ────────────────────────────────────────────────────────
+function MarqueeColumn({
+    names,
+    align,
+    duration = 18,
+}: {
+    names: string[];
+    align: "flex-end" | "flex-start";
+    duration?: number;
+}) {
+    const GAP = 28; // px，行间距
+    return (
+        <div
+            style={{
+                flex: 1,
+                overflow: "hidden",
+                // 上下渐变遮罩
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
+                maskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
+            }}
+        >
+            {/* 内容复制两份，滚完一份回到起点，实现无缝循环 */}
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: align,
+                    gap: GAP,
+                    animation: `marquee-up ${duration}s linear infinite`,
+                }}
+            >
+                {/* 原始列表 */}
+                {names.map((name, i) => (
+                    <p key={i} style={nameStyle}>{name}</p>
+                ))}
+                {/* 复制列表，保证滚动无缝衔接 */}
+                {names.map((name, i) => (
+                    <p key={`dup-${i}`} style={nameStyle} aria-hidden>{name}</p>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 // ─── Section 4: Insprition (48:10031) ─────────────────────────────────────────
 export function InspritionSection() {
@@ -19,32 +63,17 @@ export function InspritionSection() {
                 width: "100%",
                 maxWidth: 1600,
                 borderRadius: 32,
-                background: "linear-gradient(180deg, #DA2524 0%, #C00B0A 100%)",
+                background: `url(${imgBgPattern}), linear-gradient(180deg, #DA2524 0%, #C00B0A 100%)`,
                 position: "relative",
                 overflow: "hidden",
                 minHeight: 420,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "40px 0",
+                padding: "40px 0"
             }}
         >
             {/* 背景纹理图，居中覆盖，保持宽高比 */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                // src={imgBgPattern}
-                alt=""
-                style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: "100%",
-                    height: "auto",
-                    pointerEvents: "none",
-                    zIndex: 0,
-                }}
-            />
             {/* 左下角荷花装饰图 */}
             <div
                 style={{
@@ -131,56 +160,47 @@ export function InspritionSection() {
                     </p>
                 </div>
 
-                {/* 左列文字 */}
-                {/* 哈尼桃桃酱 */}
-                <div style={{ position: "absolute", top: "22.62%", left: "19.13%", right: "51.43%", bottom: "71.67%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "center", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>哈尼桃桃酱   ID:Yetkitty951004</p>
-                </div>
-                {/* 绵绵岛 */}
-                <div style={{ position: "absolute", top: "31.19%", left: "27.45%", right: "51.43%", bottom: "63.10%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>绵绵岛   ID:375785978</p>
-                </div>
-                {/* -是溪溪呀- */}
-                <div style={{ position: "absolute", top: "39.76%", left: "22.86%", right: "51.43%", bottom: "54.52%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>-是溪溪呀-   ID:944605407</p>
-                </div>
-                {/* 是安宁呀 */}
-                <div style={{ position: "absolute", top: "48.33%", left: "17.39%", right: "51.43%", bottom: "45.95%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>是安宁呀！！！   ID:6574283932</p>
-                </div>
-                {/* 贝贝万事屋 */}
-                <div style={{ position: "absolute", top: "56.90%", left: "20.25%", right: "51.43%", bottom: "37.38%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>贝贝万事屋   ID:bei185448278</p>
-                </div>
-                {/* 数码侦探小何 */}
-                <div style={{ position: "absolute", top: "65.48%", left: "15.78%", right: "51.43%", bottom: "28.81%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>数码侦探小何   ID:bei94118559427</p>
-                </div>
-
-                {/* 右列文字 */}
-                {/* 李开心的亲子时光 */}
-                <div style={{ position: "absolute", top: "22.62%", left: "51.55%", right: "16.27%", bottom: "71.67%", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "center", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>李开心的亲子时光   ID:207305504</p>
-                </div>
-                {/* Nico匠 */}
-                <div style={{ position: "absolute", top: "31.19%", left: "51.55%", right: "29.07%", bottom: "63.10%", display: "flex", flexDirection: "column", justifyContent: "flex-end", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>Nico匠  ID:Hyl95234</p>
-                </div>
-                {/* 米米 */}
-                <div style={{ position: "absolute", top: "39.76%", left: "51.55%", right: "20%", bottom: "54.52%", display: "flex", flexDirection: "column", justifyContent: "flex-end", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>米米🌸🌸🌸   ID:95555262084</p>
-                </div>
-                {/* 叔系少年老三 */}
-                <div style={{ position: "absolute", top: "48.33%", left: "51.55%", right: "20%", bottom: "45.95%", display: "flex", flexDirection: "column", justifyContent: "flex-end", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>叔系少年老三   ID:R44444444</p>
-                </div>
-                {/* 鹿儿Tata */}
-                <div style={{ position: "absolute", top: "56.90%", left: "51.55%", right: "25.47%", bottom: "37.38%", display: "flex", flexDirection: "column", justifyContent: "flex-end", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>鹿儿Tata   ID:109627123</p>
-                </div>
-                {/* Mici */}
-                <div style={{ position: "absolute", top: "65.48%", left: "51.55%", right: "29.44%", bottom: "28.81%", display: "flex", flexDirection: "column", justifyContent: "flex-end", whiteSpace: "nowrap" }}>
-                    <p style={nameStyle}>Mici   ID:959628182</p>
+                <style>{`
+                    @keyframes marquee-up {
+                        from { transform: translateY(0); }
+                        to { transform: translateY(-50%); }
+                    }
+                `}</style>
+                {/* 名单两列：左列右对齐，右列左对齐，中间 gap */}
+                <div style={{
+                    position: "absolute",
+                    top: "22.62%",
+                    bottom: "28.81%",
+                    left: "10%",
+                    right: "10%",
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: 24,
+                }}>
+                    <MarqueeColumn
+                        align="flex-end"
+                        duration={25}
+                        names={[
+                            "哈尼桃桃酱   ID:Yetkitty951004",
+                            "绵绵岛   ID:375785978",
+                            "-是溪溪呀-   ID:944605407",
+                            "是安宁呀！！！   ID:6574283932",
+                            "贝贝万事屋   ID:bei185448278",
+                            "数码侦探小何   ID:bei94118559427",
+                        ]}
+                    />
+                    <MarqueeColumn
+                        align="flex-start"
+                        duration={25}
+                        names={[
+                            "李开心的亲子时光   ID:207305504",
+                            "Nico匠   ID:Hyl95234",
+                            "米米🌸🌸🌸   ID:95555262084",
+                            "叔系少年老三   ID:R44444444",
+                            "鹿儿Tata   ID:109627123",
+                            "Mici   ID:959628182",
+                        ]}
+                    />
                 </div>
 
                 {/* 底部区域：虚线 + 感谢文字 */}

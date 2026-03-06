@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, FolderOpen } from "lucide-react";
+import { LayoutGrid, FolderOpen, Heart } from "lucide-react";
+
 import { TemplateGallery } from "./TemplateGallery";
 import { MyGallery } from "./MyGallery";
+import { FavoritesPanel } from "./FavoritesPanel";
 import { UserMenuButton } from "./UserMenu";
 import { TemplateDetailPanel } from "./TemplateDetailPanel";
 
@@ -16,7 +18,8 @@ interface Template {
     favoriteCount: number; tags: { id: string; name: string }[];
 }
 
-type TabType = "templates" | "gallery";
+type TabType = "templates" | "gallery" | "favorites";
+
 
 const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
 
@@ -34,7 +37,9 @@ export function GenerateStudio({
     const sidebarItems: { tab: TabType; Icon: React.ElementType; label: string }[] = [
         { tab: "templates", Icon: LayoutGrid, label: "Templates" },
         { tab: "gallery", Icon: FolderOpen, label: "My Gallery" },
+        { tab: "favorites", Icon: Heart, label: "Favorites" },
     ];
+
 
     return (
         <div className="flex h-screen bg-[#f8f8f8] overflow-hidden">
@@ -106,6 +111,12 @@ export function GenerateStudio({
                 {activeTab === "gallery" && (
                     <div className="p-8">
                         <MyGallery newTaskId={latestTaskId} forceVisible />
+                    </div>
+                )}
+
+                {activeTab === "favorites" && (
+                    <div className="p-8">
+                        <FavoritesPanel onSelect={(id) => { setActiveTab("templates"); setSelectedTemplateId(id); }} />
                     </div>
                 )}
             </main>

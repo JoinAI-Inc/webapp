@@ -4,20 +4,24 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 function isConnectionError(err: any): boolean {
     return (
-        err?.code === 'P1001' ||
-        err?.code === 'P1008' ||
+        err?.code === 'P1001' ||  // 无法连接
+        err?.code === 'P1002' ||  // 连接超时（Aiven 冷启动常见）
+        err?.code === 'P1008' ||  // 操作超时
         err?.message?.includes("Can't reach database") ||
         err?.message?.includes('Connection refused') ||
-        err?.message?.includes('connection timeout')
+        err?.message?.includes('connection timeout') ||
+        err?.message?.includes('ECONNREFUSED') ||
+        err?.message?.includes('ETIMEDOUT')
     );
 }
 
 /**
- * Supabase 冷启动处理：
- * - 问题：Supabase 挂起时强制断开 TCP，不发 FIN/RST。Prisma 连接池复用死连接。
+ * Aiven 冷启动处理：
+ * - 问题：Aiven 免费版空闲后挂起，强制断开 TCP。Prisma 连接池复用死连接导致第一次请求失败。
  * - 解决：捕获连接错误 → disconnect 清空连接池 → 指数退避等待 → 重试（最多5次）
+ * - 配套：index.ts 中的 DB 心跳（每4分钟 ping）可大幅减少冷启动触发概率
  *
- * Supabase 冷启动通常需要 5-15 秒，所以退避策略：
+ * 冷启动通常需要 5-15 秒，退避策略：
  * 第1次失败后等 3s，第2次等 5s，第3次等 8s，第4次等 10s，第5次等 10s
  */
 const RETRY_DELAYS = [3000, 5000, 8000, 10000, 10000];

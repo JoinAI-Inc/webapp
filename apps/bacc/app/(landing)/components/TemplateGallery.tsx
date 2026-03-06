@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,8 +18,10 @@ interface Template {
     resolution: string | null;
     theme: string | null;
     favoriteCount: number;
+    isFavorited?: boolean;
     tags: { id: string; name: string }[];
 }
+
 
 export function TemplateGallery({
     initialTags,
@@ -36,6 +38,21 @@ export function TemplateGallery({
     const [templates, setTemplates] = useState<Template[]>(initialTemplates);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    // 用 ref 缓存收藏 ID 集合，避免重复请求
+    const favoritedIds = useRef<Set<string>>(new Set());
+
+    // 客户端挂载后同步收藏状态
+    useEffect(() => {
+        fetch("/api/templates/favorites")
+            .then(r => r.ok ? r.json() : [])
+            .then((data: Array<{ id: string }>) => {
+                if (!Array.isArray(data) || data.length === 0) return;
+                const ids = new Set(data.map(t => t.id));
+                favoritedIds.current = ids;
+                setTemplates(prev => prev.map(t => ({ ...t, isFavorited: ids.has(t.id) })));
+            })
+            .catch(() => { });
+    }, []);
 
     const handleTagSelect = useCallback(async (tagId: string | null) => {
         setSelectedTag(tagId);
@@ -46,7 +63,10 @@ export function TemplateGallery({
                 : `/api/templates?pageSize=100`;
             const res = await fetch(url);
             const json = await res.json();
-            setTemplates(Array.isArray(json) ? json : (json.data || []));
+            const list: Template[] = Array.isArray(json) ? json : (json.data || []);
+            // 合并本地收藏状态
+            const ids = favoritedIds.current;
+            setTemplates(ids.size > 0 ? list.map(t => ({ ...t, isFavorited: ids.has(t.id) })) : list);
         } catch {
             // 静默失败，保留当前数据
         } finally {
@@ -124,9 +144,14 @@ function TemplateCard({
     compact?: boolean;
     onSelect?: (templateId: string) => void;
 }) {
-    const [isFavorited, setIsFavorited] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(template.isFavorited ?? false);
     const [favoriteCount, setFavoriteCount] = useState(template.favoriteCount);
     const [loading, setLoading] = useState(false);
+
+    // 当父组件同步收藏状态时更新本地 state
+    useEffect(() => {
+        setIsFavorited(template.isFavorited ?? false);
+    }, [template.isFavorited]);
 
     const handleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -172,23 +197,21 @@ function TemplateCard({
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                {/* Favorite Button - hidden in compact */}
-                {!compact && (
-                    <button
-                        className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-md transition-colors z-10 flex items-center justify-center pointer-events-auto ${isFavorited
-                            ? "bg-red-500 text-white hover:bg-red-600"
-                            : "bg-white/20 text-white hover:bg-white/40"
-                            }`}
-                        onClick={handleFavorite}
-                        disabled={loading}
-                    >
-                        <Heart
-                            size={20}
-                            className="drop-shadow-sm"
-                            fill={isFavorited ? "currentColor" : "none"}
-                        />
-                    </button>
-                )}
+                {/* Favorite Button */}
+                <button
+                    className={`absolute ${compact ? 'top-2 right-2 p-1' : 'top-4 right-4 p-2'} rounded-full backdrop-blur-md transition-colors z-10 flex items-center justify-center pointer-events-auto ${isFavorited
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-white/20 text-white hover:bg-white/40"
+                        }`}
+                    onClick={handleFavorite}
+                    disabled={loading}
+                >
+                    <Heart
+                        size={compact ? 14 : 20}
+                        className="drop-shadow-sm"
+                        fill={isFavorited ? "currentColor" : "none"}
+                    />
+                </button>
 
                 {/* Stats overlay */}
                 <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex justify-between items-end">

@@ -153,7 +153,6 @@ export function HeroSection() {
             <div className="mx-[100px] my-[120px] rounded-[30px] overflow-hidden h-[700px] flex items-center">
                 <div
                     style={{
-
                         overflow: "hidden",
                         display: "flex",
                         flexDirection: "column",
@@ -161,7 +160,6 @@ export function HeroSection() {
                     }}
                 >
                     {ROW_IMAGES.map((images, ri) => (
-                        // 每行用 left+transform 居中，使两端均等溢出
                         <div
                             key={ri}
                             style={{
@@ -186,18 +184,15 @@ export function HeroSection() {
                                         overflow: "hidden",
                                     }}
                                 >
-                                    {src && (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img
-                                            alt=""
-                                            src={src}
-                                            loading={ri === 0 && i < 3 ? "eager" : "lazy"}
-                                            onLoad={(e) => {
-                                                (e.currentTarget.parentElement as HTMLElement)?.classList.remove('skeleton');
-                                            }}
-                                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                                        />
-                                    )}
+                                    <Image
+                                        src={src}
+                                        alt=""
+                                        fill
+                                        priority={ri === 0}
+                                        sizes="200px"
+                                        className="object-cover"
+                                        style={{ zIndex: 1 }}
+                                    />
                                 </div>
                             ))}
                         </div>

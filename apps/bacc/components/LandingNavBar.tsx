@@ -16,7 +16,7 @@ export default function LandingNavBar() {
         { label: "Blog", href: "/blog" },
         { label: "About", href: "/about" },
         { label: "Poke", href: "/poke" },
-        { label: "My Gallery", href: "/generate#gallery" },
+
     ];
 
     useEffect(() => {

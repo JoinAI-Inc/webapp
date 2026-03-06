@@ -258,7 +258,7 @@ export default function PokePage() {
                                 >
                                     Special Thanks to
                                 </span>
-                                <span style={{ fontSize: 24 }}>❤️</span>
+                                <img src="/icon-xhs.svg" height={24} width={24} />
                             </div>
                         </div>
                     </CardFrame>

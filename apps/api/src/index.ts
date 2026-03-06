@@ -26,6 +26,7 @@ import usageRoutes from './routes/usage.js';
 import queueRoutes from './routes/queue.js';
 import historyRoutes from './routes/history.js';
 import templateRoutes from './routes/templates.js';
+import { prisma } from '@repo/database';
 
 // Configure global proxy if needed
 // Proxy removed by request
@@ -77,6 +78,18 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     console.log('✅  Stripe payment integration enabled');
+
+    // DB 心跳：每 4 分钟 ping 一次，防止 Aiven 免费版因空闲触发冷启动
+    const DB_HEARTBEAT_INTERVAL = 4 * 60 * 1000;
+    const dbHeartbeat = async () => {
+        try {
+            await prisma.$queryRaw`SELECT 1`;
+        } catch (e) {
+            console.warn('[DB Heartbeat] ping failed, will retry on next request:', (e as any)?.message);
+        }
+    };
+    setInterval(dbHeartbeat, DB_HEARTBEAT_INTERVAL);
+    console.log('💓  DB heartbeat started (interval: 4min)');
 
     // 启动队列 worker（每 30 秒处理一次）
     import('./lib/queue/worker.js').then(({ queueWorker }) => {
