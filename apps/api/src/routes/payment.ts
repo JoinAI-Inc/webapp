@@ -6,19 +6,21 @@ import {
     constructWebhookEvent,
     handleWebhookEvent
 } from '../services/stripe/index.js';
+import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
  * POST /api/payment/create-checkout
- * 创建Stripe Checkout Session
+ * 创建Stripe Checkout Session（需要 JWT 认证）
  */
-router.post('/create-checkout', async (req: Request, res: Response) => {
+router.post('/create-checkout', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { userId, pricingPlanId, successUrl, cancelUrl, billingInterval } = req.body;
+        const userId = req.userId!;
+        const { pricingPlanId, successUrl, cancelUrl, billingInterval } = req.body;
 
-        if (!userId || !pricingPlanId) {
-            return res.status(400).json({ error: 'userId and pricingPlanId are required' });
+        if (!pricingPlanId) {
+            return res.status(400).json({ error: 'pricingPlanId is required' });
         }
 
         const result = await createCheckoutSession({

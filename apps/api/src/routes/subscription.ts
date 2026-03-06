@@ -7,6 +7,7 @@ import {
     syncUserSubscription
 } from '../services/stripe/index.js';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js';
+import { verifyInternalRequest } from '../lib/internal-auth.js';
 import { prisma } from '@repo/database';
 
 const router = express.Router();
@@ -77,77 +78,85 @@ router.get('/status', authenticateJWT, async (req: AuthenticatedRequest, res: Re
 
 /**
  * GET /api/subscription/status/:userId
- * 获取用户订阅状态(兼容旧版本,建议使用带JWT认证的版本)
+ * 内部接口：同步用户订阅状态（仅限 bacc server-to-server 调用）
+ * 外部请求请使用 GET /api/subscription/status（需 JWT）
  */
 router.get('/status/:userId', async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
 
-        const subscription = await getUserSubscription(userId);
+        // 仅允许内部签名调用
+        const authedUserId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
+        if (!authedUserId || authedUserId !== userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
 
+        const subscription = await getUserSubscription(userId);
         res.json({ subscription });
     } catch (error: any) {
         console.error('Error getting subscription:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to get subscription' });
     }
 });
 
 /**
  * POST /api/subscription/cancel
- * 取消订阅（周期结束时生效）
+ * 取消订阅（周期结束时生效，需要 JWT 认证）
  */
-router.post('/cancel', async (req: Request, res: Response) => {
+router.post('/cancel', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { userId } = req.body;
-
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
-
+        const userId = req.userId!;
         const result = await cancelSubscription(userId);
-
         res.json(result);
     } catch (error: any) {
         console.error('Error canceling subscription:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to cancel subscription' });
     }
 });
 
 /**
  * POST /api/subscription/reactivate
- * 恢复已取消的订阅
+ * 恢复已取消的订阅（需要 JWT 认证）
  */
-router.post('/reactivate', async (req: Request, res: Response) => {
+router.post('/reactivate', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { userId } = req.body;
-
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
-
+        const userId = req.userId!;
         const result = await reactivateSubscription(userId);
-
         res.json(result);
     } catch (error: any) {
         console.error('Error reactivating subscription:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to reactivate subscription' });
     }
 });
 
 /**
  * POST /api/subscription/sync/:userId
- * 同步用户订阅状态（从Stripe）
+ * 内部接口：从 Stripe 同步用户订阅状态（仅限内部或 admin 调用）
+ * TODO: 生产上线前应限制为仅 admin token 可调用
  */
 router.post('/sync/:userId', async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
 
-        await syncUserSubscription(userId);
+        // 允许内部签名调用
+        const authedUserId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
+        if (!authedUserId || authedUserId !== userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
 
+        await syncUserSubscription(userId);
         res.json({ success: true });
     } catch (error: any) {
         console.error('Error syncing subscription:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to sync subscription' });
     }
 });
 

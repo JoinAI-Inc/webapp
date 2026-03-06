@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { taskManager } from '../lib/queue/task-manager.js';
 import { queueWorker } from '../lib/queue/worker.js';
 import { TaskType } from '../lib/queue/types.js';
+import { verifyInternalRequest } from '../lib/internal-auth.js';
 
 const router = Router();
 
@@ -10,21 +11,30 @@ const WORKER_SECRET = process.env.WORKER_SECRET || 'change-me-in-production';
 
 /**
  * POST /api/queue/submit
- * 提交生成任务到队列
+ * 提交生成任务到队列（仅限 bacc server-to-server，需要 x-internal-* 签名）
  */
 router.post('/submit', async (req: Request, res: Response) => {
     try {
-        const { userId, type, payload } = req.body;
+        const { type, payload } = req.body;
 
-        if (!userId || !type || !payload) {
+        // 验证内部签名，取出 userId
+        const userId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (!type || !payload) {
             return res.status(400).json({
-                error: 'Missing required fields: userId, type, payload'
+                error: 'Missing required fields: type, payload'
             });
         }
 
         // 验证任务类型
         const validTypes: TaskType[] = ['portrait', 'magic', 'template'];
-
         if (!validTypes.includes(type)) {
             return res.status(400).json({
                 error: `Invalid task type. Must be one of: ${validTypes.join(', ')}`
@@ -32,16 +42,15 @@ router.post('/submit', async (req: Request, res: Response) => {
         }
 
         const taskId = await taskManager.submitTask({
-            userId: userId.toString(),
+            userId,
             type: type as TaskType,
             payload,
         });
 
-        // 保存为用户当前任务，包括完整的 payload
         const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
-        await userTaskTracker.setCurrentTask(userId.toString(), taskId, {
+        await userTaskTracker.setCurrentTask(userId, taskId, {
             type,
-            payload, // 保存完整的 payload（包括 base64 图片）
+            payload,
             submittedAt: new Date().toISOString(),
         });
 
@@ -54,9 +63,7 @@ router.post('/submit', async (req: Request, res: Response) => {
         });
     } catch (error: any) {
         console.error('[Queue API] Submit error:', error);
-        res.status(500).json({
-            error: error.message || 'Failed to submit task'
-        });
+        res.status(500).json({ error: 'Failed to submit task' });
     }
 });
 
@@ -150,15 +157,19 @@ router.get('/process', async (req: Request, res: Response) => {
 
 /**
  * GET /api/queue/current-task
- * 获取当前用户的任务状态（需要 authentication）
+ * 获取当前用户的任务状态（需要 x-internal-* 签名）
  */
 router.get('/current-task', async (req: Request, res: Response) => {
     try {
-        // 从请求头或查询参数获取 userId
-        const userId = (req as any).userId || req.query.userId;
+        // 使用 internal-auth 验证，取出 userId
+        const userId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
 
         if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized: userId required' });
+            return res.status(401).json({ error: 'Unauthorized' });
         }
 
         const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
