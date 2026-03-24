@@ -1,0 +1,173 @@
+@layer base {
+    :root {
+        --dynamic-bg-color: rgb(255, 255, 255);
+        --batch-input-opacity: 0;
+        --chat-demo-image-blur: 20px;
+        --safe-top: 0px;
+        --safe-bottom: 0px;
+        --safe-left: 0px;
+        --safe-right: 0px;
+        --menu-height: 56px;
+
+        /* 修复 Tailwind CSS 4.x 中 CSS 变量的默认值 */
+        --tw-outline-style: none;
+        --tw-border-style: solid;
+    }
+}
+
+@media (max-width: 900px) {
+    :root {
+        --menu-height: 64px;
+    }
+}
+
+@supports (top: constant(safe-area-inset-top)) {
+    :root {
+        --safe-top: constant(safe-area-inset-top);
+        --safe-bottom: constant(safe-area-inset-bottom);
+        --safe-left: constant(safe-area-inset-left);
+        --safe-right: constant(safe-area-inset-right);
+    }
+}
+
+@supports (top: env(safe-area-inset-top)) {
+    :root {
+        --safe-top: env(safe-area-inset-top);
+        --safe-bottom: env(safe-area-inset-bottom);
+        --safe-left: env(safe-area-inset-left);
+        --safe-right: env(safe-area-inset-right);
+    }
+}
+
+/* 修复 Tailwind CSS 4.x 中的默认边框颜色问题 */
+/* @layer base {
+
+    *,
+    *::before,
+    *::after {
+        border-width: 0px;
+        border-color: #e5e7eb;
+    }
+} */
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background-color: #F5F5F5;
+    background-color: var(--bg-color-1);
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+    background-color: #555;
+    background-color: var(--fg-color-1);
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--bg-color);
+}
+
+/* Global HTML/body styles */
+html {
+    height: 100vh;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-size: 16px;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reset margins for typography elements */
+h2,
+h3,
+h4,
+p {
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+/* Allow h1 to use Tailwind margin classes */
+h1 {
+    margin-block-end: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+/* Interactive elements */
+button,
+a,
+textarea,
+input {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* Lenis smooth scrolling */
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+    pointer-events: none;
+}
+
+/* Video controls customization */
+/* Hide fullscreen button */
+video::-webkit-media-controls-fullscreen-button {
+    display: none;
+}
+
+/* Style play button */
+video::-webkit-media-controls-play-button {
+    align-self: center;
+}
+
+/* Hide timeline */
+video::-webkit-media-controls-timeline {
+    display: none;
+}
+
+/* Hide current time display */
+video::-webkit-media-controls-current-time-display {
+    display: none;
+}
+
+/* Hide remaining time */
+video::-webkit-media-controls-time-remaining-display {
+    display: none;
+}
+
+/* Hide mute button */
+video::-webkit-media-controls-mute-button {
+    display: none;
+}
+
+/* Hide closed captions button */
+video::-webkit-media-controls-toggle-closed-captions-button {
+    display: none;
+}
+
+/* Hide volume slider */
+video::-webkit-media-controls-volume-slider {
+    display: none;
+}

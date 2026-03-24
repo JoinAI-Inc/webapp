@@ -1,0 +1,282 @@
+/* Typography utilities */
+@utility j-h1 {
+  font-size: 40px;
+  line-height: 1.3em;
+  font-weight: 600;
+  font-family: var(--font-en-primary);
+  letter-spacing: 0.01em;
+
+  @media (min-width: 735px) {
+    font-size: 52px;
+  }
+
+  @media (min-width: 1068px) {
+    font-size: 64px;
+  }
+}
+
+@utility j-h2 {
+  font-size: 32px;
+  line-height: 1.3em;
+  font-family: var(--font-en-primary);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+
+  @media (min-width: 735px) {
+    font-size: 40px;
+  }
+
+  @media (min-width: 1068px) {
+    font-size: 52px;
+  }
+}
+
+@utility j-h3 {
+  font-size: 28px;
+  font-family: var(--font-en-primary);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3em;
+
+  @media (min-width: 735px) {
+    font-size: 32px;
+  }
+
+  @media (min-width: 1068px) {
+    font-size: 40px;
+  }
+}
+
+@utility j-h4 {
+  font-size: 21px;
+  line-height: 1.4em;
+  font-family: var(--font-en-primary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
+  @media (min-width: 735px) {
+    font-size: 24px;
+  }
+
+  @media (min-width: 1068px) {
+    font-size: 28px;
+  }
+}
+
+@utility j-h5 {
+  font-size: 19px;
+  line-height: 1.4em;
+  font-family: var(--font-en-primary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
+  @media (min-width: 735px) {
+    font-size: 21px;
+  }
+
+  @media (min-width: 1068px) {
+    font-size: 24px;
+  }
+}
+
+@utility j-h6 {
+  font-size: 17px;
+  line-height: 1.4em;
+  font-family: var(--font-en-primary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
+  @media (min-width: 735px) {
+    font-size: 19px;
+  }
+
+  @media (min-width: 1068px) {
+    font-size: 21px;
+  }
+}
+
+@utility j-h7 {
+  /* 默认样式 (320-734px) */
+  font-size: 14px;
+  line-height: 1.4em;
+  font-family: var(--font-en-primary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
+  /* 中等屏幕 (735-1068px) */
+  @media (min-width: 735px) {
+    font-size: 17px;
+  }
+
+  /* 大屏幕 (1068px+) */
+  @media (min-width: 1068px) {
+    font-size: 19px;
+  }
+}
+
+@utility j-t1 {
+  font-size: 17px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.4em;
+
+  @media (min-width: 735px) {
+    font-size: 19px;
+  }
+  font-size: 14px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.4em;
+
+  @media (min-width: 735px) {
+    font-size: 17px;
+  }
+}
+
+@utility j-t2 {
+  font-size: 12px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  line-height: 1.4em;
+  letter-spacing: 0.01em;
+
+  @media (min-width: 735px) {
+    font-size: 14px;
+  }
+}
+
+@utility j-t3 {
+  font-size: 12px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.4em;
+}
+
+@utility j-p1 {
+  font-size: 12px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.6em;
+
+  @media (min-width: 735px) {
+    font-size: 17px;
+  }
+}
+
+@utility j-p2 {
+  font-size: 14px;
+  font-family: var(--font-en-inter);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.6em;
+
+  @media (min-width: 735px) {
+    font-size: 17px;
+  }
+}
+
+@utility j-l1 {
+  font-size: 14px;
+  font-family: var(--font-en-inter);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.4em;
+
+  @media (min-width: 735px) {
+    font-size: 17px;
+  }
+}
+
+@utility j-l2 {
+  font-size: 13px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.4em;
+}
+
+/* Safe area utilities */
+@utility screen-safe {
+  width: 100vw;
+  height: 100vh;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+@utility h-screen-safe {
+  height: 100vh;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+@utility w-screen-safe {
+  width: 100vw;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+:lang(zh) .j-h1 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-h2 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-h3 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-h4 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-h5 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-h6 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-h7 {
+    font-family: var(--font-zh-primary);
+}
+
+:lang(zh) .j-t1 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-t1 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-t2 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-t3 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-p1 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-p2 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-l3 {
+    font-family: var(--font-zh-inter);
+}
+
+:lang(zh) .j-l2 {
+    font-family: var(--font-zh-inter);
+}

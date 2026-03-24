@@ -1,0 +1,106 @@
+@theme {
+
+    --breakpoint-desktop: 1068px;
+    --breakpoint-tablet: 735px;
+    --breakpoint-mobile: 320px;
+
+    /* Primary font stack: Inter / Apple系统字体 / 微软雅黑 / 思源黑体 / sans-serif */
+    --font-primary: "Inter", -apple-system, "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+
+    /* 英文字体 */
+    --font-en-primary: "Inter", -apple-system, sans-serif;
+    --font-en-inter: "Inter", -apple-system, sans-serif;
+
+    /* 中文字体 */
+    --font-zh-primary: "Inter", -apple-system, "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+    --font-zh-inter: "Inter", -apple-system, "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+
+    --font-display: "Oswald", sans-serif;
+    --font-libre-bodoni: var(--next-font-libre-bodoni);
+
+    /* Grid template columns */
+    --grid-cols-13: repeat(13, minmax(0, 1fr));
+
+    /* Colors */
+    --color-blue-400: #2589FE;
+    --color-blue-500: #0070F3;
+    --color-blue-600: #2F6FEB;
+
+    /* Transition properties */
+    --transition-height: max-height;
+
+    /* Transition delays */
+    --transition-delay-200: 200ms;
+    --transition-delay-400: 400ms;
+    --transition-delay-600: 600ms;
+    --transition-delay-800: 800ms;
+    --transition-delay-1000: 1000ms;
+    --transition-delay-1200: 1200ms;
+
+    /* Background images */
+    --bg-link-icon: url('data:image/svg+xml;base64,PHN2ZyBjbGFzcz0iaC1bMThweF0gd1stMThweF0iIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMDYwNjBBIj48cGF0aCBkPSJNMjM1LjA5MzMzMyAyMTUuNDY2NjY3djg1LjMzMzMzMyBoNDI3Ljk0NjY2NjcgTDIzNS4wOTMzMzMgNzc4LjY2NjY2NyA2MC4xNiA2MC4xNiA2MDAuMTYtNDc3Ljg2NjY2Njd2NDI3Ljk0NjY2NjdoODUuMzMzMzMzVjIjE1LjQ2NjY2Njd6Ij48L3BhdGg+PC9zdmc+');
+
+    /* Animations */
+    --animate-slideIn: slideIn 0.5s ease-in-out forwards;
+    --animate-slideOut: slideOut 0.5s ease-in-out forwards;
+    --animate-vSlideIn: vSlideIn 0.2s ease-in-out forwards;
+    --animate-vSlideOut: vSlideOut 0.2s ease-in-out forwards;
+    --animate-smokeEffect: smokeEffect 5s ease-out forwards;
+
+    @keyframes shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes slideIn {
+        0% {
+            transform: translateX(100%);
+        }
+
+        100% {
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideOut {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes vSlideIn {
+        0% {
+            transform: scaleY(0);
+        }
+
+        100% {
+            transform: scaleY(1);
+        }
+    }
+
+    @keyframes vSlideOut {
+        0% {
+            transform: scaleY(1);
+        }
+
+        100% {
+            transform: scaleY(0);
+        }
+    }
+
+    @keyframes smokeEffect {
+        0% {
+            filter: blur(0px) brightness(1);
+        }
+
+        100% {
+            filter: blur(8px) brightness(0.8);
+            opacity: 0;
+        }
+    }
+}
