@@ -1,9 +1,9 @@
-import { HeroSection } from "./components/HeroSection";
-import { RedBrandSection } from "./components/RedBrandSection";
-import { AlsoSection } from "./components/AlsoSection";
-import { InspritionSection } from "./components/InspritionSection";
-import { AnnouncementSection } from "./components/AnnouncementSection";
-import { FooterSection } from "./components/FooterSection";
+import { HeroSection } from "../components/HeroSection";
+import { RedBrandSection } from "../components/RedBrandSection";
+import { AlsoSection } from "../components/AlsoSection";
+import { InspritionSection } from "../components/InspritionSection";
+import { AnnouncementSection } from "../components/AnnouncementSection";
+import { FooterSection } from "../components/FooterSection";
 
 // ─── 主导出 ───────────────────────────────────────────────────────────────────
 // 导航栏由 (landing)/layout.tsx 中的 LandingNavBar 统一提供

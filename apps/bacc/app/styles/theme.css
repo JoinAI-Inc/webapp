@@ -1,7 +1,8 @@
 @theme {
-
+    --breakpoint-desktop-l: 1440px;
     --breakpoint-desktop: 1068px;
     --breakpoint-tablet: 735px;
+    --breakpoint-mobile-l: 480px;
     --breakpoint-mobile: 320px;
 
     /* Primary font stack: Inter / Apple系统字体 / 微软雅黑 / 思源黑体 / sans-serif */

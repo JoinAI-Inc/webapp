@@ -1,6 +1,6 @@
 "use client";
 
-import { GeneratePageClient } from "../../components/GeneratePageClient";
+import { GeneratePageClient } from "../../../components/GeneratePageClient";
 
 interface Slot {
     id: string;

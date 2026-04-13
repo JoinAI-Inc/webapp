@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { FooterSection } from "../components/FooterSection";
+import { FooterSection } from "../../components/FooterSection";
 
 const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
 

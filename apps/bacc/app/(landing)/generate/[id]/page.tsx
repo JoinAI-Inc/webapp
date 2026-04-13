@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { AppSidebar } from "../../components/AppSidebar";
+import { AppSidebar } from "../../../components/AppSidebar";
 import { GenerateShell } from "./GenerateShell";
 
 export const runtime = 'edge';

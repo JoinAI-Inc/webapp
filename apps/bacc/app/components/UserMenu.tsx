@@ -186,11 +186,23 @@ export function UserMenuButton() {
     const router = useRouter();
     const [showMenu, setShowMenu] = useState(false);
     const [showBalance, setShowBalance] = useState(false);
+    const [balance, setBalance] = useState<number | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const user = session?.user;
     const userId = (session as any)?.userId || user?.id;
     const initial = user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "?";
+
+    useEffect(() => {
+        if (!session) return;
+        fetch('/api/usage/balance')
+            .then(r => r.ok ? r.json() : [])
+            .then(b => {
+                const totalRemaining = Array.isArray(b) ? b.reduce((s: number, item: any) => s + item.remainingCount, 0) : 0;
+                setBalance(totalRemaining);
+            })
+            .catch(console.error);
+    }, [session]);
 
     // Close menu on outside click
     useEffect(() => {
@@ -224,8 +236,34 @@ export function UserMenuButton() {
 
     return (
         <>
-            <div ref={menuRef} className="relative">
-                {/* Avatar button */}
+            <div className="flex items-center gap-3">
+                <a
+                    href="/"
+                    className="hidden tablet:flex items-center gap-2 h-9 px-4 rounded-full bg-[#f4f4f5] hover:bg-[#e4e4e7] transition-colors text-[14px] font-medium text-[#333333]"
+                >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2L2 9l1 13h18l1-13L12 2z" />
+                        <circle cx="12" cy="14" r="2.5" fill="currentColor" />
+                    </svg>
+                    Visit website
+                </a>
+
+                <button
+                    onClick={() => setShowBalance(true)}
+                    className="flex items-center h-9 tablet:pl-4 pl-[3px] tablet:pr-1.5 pr-[3px] rounded-full bg-[#E33535] hover:bg-[#CC2323] transition-colors text-[14px] font-medium text-white shadow-sm"
+                >
+                    <span className="hidden tablet:inline mr-3">Top up</span>
+                    <div className="flex items-center tablet:bg-[#C62323] rounded-full tablet:px-2 px-1 py-1 tablet:min-w-[40px] justify-center">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" className="mr-1.5">
+                            <polygon points="12 2 22 8 22 16 12 22 2 16 2 8" />
+                            <polygon points="12 6 18 10 18 14 12 18 6 14 6 10" fill="#FEF08A" />
+                        </svg>
+                        <span className="text-[13px] font-bold pr-1 tablet:pr-0">{balance !== null ? balance : "..."}</span>
+                    </div>
+                </button>
+
+                <div ref={menuRef} className="relative ml-1">
+                    {/* Avatar button */}
                 <button
                     onClick={() => setShowMenu(v => !v)}
                     className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all select-none ${showMenu
@@ -241,50 +279,56 @@ export function UserMenuButton() {
 
                 {/* Popup Menu */}
                 {showMenu && (
-                    <div className="absolute left-[52px] bottom-0 mb-0 ml-1 w-[200px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-left-2 duration-150">
+                    <div className="absolute right-0 top-full mt-2 w-[240px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150 py-1">
                         {/* User info */}
-                        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                            <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#FF3F2A] to-[#ff7043] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                    {initial}
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-xs font-bold text-gray-800 truncate">{user?.name || "User"}</p>
-                                    <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
-                                </div>
+                        <div className="px-5 py-4 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#4A646C] text-white flex items-center justify-center text-lg font-medium flex-shrink-0">
+                                {initial}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[15px] font-medium text-gray-900 truncate">{user?.name || "User"}</p>
+                                <p className="text-[13px] text-gray-400 truncate mt-0.5">{user?.email}</p>
                             </div>
                         </div>
 
+                        <div className="h-px bg-gray-100 mx-5 my-1" />
+
                         {/* Menu Items */}
-                        <div className="py-1.5">
+                        <div className="py-2">
+                            <a
+                                href="/"
+                                onClick={() => setShowMenu(false)}
+                                className="tablet:hidden w-full text-left px-5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+                            >
+                                Visit website
+                            </a>
                             <button
                                 onClick={() => { setShowBalance(true); setShowMenu(false); }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#FF3F2A] hover:bg-orange-50 transition-colors group"
+                                className="w-full text-left px-5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                                <Wallet size={15} />
-                                <span>My Lucky Balance</span>
-                                <ChevronRight size={13} className="ml-auto opacity-40 group-hover:opacity-80 transition-opacity" />
+                                My Lucky Balance
                             </button>
                             <button
                                 onClick={() => { router.push("/account/settings"); setShowMenu(false); }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="w-full text-left px-5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                                <Settings size={15} />
-                                <span>Settings</span>
+                                Setting
                             </button>
                         </div>
 
-                        <div className="border-t border-gray-100 py-1.5">
+                        <div className="h-px bg-gray-100 mx-5 my-1" />
+
+                        <div className="py-2">
                             <button
                                 onClick={() => signOut({ callbackUrl: "/" })}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                className="w-full text-left px-5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                                <LogOut size={15} />
-                                <span>Exit</span>
+                                Exit
                             </button>
                         </div>
                     </div>
                 )}
+            </div>
             </div>
 
             {/* Balance Modal */}

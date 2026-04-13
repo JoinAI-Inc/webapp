@@ -15,6 +15,10 @@
   }
 }
 
+:lang(zh) .j-h1 {
+  font-family: var(--font-zh-primary);
+}
+
 @utility j-h2 {
   font-size: 32px;
   line-height: 1.3em;
@@ -29,6 +33,10 @@
   @media (min-width: 1068px) {
     font-size: 52px;
   }
+}
+
+:lang(zh) .j-h2 {
+  font-family: var(--font-zh-primary);
 }
 
 @utility j-h3 {
@@ -47,6 +55,10 @@
   }
 }
 
+:lang(zh) .j-h3 {
+  font-family: var(--font-zh-primary);
+}
+
 @utility j-h4 {
   font-size: 21px;
   line-height: 1.4em;
@@ -61,6 +73,10 @@
   @media (min-width: 1068px) {
     font-size: 28px;
   }
+}
+
+:lang(zh) .j-h4 {
+  font-family: var(--font-zh-primary);
 }
 
 @utility j-h5 {
@@ -79,6 +95,10 @@
   }
 }
 
+:lang(zh) .j-h5 {
+  font-family: var(--font-zh-primary);
+}
+
 @utility j-h6 {
   font-size: 17px;
   line-height: 1.4em;
@@ -93,6 +113,10 @@
   @media (min-width: 1068px) {
     font-size: 21px;
   }
+}
+
+:lang(zh) .j-h6 {
+  font-family: var(--font-zh-primary);
 }
 
 @utility j-h7 {
@@ -114,6 +138,11 @@
   }
 }
 
+:lang(zh) .j-h7 {
+  font-family: var(--font-zh-primary);
+}
+
+
 @utility j-t1 {
   font-size: 17px;
   font-family: var(--font-en-inter);
@@ -124,27 +153,43 @@
   @media (min-width: 735px) {
     font-size: 19px;
   }
-  font-size: 14px;
+
+}
+
+:lang(zh) .j-t1 {
+  font-family: var(--font-zh-inter);
+}
+
+@utility j-t1 {
+  font-size: 17px;
   font-family: var(--font-en-inter);
   font-weight: 400;
   letter-spacing: 0.01em;
   line-height: 1.4em;
+
+  @media (min-width: 735px) {
+    font-size: 19px;
+  }
+}
+
+:lang(zh) .j-t1 {
+  font-family: var(--font-zh-inter);
+}
+
+@utility j-t2 {
+  font-size: 14px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  line-height: 1.4em;
+  letter-spacing: 0.01em;
 
   @media (min-width: 735px) {
     font-size: 17px;
   }
 }
 
-@utility j-t2 {
-  font-size: 12px;
-  font-family: var(--font-en-inter);
-  font-weight: 400;
-  line-height: 1.4em;
-  letter-spacing: 0.01em;
-
-  @media (min-width: 735px) {
-    font-size: 14px;
-  }
+:lang(zh) .j-t2 {
+  font-family: var(--font-zh-inter);
 }
 
 @utility j-t3 {
@@ -153,10 +198,30 @@
   font-weight: 400;
   letter-spacing: 0.01em;
   line-height: 1.4em;
+
+  @media (min-width: 735px) {
+    font-size: 14px;
+  }
+}
+
+:lang(zh) .j-t3 {
+  font-family: var(--font-zh-inter);
+}
+
+@utility j-t4 {
+  font-size: 12px;
+  font-family: var(--font-en-inter);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.4em;
+}
+
+:lang(zh) .j-t4 {
+  font-family: var(--font-zh-inter);
 }
 
 @utility j-p1 {
-  font-size: 12px;
+  font-size: 14px;
   font-family: var(--font-en-inter);
   font-weight: 400;
   letter-spacing: 0.03em;
@@ -165,6 +230,10 @@
   @media (min-width: 735px) {
     font-size: 17px;
   }
+}
+
+:lang(zh) .j-p1 {
+  font-family: var(--font-zh-inter);
 }
 
 @utility j-p2 {
@@ -179,6 +248,10 @@
   }
 }
 
+:lang(zh) .j-p2 {
+  font-family: var(--font-zh-inter);
+}
+
 @utility j-l1 {
   font-size: 14px;
   font-family: var(--font-en-inter);
@@ -191,6 +264,10 @@
   }
 }
 
+:lang(zh) .j-l3 {
+  font-family: var(--font-zh-inter);
+}
+
 @utility j-l2 {
   font-size: 13px;
   font-family: var(--font-en-inter);
@@ -198,6 +275,11 @@
   letter-spacing: 0.01em;
   line-height: 1.4em;
 }
+
+:lang(zh) .j-l2 {
+  font-family: var(--font-zh-inter);
+}
+
 
 /* Safe area utilities */
 @utility screen-safe {
@@ -219,64 +301,4 @@
   width: 100vw;
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
-}
-
-:lang(zh) .j-h1 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-h2 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-h3 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-h4 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-h5 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-h6 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-h7 {
-    font-family: var(--font-zh-primary);
-}
-
-:lang(zh) .j-t1 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-t1 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-t2 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-t3 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-p1 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-p2 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-l3 {
-    font-family: var(--font-zh-inter);
-}
-
-:lang(zh) .j-l2 {
-    font-family: var(--font-zh-inter);
 }

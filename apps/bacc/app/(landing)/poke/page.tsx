@@ -1,5 +1,5 @@
-import { FooterSection } from "../components/FooterSection";
-import { CardFrame } from "../components/CardFrame";
+import { FooterSection } from "../../components/FooterSection";
+import { CardFrame } from "../../components/CardFrame";
 
 const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
 
