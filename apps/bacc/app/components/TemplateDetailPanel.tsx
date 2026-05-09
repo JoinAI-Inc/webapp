@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { SlotConfigPanel } from "./SlotConfigPanel";
+import { TemplateDetailSkeleton } from "./Skeletons";
 
 interface Slot {
     id: string;
@@ -42,23 +43,7 @@ export function TemplateDetailPanel({
     }, [templateId]);
 
     if (loading) {
-        return (
-            <div className="w-full max-w-[1280px] px-[24px] py-[32px] mx-auto">
-                <div className="flex items-center gap-[16px] mb-[16px]">
-                    <button
-                        onClick={onBack}
-                        className="p-[8px] hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-                    >
-                        <ArrowLeft size={22} className="text-gray-600" />
-                    </button>
-                    <div className="skeleton h-[36px] w-[240px] rounded-lg" />
-                </div>
-                <div className="grid grid-cols-1 desktop:grid-cols-[506px_minmax(0,758px)] gap-[16px] items-start">
-                    <div className="w-full skeleton rounded-[8px]" style={{ aspectRatio: "506/738" }} />
-                    <div className="w-full skeleton rounded-[8px] h-[520px] desktop:h-[776px]" />
-                </div>
-            </div>
-        );
+        return <TemplateDetailSkeleton showBackButton onBack={onBack} />;
     }
 
     if (!template) {

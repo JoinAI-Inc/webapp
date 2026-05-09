@@ -9,6 +9,7 @@ import { HistoryItem, PendingTask } from "./gallery/gallery.types";
 import { BrewingCard, HistoryCard } from "./gallery/GalleryCards";
 import { GalleryPreviewModal } from "./gallery/GalleryPreviewModal";
 import { getTemplateId } from "./gallery/gallery.types";
+import { GalleryGridSkeleton } from "./Skeletons";
 
 interface MyGalleryProps {
     /** 外部传入新提交的 taskId，触发 brewing 状态 */
@@ -163,8 +164,9 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
         };
     }, [loading, reachedEnd, fetchHistory]);
 
-    if (authLoading) return null;
+    if (authLoading) return <GalleryGridSkeleton />;
     if (!user) return null;
+    if (loading && historyItems.length === 0 && !pendingTask) return <GalleryGridSkeleton />;
 
     return (
         <section id="gallery" className="w-full">

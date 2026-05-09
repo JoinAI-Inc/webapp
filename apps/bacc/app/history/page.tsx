@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { History, Download, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
+import { HistoryPageSkeleton } from "@/app/components/Skeletons";
 
 interface HistoryItem {
     id: string;
@@ -142,9 +143,7 @@ export default function HistoryPage() {
 
                 {/* 历史记录网格 */}
                 {loading ? (
-                    <div className="text-center py-[80px]">
-                        <p className="text-cny-ivory/40">加载中...</p>
-                    </div>
+                    <HistoryPageSkeleton includeHeader={false} />
                 ) : history.length === 0 ? (
                     <div className="text-center py-[80px]">
                         <p className="text-[#9b9a9d] mb-[16px]">暂无生成历史</p>

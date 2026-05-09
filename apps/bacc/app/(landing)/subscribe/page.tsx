@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Zap, CheckCircle2, Loader2, Sparkles, Unlock } from "lucide-react";
+import { SubscribePlansSkeleton } from "../../components/Skeletons";
 
 interface PlanFeature {
     featureId: string;
@@ -135,10 +136,7 @@ export default function SubscribePage() {
 
             {/* Plans Grid */}
             {loading ? (
-                <div className="flex items-center gap-[12px] text-gray-400 py-[80px]">
-                    <Loader2 size={24} className="animate-spin" />
-                    <span>Loading plans...</span>
-                </div>
+                <SubscribePlansSkeleton />
             ) : sortedPlans.length === 0 ? (
                 <div className="text-center py-[80px] text-gray-400">
                     <p className="text-lg font-medium">暂无可用套餐</p>

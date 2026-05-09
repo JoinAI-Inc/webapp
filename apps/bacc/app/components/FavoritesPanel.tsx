@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { FavoritesSkeleton } from "./Skeletons";
 
 interface FavoriteTemplate {
     id: string;
@@ -30,11 +31,7 @@ export function FavoritesPanel({ onSelect }: { onSelect: (id: string) => void })
     }, [sessionStatus]);
 
     if (sessionStatus === "loading" || loading) {
-        return (
-            <div className="flex items-center justify-center h-[256px]">
-                <Loader2 size={24} className="text-gray-400 animate-spin" />
-            </div>
-        );
+        return <FavoritesSkeleton />;
     }
 
     if (sessionStatus !== "authenticated") {

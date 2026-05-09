@@ -5,6 +5,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import { SocialLoginButton } from '@/components/login/SocialLoginButton';
+import { LoginPageSkeleton } from '@/app/components/Skeletons';
 
 const GoogleIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -67,11 +68,7 @@ function LoginContent() {
     }, [status, session, redirectTo, router]);
 
     if (status === 'loading' || status === 'authenticated') {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center font-['Inter',_sans-serif]">
-                <div className="w-[40px] h-[40px] border-2 border-[#EC2E2E] border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
+        return <LoginPageSkeleton />;
     }
 
     return (
@@ -149,11 +146,7 @@ function LoginContent() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-white flex items-center justify-center font-['Inter',_sans-serif]">
-                <div className="w-[40px] h-[40px] border-2 border-[#EC2E2E] border-t-transparent rounded-full animate-spin" />
-            </div>
-        }>
+        <Suspense fallback={<LoginPageSkeleton />}>
             <LoginContent />
         </Suspense>
     );
