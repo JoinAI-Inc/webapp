@@ -44,7 +44,9 @@ router.get('/', async (req: Request, res: Response) => {
             url: item.storageUrl,
             thumbnailUrl: item.thumbnailUrl,
             generationType: item.generationType,
+            metadata: item.metadata,
             promptData: item.promptData,
+            templateId: item.templateId,
             createdAt: item.createdAt,
         })),
         total,
@@ -71,7 +73,9 @@ router.get('/:id', async (req: Request, res: Response) => {
         url: file.storageUrl,
         thumbnailUrl: file.thumbnailUrl,
         generationType: file.generationType,
+        metadata: file.metadata,
         promptData: file.promptData,
+        templateId: file.templateId,
         createdAt: file.createdAt,
     });
 });

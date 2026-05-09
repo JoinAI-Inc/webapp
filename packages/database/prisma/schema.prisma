@@ -594,7 +594,55 @@ model TemplateSlot {
   createdAt   DateTime @default(now()) @map("created_at")
 
   template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  assets   TemplateSlotAsset[]
 
   @@index([templateId])
   @@map("template_slots")
+}
+
+// ============================================
+// 素材库系统
+// ============================================
+
+enum AssetType {
+  OOTD
+  DECORATION
+}
+
+// 全局素材库
+model Asset {
+  id                 String    @id @default(cuid())
+  appId              BigInt?   @map("app_id") // 如果素材隔离在各个app
+  assetType          AssetType @map("asset_type")
+  name               String
+  thumbnailUrl       String    @map("thumbnail_url")
+  payload            Json?     // 传给底层生图 API 的节点参数或URL资源
+  
+  // 商业化/订阅分级关联
+  // 如果为 null，则是免费素材。如果不为 null，则需校验用户是否解锁了该 FeatureKey
+  // 例如："basic_ootd_pack" 或 "pro_ootd_pack"
+  requiredFeatureKey String?   @map("required_feature_key")
+  
+  status             String    @default("active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  slots              TemplateSlotAsset[]
+
+  @@index([assetType])
+  @@index([requiredFeatureKey])
+  @@map("assets")
+}
+
+// 槽位与素材的映射（中间表）
+model TemplateSlotAsset {
+  slotId    String @map("slot_id")
+  assetId   String @map("asset_id")
+  sortOrder Int    @default(0) @map("sort_order") // 决定在这个模板该素材排在第几位
+
+  slot  TemplateSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  asset Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([slotId, assetId])
+  @@map("template_slot_assets")
 }

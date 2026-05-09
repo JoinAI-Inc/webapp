@@ -258,20 +258,20 @@ function MagicStudio() {
         switch (activeModule) {
             case "portrait":
                 return (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="space-y-[32px] animate-in fade-in duration-500">
                         <div className="text-center">
-                            <h3 className="text-2xl font-bold text-shimmer mb-2">Portrait Studio</h3>
+                            <h3 className="text-2xl font-bold text-shimmer mb-[8px]">Portrait Studio</h3>
                             <p className="text-cny-ivory/40 text-sm">Upload photos to transform into Hanfu style.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 tablet:grid-cols-2 gap-[32px]">
                             {/* Input Area */}
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-[16px]">
+                                <div className="grid grid-cols-2 gap-[16px]">
                                     {portraits.map((p, idx) => (
                                         <div key={idx} className="relative group">
                                             <img src={p.image} className="aspect-square rounded-xl object-cover border border-white/10" />
-                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/60 backdrop-blur-sm">
+                                            <div className="absolute bottom-[0px] left-[0px] right-[0px] p-[8px] bg-black/60 backdrop-blur-sm">
                                                 <select
                                                     value={p.styleId}
                                                     onChange={(e) => updatePortraitStyle(idx, e.target.value)}
@@ -280,12 +280,12 @@ function MagicStudio() {
                                                     {STYLES.map(s => <option key={s.id} value={s.id} className="bg-black">{s.name}</option>)}
                                                 </select>
                                             </div>
-                                            <button onClick={() => setPortraits(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3 h-3 text-white" /></button>
+                                            <button onClick={() => setPortraits(prev => prev.filter((_, i) => i !== idx))} className="absolute top-[4px] right-[4px] p-[4px] bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-[12px] h-[12px] text-white" /></button>
                                         </div>
                                     ))}
                                     {portraits.length < 5 && (
-                                        <button onClick={() => portraitInputRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-colors">
-                                            <Plus className="w-6 h-6 text-cny-gold" />
+                                        <button onClick={() => portraitInputRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-[8px] hover:bg-white/5 transition-colors">
+                                            <Plus className="w-[24px] h-[24px] text-cny-gold" />
                                             <span className="text-xs uppercase font-bold text-cny-ivory/40">Add Person</span>
                                         </button>
                                     )}
@@ -295,10 +295,10 @@ function MagicStudio() {
                                 <button
                                     onClick={generatePortrait}
                                     disabled={portraits.length === 0 || isPortraitGenerating}
-                                    className="w-full py-4 bg-cny-gold text-black font-bold rounded-xl hover:bg-cny-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full py-[16px] bg-cny-gold text-black font-bold rounded-xl hover:bg-cny-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isPortraitGenerating ? (
-                                        <span className="flex items-center justify-center gap-2">
+                                        <span className="flex items-center justify-center gap-[8px]">
                                             <span className="animate-spin">⏳</span>
                                             生成中...
                                         </span>
@@ -312,13 +312,13 @@ function MagicStudio() {
                                     <img src={generatedPortrait} className="w-full h-full object-cover" />
                                 ) : isPortraitGenerating ? (
                                     <div className="text-center">
-                                        <div className="w-16 h-16 mx-auto mb-4 border-4 border-cny-gold border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-[64px] h-[64px] mx-auto mb-[16px] border-4 border-cny-gold border-t-transparent rounded-full animate-spin" />
                                         <p className="text-sm font-bold text-cny-gold uppercase">正在生成...</p>
-                                        <p className="text-xs text-cny-ivory/40 mt-2">预计需要 30-60 秒</p>
+                                        <p className="text-xs text-cny-ivory/40 mt-[8px]">预计需要 30-60 秒</p>
                                     </div>
                                 ) : (
                                     <div className="text-center opacity-20">
-                                        <Users className="w-12 h-12 mx-auto mb-2" />
+                                        <Users className="w-[48px] h-[48px] mx-auto mb-[8px]" />
                                         <p className="text-sm font-bold uppercase">Result will appear here</p>
                                     </div>
                                 )}
@@ -329,35 +329,35 @@ function MagicStudio() {
 
             case "atmosphere":
                 return (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="space-y-[32px] animate-in fade-in duration-500">
                         <div className="text-center">
-                            <h3 className="text-2xl font-bold text-shimmer mb-2">Space Studio</h3>
+                            <h3 className="text-2xl font-bold text-shimmer mb-[8px]">Space Studio</h3>
                             <p className="text-cny-ivory/40 text-sm">Design festive interiors or choose scenarios.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-6">
-                                <div className="flex bg-white/5 p-1 rounded-xl">
-                                    <button onClick={() => setBgType('preset')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${bgType === 'preset' ? 'bg-cny-gold text-black' : 'text-white/40'}`}>Presets</button>
-                                    <button onClick={() => setBgType('custom')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${bgType === 'custom' ? 'bg-cny-gold text-black' : 'text-white/40'}`}>Upload</button>
+                        <div className="grid grid-cols-1 tablet:grid-cols-2 gap-[32px]">
+                            <div className="space-y-[24px]">
+                                <div className="flex bg-white/5 p-[4px] rounded-xl">
+                                    <button onClick={() => setBgType('preset')} className={`flex-1 py-[8px] rounded-lg text-xs font-bold ${bgType === 'preset' ? 'bg-cny-gold text-black' : 'text-white/40'}`}>Presets</button>
+                                    <button onClick={() => setBgType('custom')} className={`flex-1 py-[8px] rounded-lg text-xs font-bold ${bgType === 'custom' ? 'bg-cny-gold text-black' : 'text-white/40'}`}>Upload</button>
                                 </div>
 
                                 {bgType === 'preset' ? (
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 gap-[12px]">
                                         {PRESET_SCENES.map(s => (
                                             <button
                                                 key={s.id}
                                                 onClick={() => setSelectedScene(s.id)}
-                                                className={`p-4 border rounded-xl text-left transition-all ${selectedScene === s.id ? 'border-cny-gold bg-cny-gold/10' : 'border-white/5'}`}
+                                                className={`p-[16px] border rounded-xl text-left transition-all ${selectedScene === s.id ? 'border-cny-gold bg-cny-gold/10' : 'border-white/5'}`}
                                             >
-                                                <div className="text-2xl mb-1">{s.preview}</div>
+                                                <div className="text-2xl mb-[4px]">{s.preview}</div>
                                                 <div className="text-xs font-bold">{s.name}</div>
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
                                     <div onClick={() => bgInputRef.current?.click()} className="aspect-video border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center hover:bg-white/5 cursor-pointer overflow-hidden">
-                                        {customBg ? <img src={customBg} className="w-full h-full object-cover" /> : <div className="text-center"><Upload className="w-8 h-8 mx-auto mb-2 opacity-50" /><span className="text-xs uppercase font-bold opacity-50">Upload Room</span></div>}
+                                        {customBg ? <img src={customBg} className="w-full h-full object-cover" /> : <div className="text-center"><Upload className="w-[32px] h-[32px] mx-auto mb-[8px] opacity-50" /><span className="text-xs uppercase font-bold opacity-50">Upload Room</span></div>}
                                     </div>
                                 )}
                                 <input type="file" ref={bgInputRef} onChange={handleBgUpload} className="hidden" accept="image/*" />
@@ -373,14 +373,14 @@ function MagicStudio() {
 
             case "motion":
                 return (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="space-y-[32px] animate-in fade-in duration-500">
                         <div className="text-center">
-                            <h3 className="text-2xl font-bold text-shimmer mb-2">Motion Studio</h3>
+                            <h3 className="text-2xl font-bold text-shimmer mb-[8px]">Motion Studio</h3>
                             <p className="text-cny-ivory/40 text-sm">Animate any photo into a greeting.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-6">
+                        <div className="grid grid-cols-1 tablet:grid-cols-2 gap-[32px]">
+                            <div className="space-y-[24px]">
                                 <div
                                     onClick={() => videoInputRef.current?.click()}
                                     className="aspect-[4/5] bg-white/5 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-cny-gold/50 transition-all relative overflow-hidden group"
@@ -388,24 +388,24 @@ function MagicStudio() {
                                     {videoSourceImage ? (
                                         <>
                                             <img src={videoSourceImage} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute inset-[0px] bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <span className="font-bold text-white">Change Image</span>
                                             </div>
                                         </>
                                     ) : (
                                         <>
-                                            <Upload className="w-12 h-12 text-cny-gold mb-4" />
+                                            <Upload className="w-[48px] h-[48px] text-cny-gold mb-[16px]" />
                                             <p className="font-bold text-shimmer">Upload Photo</p>
-                                            <p className="text-xs text-white/40 mt-2">or drag and drop</p>
+                                            <p className="text-xs text-white/40 mt-[8px]">or drag and drop</p>
                                         </>
                                     )}
                                 </div>
                                 <input type="file" ref={videoInputRef} onChange={handleVideoSourceUpload} className="hidden" accept="image/*" />
 
-                                <div className="space-y-4">
-                                    <div className="p-4 rounded-xl bg-white/5 flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-cny-gold rounded-full flex items-center justify-center text-black">
-                                            <Mic2 className="w-5 h-5" />
+                                <div className="space-y-[16px]">
+                                    <div className="p-[16px] rounded-xl bg-white/5 flex items-center gap-[16px]">
+                                        <div className="w-[40px] h-[40px] bg-cny-gold rounded-full flex items-center justify-center text-black">
+                                            <Mic2 className="w-[20px] h-[20px]" />
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold">Gentle Scholarly</p>
@@ -416,7 +416,7 @@ function MagicStudio() {
                                     <button
                                         onClick={synthesizeVideo}
                                         disabled={!videoSourceImage || isSynthesizing}
-                                        className="w-full py-4 bg-gradient-to-r from-cny-red to-cny-red-dark font-bold rounded-xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+                                        className="w-full py-[16px] bg-gradient-to-r from-cny-red to-cny-red-dark font-bold rounded-xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
                                     >
                                         {isSynthesizing ? "Synthesizing..." : "Generate Video"}
                                     </button>
@@ -431,9 +431,9 @@ function MagicStudio() {
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
-                                            className="absolute inset-0 flex flex-col items-center justify-center bg-black/80"
+                                            className="absolute inset-[0px] flex flex-col items-center justify-center bg-black/80"
                                         >
-                                            <p className="text-2xl font-bold text-shimmer mb-2">{Math.floor(videoProgress)}%</p>
+                                            <p className="text-2xl font-bold text-shimmer mb-[8px]">{Math.floor(videoProgress)}%</p>
                                             <p className="text-[10px] uppercase tracking-widest text-cny-gold">Rendering Motion</p>
                                         </motion.div>
                                     ) : finalVideo ? (
@@ -447,7 +447,7 @@ function MagicStudio() {
                                         </motion.div>
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center opacity-20">
-                                            <VideoIcon className="w-16 h-16" />
+                                            <VideoIcon className="w-[64px] h-[64px]" />
                                         </div>
                                     )}
                                 </AnimatePresence>
@@ -459,21 +459,21 @@ function MagicStudio() {
     };
 
     return (
-        <main className="min-h-screen pt-24 px-6 pb-24 bg-black overflow-hidden relative">
+        <main className="min-h-screen pt-[96px] px-[24px] pb-[96px] bg-black overflow-hidden relative">
             <Navbar />
 
             {/* Background Aesthetic */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute inset-[0px] overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] bg-cny-red/5 blur-[160px] rounded-full" />
                 <div className="absolute -bottom-1/4 -left-1/4 w-[800px] h-[800px] bg-cny-gold/5 blur-[160px] rounded-full" />
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10">
-                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex flex-col desktop:flex-row gap-[32px]">
 
                     {/* Sidebar / Tools Switcher */}
-                    <div className="lg:w-64 shrink-0">
-                        <div className="glass-card p-2 sticky top-32 space-y-1">
+                    <div className="desktop:w-[256px] shrink-0">
+                        <div className="glass-card p-[8px] sticky top-[128px] space-y-[4px]">
                             {MODULES.map(m => {
                                 const Icon = m.icon;
                                 const isActive = activeModule === m.id;
@@ -481,10 +481,10 @@ function MagicStudio() {
                                     <button
                                         key={m.id}
                                         onClick={() => setActiveModule(m.id)}
-                                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${isActive ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:bg-white/5 hover:text-white/80'}`}
+                                        className={`w-full flex items-center gap-[12px] p-[12px] rounded-xl transition-all ${isActive ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:bg-white/5 hover:text-white/80'}`}
                                     >
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-cny-gold text-black' : 'bg-white/5'}`}>
-                                            <Icon className="w-4 h-4" />
+                                        <div className={`w-[32px] h-[32px] rounded-lg flex items-center justify-center ${isActive ? 'bg-cny-gold text-black' : 'bg-white/5'}`}>
+                                            <Icon className="w-[16px] h-[16px]" />
                                         </div>
                                         <div className="text-left">
                                             <p className="font-bold text-sm">{m.name}</p>
@@ -498,7 +498,7 @@ function MagicStudio() {
 
                     {/* Main Workspace */}
                     <div className="flex-1">
-                        <div className="glass-card min-h-[600px] p-8">
+                        <div className="glass-card min-h-[600px] p-[32px]">
                             {renderModuleContent()}
                         </div>
                     </div>

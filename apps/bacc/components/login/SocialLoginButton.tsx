@@ -23,7 +23,7 @@ export function SocialLoginButton({
             onClick={onClick}
             disabled={disabled}
             className={`
-        relative w-full h-14 flex items-center rounded-full
+        relative w-full h-[56px] flex items-center rounded-full
         bg-[#d9d9d9] hover:bg-[#cccccc] active:bg-[#c0c0c0]
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
@@ -31,7 +31,7 @@ export function SocialLoginButton({
       `}
         >
             {/* 图标固定左侧 */}
-            <span className="absolute left-5 w-6 h-6 flex items-center justify-center flex-shrink-0">
+            <span className="absolute left-[20px] w-[24px] h-[24px] flex items-center justify-center flex-shrink-0">
                 {icon}
             </span>
             {/* 文字居中 */}

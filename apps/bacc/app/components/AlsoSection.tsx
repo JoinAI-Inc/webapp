@@ -116,7 +116,7 @@ function AlsoSubSection() {
             {/* 4图区域 */}
             <div style={{ display: "flex", gap: 24, height: 512, alignItems: "center", width: "100%" }}>
                 {[imgRect2720, imgRect2717, imgRect2718, imgRect2719].map((src, i) => (
-                    <div key={i} className="skeleton" style={{ flex: "1 0 0", height: "100%", borderRadius: 15, overflow: "hidden", position: "relative" }}>
+                    <div key={i} className="image-placeholder" style={{ flex: "1 0 0", height: "100%", borderRadius: 15, overflow: "hidden", position: "relative" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={src} alt="" loading="eager"
                             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", zIndex: 1 }} />
@@ -141,7 +141,7 @@ function PetSection() {
 
             {/* 小图 - 左上 */}
             <div
-                className="skeleton"
+                className="image-placeholder"
                 style={{
                     position: "absolute",
                     left: "588px",
@@ -196,7 +196,7 @@ function PetSection() {
 
             {/* 小图 - 右上 */}
             <div
-                className="skeleton"
+                className="image-placeholder"
                 style={{
                     position: "absolute",
                     right: "350px",
@@ -214,7 +214,7 @@ function PetSection() {
 
             {/* 主大图 - 左 */}
             <div
-                className="skeleton"
+                className="image-placeholder"
                 style={{
                     position: "absolute",
                     left: 0,
@@ -233,7 +233,7 @@ function PetSection() {
 
             {/* 小图 - 右下 */}
             <div
-                className="skeleton"
+                className="image-placeholder"
                 style={{
                     position: "absolute",
                     right: 0,
@@ -307,7 +307,7 @@ function OotdSection() {
                         <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                             {/* before 小图 */}
                             <div
-                                className="skeleton"
+                                className="image-placeholder"
                                 style={{
                                     width: 133,
                                     height: 178,
@@ -323,7 +323,7 @@ function OotdSection() {
                             </div>
                             {/* OOTD 参考图 */}
                             <div
-                                className="skeleton"
+                                className="image-placeholder"
                                 style={{
                                     width: 145,
                                     height: 178,
@@ -347,7 +347,7 @@ function OotdSection() {
 
                         {/* after 大图 */}
                         <div
-                            className="skeleton"
+                            className="image-placeholder"
                             style={{
                                 position: "absolute",
                                 right: 20,

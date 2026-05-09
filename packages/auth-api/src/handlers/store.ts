@@ -70,19 +70,36 @@ export async function handleGetAppById(id: string) {
             );
         }
 
-        // 查询所有与该应用关联的计划
-        // 必须在 PricingPlanApp 表中有明确的关联记录
+        // 查询所有与该应用关联的计划。
+        // 次数包可能只通过 planFeatures/usagePacks -> feature.appId 关联到 app。
         const plans = await prisma.pricingPlan.findMany({
             where: {
                 isActive: true,
                 status: 'ACTIVE',
-                apps: {
-                    some: { appId: app.id }
-                }
+                OR: [
+                    { apps: { some: { appId: app.id } } },
+                    {
+                        planFeatures: {
+                            some: {
+                                feature: { is: { appId: app.id, isActive: true } }
+                            }
+                        }
+                    },
+                    {
+                        usagePacks: {
+                            some: {
+                                feature: { is: { appId: app.id, isActive: true } }
+                            }
+                        }
+                    }
+                ]
             },
             include: {
-                apps: { include: { app: true } }
-            }
+                apps: { include: { app: true } },
+                planFeatures: { include: { feature: true } },
+                usagePacks: { include: { feature: true } }
+            },
+            orderBy: { price: 'asc' }
         });
 
         const serializedData = JSON.parse(JSON.stringify({ app, plans }, (key, value) =>
@@ -148,19 +165,57 @@ export async function handleGetEntitlements(request: NextRequest) {
 }
 
 /**
- * 获取订阅计划列表
+ * 获取收费计划列表
  * GET /api/store/plans
  */
 export async function handleGetPlans(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url);
+        const appIdentifier = searchParams.get('appId') || searchParams.get('appKey');
+        let app: { id: bigint } | null = null;
+
+        if (appIdentifier) {
+            const isNumericId = /^\d+$/.test(appIdentifier);
+            app = await prisma.app.findUnique({
+                where: isNumericId ? { id: BigInt(appIdentifier) } : { appKey: appIdentifier }
+            });
+
+            if (!app) {
+                return NextResponse.json(
+                    { error: 'App not found' },
+                    { status: 404 }
+                );
+            }
+        }
+
         const plans = await prisma.pricingPlan.findMany({
             where: {
                 isActive: true,
                 status: 'ACTIVE',
-                planType: 'SUBSCRIPTION'
+                ...(app && {
+                    OR: [
+                        { apps: { some: { appId: app.id } } },
+                        {
+                            planFeatures: {
+                                some: {
+                                    feature: { is: { appId: app.id, isActive: true } }
+                                }
+                            }
+                        },
+                        {
+                            usagePacks: {
+                                some: {
+                                    feature: { is: { appId: app.id, isActive: true } }
+                                }
+                            }
+                        }
+                    ]
+                })
             },
             include: {
-                apps: { include: { app: true } }
+                apps: { include: { app: true } },
+                planFeatures: { include: { feature: true } },
+                usagePacks: { include: { feature: true } }
             },
             orderBy: { price: 'asc' }
         });

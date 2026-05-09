@@ -174,7 +174,7 @@ export function HeroSection() {
                             {images.map((src, i) => (
                                 <div
                                     key={i}
-                                    className="skeleton"
+                                    className="image-placeholder"
                                     style={{
                                         width: 200,
                                         height: 263,
@@ -203,4 +203,3 @@ export function HeroSection() {
         </section>
     );
 }
-

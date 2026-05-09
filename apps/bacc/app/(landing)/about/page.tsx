@@ -112,11 +112,11 @@ export default function AboutPage() {
                     >
 
                         <div className="w-[60%] relative pt-[30px] ">
-                            <div className="absolute top-0 right-0">
+                            <div className="absolute top-[0px] right-[0px]">
                                 <img src="/bg-about-1.svg" height={175.66} width={186.48} />
                             </div>
                             {/* 标题第1行 */}
-                            <div className="flex flex-row items-center gap-2">
+                            <div className="flex flex-row items-center gap-[8px]">
                                 <p
                                     style={{
                                         fontFamily: "Manrope, sans-serif",
@@ -134,7 +134,7 @@ export default function AboutPage() {
                             </div>
 
                             {/* 正文标题（换行显示） */}
-                            <div className="flex flex-row gap-4" style={{
+                            <div className="flex flex-row gap-[16px]" style={{
                                 fontFamily: "Manrope, sans-serif",
                                 fontWeight: 600,
                                 fontSize: 40,
@@ -146,7 +146,7 @@ export default function AboutPage() {
                                 <span style={{ color: "#ff3f2a" }}>precious to us</span>
                             </div>
 
-                            <div className="flex flex-row gap-4  pb-[40px]" style={{
+                            <div className="flex flex-row gap-[16px]  pb-[40px]" style={{
                                 fontFamily: "Manrope, sans-serif",
                                 fontWeight: 600,
                                 fontSize: 40,

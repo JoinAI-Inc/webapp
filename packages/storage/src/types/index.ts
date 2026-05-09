@@ -35,6 +35,7 @@ export interface UploadOptions {
     userId?: string;                  // BACC 用户ID
     generationType?: string;          // BACC 生成类型
     promptData?: Record<string, any>; // BACC 提示词数据
+    templateId?: string;              // BACC 模板生成关联模板ID
 }
 
 export interface UploadResult {

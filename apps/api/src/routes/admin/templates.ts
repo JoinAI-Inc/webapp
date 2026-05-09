@@ -4,6 +4,19 @@ import type { Prisma } from '@prisma/client';
 
 const router = express.Router();
 
+const templateInclude: Prisma.TemplateInclude = {
+    tags: { include: { tag: true } },
+    slots: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+            assets: {
+                include: { asset: true },
+                orderBy: { sortOrder: 'asc' }
+            }
+        }
+    }
+};
+
 // GET /api/admin/templates
 router.get('/', async (req: Request, res: Response) => {
     try {
@@ -18,7 +31,7 @@ router.get('/', async (req: Request, res: Response) => {
         const [templates, total] = await Promise.all([
             prisma.template.findMany({
                 where, skip, take: sizeNum, orderBy: { createdAt: 'desc' },
-                include: { tags: { include: { tag: true } }, slots: { orderBy: { sortOrder: 'asc' } } }
+                include: templateInclude
             }),
             prisma.template.count({ where })
         ]);
@@ -32,7 +45,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     try {
         const template = await prisma.template.findUnique({
             where: { id: req.params.id },
-            include: { tags: { include: { tag: true } }, slots: { orderBy: { sortOrder: 'asc' } } }
+            include: templateInclude
         });
         if (!template) return res.status(404).json({ error: 'Template not found' });
         res.json(template);
@@ -54,13 +67,23 @@ router.post('/', async (req: Request, res: Response) => {
                 descriptor, resolution, theme, status: status ?? 'DRAFT',
                 tags: { create: (tagIds as string[]).map((tagId: string) => ({ tagId })) },
                 slots: {
-                    create: (slots as any[]).map((s: any, i: number) => ({
-                        id: crypto.randomUUID(), slotType: s.slotType, refId: s.refId,
-                        label: s.label, description: s.description ?? null, sortOrder: s.sortOrder ?? i
-                    }))
+                    create: (slots as any[]).map((s: any, i: number) => {
+                        const slotData: any = {
+                            id: crypto.randomUUID(), slotType: s.slotType, refId: s.refId,
+                            label: s.label, description: s.description ?? null, sortOrder: s.sortOrder ?? i
+                        };
+                        if (s.assetIds && s.assetIds.length > 0) {
+                            slotData.assets = {
+                                create: s.assetIds.map((aId: string, aIdx: number) => ({
+                                    assetId: aId, sortOrder: aIdx
+                                }))
+                            };
+                        }
+                        return slotData;
+                    })
                 }
             },
-            include: { tags: { include: { tag: true } }, slots: { orderBy: { sortOrder: 'asc' } } }
+            include: templateInclude
         });
         res.status(201).json(template);
     } catch (error: any) { res.status(400).json({ error: error.message }); }
@@ -93,18 +116,30 @@ router.put('/:id', async (req: Request, res: Response) => {
         if (slots !== undefined) {
             await prisma.templateSlot.deleteMany({ where: { templateId: id } });
             if (slots.length > 0) {
-                await prisma.templateSlot.createMany({
-                    data: (slots as any[]).map((s: any, i: number) => ({
+                // Must create individually to support nested 'assets' logic
+                for (let i = 0; i < slots.length; i++) {
+                    const s = slots[i];
+                    const slotData: any = {
                         id: crypto.randomUUID(), templateId: id, slotType: s.slotType, refId: s.refId,
                         label: s.label, description: s.description ?? null, sortOrder: s.sortOrder ?? i
-                    }))
-                });
+                    };
+                    
+                    if (s.assetIds && s.assetIds.length > 0) {
+                        slotData.assets = {
+                            create: s.assetIds.map((assetId: string, idx: number) => ({
+                                assetId,
+                                sortOrder: idx
+                            }))
+                        };
+                    }
+                    await prisma.templateSlot.create({ data: slotData });
+                }
             }
         }
 
         const template = await prisma.template.update({
             where: { id }, data: updateData,
-            include: { tags: { include: { tag: true } }, slots: { orderBy: { sortOrder: 'asc' } } }
+            include: templateInclude
         });
         res.json(template);
     } catch (error: any) { res.status(400).json({ error: error.message }); }

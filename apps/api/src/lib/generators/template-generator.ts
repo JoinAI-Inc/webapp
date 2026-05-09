@@ -216,6 +216,8 @@ export class TemplateGenerator extends BaseGenerator {
             createdBy: userId,
             userId,
             generationType: 'template',
+            promptData: { templateId, templateName, slots },
+            templateId,
         });
 
         console.log(`[TemplateGenerator] Upload complete: ${uploadResult.url}`);

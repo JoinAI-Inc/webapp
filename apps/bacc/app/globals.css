@@ -44,12 +44,12 @@
 }
 
 @utility cny-button-primary {
-  @apply relative overflow-hidden bg-cny-gold text-cny-red-dark font-black py-4 px-10 rounded-full transition-all duration-500 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.5)] transform hover:-translate-y-1 active:scale-95;
+  @apply relative overflow-hidden bg-cny-gold text-cny-red-dark font-black py-[16px] px-[40px] rounded-full transition-all duration-500 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.5)] transform hover:translate-y-[-4px] active:scale-95;
   letter-spacing: 0.05em;
 
   &::after {
     content: '';
-    @apply absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full skew-x-45 transition-transform duration-1000;
+    @apply absolute inset-[0px] bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full skew-x-45 transition-transform duration-1000;
   }
 
   &:hover::after {
@@ -58,7 +58,7 @@
 }
 
 @utility cny-button-outline {
-  @apply border-2 border-cny-gold/40 text-cny-gold font-bold py-4 px-10 rounded-full transition-all duration-500 backdrop-blur-xs hover:bg-cny-gold hover:text-cny-red-dark hover:border-cny-gold;
+  @apply border-2 border-cny-gold/40 text-cny-gold font-bold py-[16px] px-[40px] rounded-full transition-all duration-500 backdrop-blur-xs hover:bg-cny-gold hover:text-cny-red-dark hover:border-cny-gold;
 }
 
 @utility text-shimmer {
@@ -163,21 +163,11 @@
   animation: 220ms ease-out both page-fade-in;
 }
 
-/* 骨架屏 shimmer */
-@keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-
-  100% {
-    background-position: 400px 0;
-  }
-}
-
 .skeleton {
   background-color: #d0d0d0;
-  background-image: linear-gradient(90deg, #d0d0d0 25%, #b8b8b8 50%, #d0d0d0 75%);
-  background-size: 800px 100%;
-  animation: shimmer 1.4s infinite linear;
   border-radius: 16px;
+}
+
+.image-placeholder {
+  background-color: #d0d0d0;
 }

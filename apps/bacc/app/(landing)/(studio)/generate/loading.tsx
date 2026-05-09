@@ -4,28 +4,28 @@
 export default function GenerateLoading() {
     return (
         <main
-            className="min-h-screen bg-[#FDFDFD] pt-24 pb-20 px-8 flex flex-col items-center"
+            className="min-h-screen bg-[#FDFDFD] pt-[96px] pb-[80px] px-[32px] flex flex-col items-center"
             style={{ fontFamily: "Manrope, sans-serif" }}
         >
             <div className="w-full max-w-[1280px]">
                 {/* 标题占位 */}
-                <div className="skeleton h-10 w-64 mb-3" />
-                <div className="skeleton h-5 w-96 mb-10" />
+                <div className="skeleton h-[40px] w-[256px] mb-[12px]" />
+                <div className="skeleton h-[20px] w-[384px] mb-[40px]" />
 
                 {/* 标签过滤占位 */}
-                <div className="flex gap-3 mb-10">
+                <div className="flex gap-[12px] mb-[40px]">
                     {[80, 90, 70, 85, 75].map((w, i) => (
-                        <div key={i} className="skeleton h-9 rounded-full" style={{ width: w }} />
+                        <div key={i} className="skeleton h-[36px] rounded-full" style={{ width: w }} />
                     ))}
                 </div>
 
                 {/* 模板卡片网格占位 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 desktop-l:grid-cols-4 gap-[32px]">
                     {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="flex flex-col gap-3">
+                        <div key={i} className="flex flex-col gap-[12px]">
                             <div className="skeleton w-full rounded-2xl" style={{ aspectRatio: "2/3" }} />
-                            <div className="skeleton h-5 w-3/4" />
-                            <div className="skeleton h-4 w-1/2" />
+                            <div className="skeleton h-[20px] w-3/4" />
+                            <div className="skeleton h-[16px] w-1/2" />
                         </div>
                     ))}
                 </div>

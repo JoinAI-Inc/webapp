@@ -142,7 +142,15 @@ router.get('/:id', async (req: Request, res: Response) => {
 
         const includeBase: Prisma.TemplateInclude = {
             tags: { include: { tag: true } },
-            slots: { orderBy: { sortOrder: 'asc' } },
+            slots: { 
+                orderBy: { sortOrder: 'asc' },
+                include: {
+                    assets: {
+                        include: { asset: true },
+                        orderBy: { sortOrder: 'asc' }
+                    }
+                }
+            },
         };
         if (userId) {
             includeBase.favorites = { where: { userId }, select: { id: true } };
@@ -159,7 +167,22 @@ router.get('/:id', async (req: Request, res: Response) => {
             descriptor: template.descriptor, favoriteCount: template.favoriteCount,
             isFavorited: userId ? (template.favorites?.length ?? 0) > 0 : false,
             tags: template.tags.map((tt: any) => ({ id: tt.tag.id, name: tt.tag.name })),
-            slots: template.slots
+            slots: template.slots.map((s: any) => ({
+                id: s.id,
+                slotType: s.slotType,
+                refId: s.refId,
+                label: s.label,
+                description: s.description,
+                sortOrder: s.sortOrder,
+                assets: s.assets?.map((a: any) => ({
+                    id: a.asset.id,
+                    assetType: a.asset.assetType,
+                    name: a.asset.name,
+                    thumbnailUrl: a.asset.thumbnailUrl,
+                    requiredFeatureKey: a.asset.requiredFeatureKey,
+                    sortOrder: a.sortOrder
+                })) || []
+            }))
         });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -318,16 +341,69 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
             }
         }
 
+        // ── 获取并验证 Assets ──────────────────────────────────────────────────────────
+        const selectedAssetIds = slots.filter((s: any) => s.assetId).map((s: any) => s.assetId as string);
+        let assetsMap: Record<string, any> = {};
+
+        if (selectedAssetIds.length > 0) {
+            const assets = await prisma.asset.findMany({
+                where: { id: { in: selectedAssetIds } },
+            });
+            for (const asset of assets) {
+                assetsMap[asset.id] = asset;
+            }
+
+            // 鉴权校验 `requiredFeatureKey`
+            const requiredFeatures = assets.map(a => a.requiredFeatureKey).filter(Boolean) as string[];
+            if (requiredFeatures.length > 0) {
+                // Find all features required
+                const featuresInfo = await prisma.feature.findMany({
+                    where: { featureKey: { in: requiredFeatures }, isActive: true },
+                    select: { id: true, featureKey: true }
+                });
+                
+                const featureIds = featuresInfo.map(f => f.id);
+                
+                // Check if user has unlocked all these features
+                const unlocks = await prisma.userFeatureUnlock.findMany({
+                    where: {
+                        userId,
+                        featureId: { in: featureIds },
+                        OR: [
+                            { expireAt: null },
+                            { expireAt: { gt: new Date() } }
+                        ]
+                    }
+                });
+
+                const unlockedFeatureIds = new Set(unlocks.map(u => u.featureId.toString()));
+                
+                for (const asset of assets) {
+                    if (asset.requiredFeatureKey) {
+                        const featureObj = featuresInfo.find(f => f.featureKey === asset.requiredFeatureKey);
+                        if (!featureObj || !unlockedFeatureIds.has(featureObj.id.toString())) {
+                            return res.status(403).json({
+                                error: `Premium asset "${asset.name}" requires subscription upgrade.`,
+                                code: 'PREMIUM_ASSET_LOCKED'
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
         // 构建 payload（_deductedFeatureKey 供 worker 失败退款用）
         const payload = {
             templateId: id,
             templateName: template.name,
             templateImageUrl: template.imageUrl ?? undefined,
             descriptor: template.descriptor,
-            slots: slots.map((s) => ({
+            slots: slots.map((s: any) => ({
                 refId: s.refId,
                 slotType: s.slotType || 'IMAGE',
                 imageSource: s.imageSource,
+                // 对于预设素材，我们将 payload 合并进去透传给底层服务
+                assetPayload: s.assetId && assetsMap[s.assetId] ? assetsMap[s.assetId].payload : undefined
             })),
             _deductedFeatureKey: deductedFeatureKey,
         };

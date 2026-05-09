@@ -53,7 +53,7 @@ export class MediaStorage {
      * 上传文件
      */
     async upload(options: UploadOptions): Promise<UploadResult> {
-        const { file, fileName, appId, tags, metadata, createdBy, userId, generationType, promptData } = options;
+        const { file, fileName, appId, tags, metadata, createdBy, userId, generationType, promptData, templateId } = options;
 
         // 1. 验证文件
         const fileMetadata = await this.fileValidator.validate(file, fileName);
@@ -118,6 +118,7 @@ export class MediaStorage {
                 userId: validUserId, // ✅ 仅使用实际存在的 userId
                 generationType, // ✅ BACC generationType
                 promptData, // ✅ BACC promptData
+                templateId,
             },
         });
 

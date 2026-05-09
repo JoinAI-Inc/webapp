@@ -7,6 +7,7 @@ import stripeRouter from './admin/stripe.js';
 import templatesRouter from './admin/templates.js';
 import featuresRouter from './admin/features.js';
 import tagsRouter from './admin/tags.js';
+import assetsRouter from './admin/assets.js';
 
 const router = express.Router();
 
@@ -30,5 +31,6 @@ router.use('/stripe', stripeRouter);
 router.use('/templates', templatesRouter);
 router.use('/features', featuresRouter);
 router.use('/tags', tagsRouter);
+router.use('/assets', assetsRouter);
 
 export default router;

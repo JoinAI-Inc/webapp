@@ -105,24 +105,24 @@ export default function HistoryPage() {
     };
 
     return (
-        <main className="min-h-screen bg-black text-white">
+        <main className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-['Inter',_sans-serif]">
             <Navbar />
 
-            <div className="max-w-7xl mx-auto px-6 py-24">
+            <div className="max-w-7xl mx-auto px-[24px] py-[96px]">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-12"
+                    className="mb-[48px]"
                 >
-                    <div className="flex items-center gap-3 mb-4">
-                        <History className="w-8 h-8 text-cny-gold" />
-                        <h1 className="text-4xl font-bold text-shimmer">生成历史</h1>
+                    <div className="flex items-center gap-[12px] mb-[16px]">
+                        <History className="w-[32px] h-[32px] text-[#EC2E2E]" />
+                        <h1 className="text-4xl font-bold text-[#1a1c1c] font-['Plus_Jakarta_Sans',_sans-serif]">生成历史</h1>
                     </div>
-                    <p className="text-cny-ivory/60">查看您所有的 AI 生成作品</p>
+                    <p className="text-[#6a696c]">查看您所有的 AI 生成作品</p>
                 </motion.div>
 
                 {/* 筛选器 */}
-                <div className="flex gap-4 mb-8">
+                <div className="flex gap-[16px] mb-[32px]">
                     {["", "portrait", "decor", "video"].map((type) => (
                         <button
                             key={type}
@@ -130,9 +130,9 @@ export default function HistoryPage() {
                                 setFilter(type);
                                 setPage(1);
                             }}
-                            className={`px-4 py-2 rounded-lg font-medium transition-all ${filter === type
-                                ? "bg-cny-gold text-black"
-                                : "bg-white/5 text-cny-ivory/60 hover:bg-white/10"
+                            className={`px-[16px] py-[8px] rounded-full font-medium transition-all ${filter === type
+                                ? "bg-[#EC2E2E] text-white shadow-sm"
+                                : "bg-white text-[#6a696c] hover:bg-[#e8e8e8] shadow-sm"
                                 }`}
                         >
                             {type === "" ? "全部" : getTypeLabel(type)}
@@ -142,61 +142,61 @@ export default function HistoryPage() {
 
                 {/* 历史记录网格 */}
                 {loading ? (
-                    <div className="text-center py-20">
+                    <div className="text-center py-[80px]">
                         <p className="text-cny-ivory/40">加载中...</p>
                     </div>
                 ) : history.length === 0 ? (
-                    <div className="text-center py-20">
-                        <p className="text-cny-ivory/40 mb-4">暂无生成历史</p>
+                    <div className="text-center py-[80px]">
+                        <p className="text-[#9b9a9d] mb-[16px]">暂无生成历史</p>
                         <Link
-                            href="/studio/magic"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cny-red to-cny-red-dark rounded-xl font-bold"
+                            href="/gallery"
+                            className="inline-flex items-center gap-[8px] px-[24px] py-[12px] bg-gradient-to-b from-[#EC2E2E] to-[#d62626] text-white rounded-full font-bold shadow-[0_12px_40px_rgba(236,46,46,0.2)] hover:scale-105 transition-transform"
                         >
                             开始创作
                         </Link>
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-[24px] mb-[32px]">
                             {history.map((item, idx) => (
                                 <motion.div
                                     key={item.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.05 }}
-                                    className="glass-card p-4 group"
+                                    className="bg-white rounded-[1.5rem] p-[16px] shadow-[0_12px_40px_rgba(26,28,28,0.04)] hover:shadow-[0_12px_40px_rgba(26,28,28,0.08)] group transition-shadow"
                                 >
-                                    <div className="relative aspect-video mb-3 rounded-lg overflow-hidden bg-white/5">
+                                    <div className="relative aspect-video mb-[12px] rounded-[1rem] overflow-hidden bg-[#e8e8e8]">
                                         <img
                                             src={item.thumbnailUrl || item.url}
                                             alt={item.fileName}
                                             className="w-full h-full object-cover"
                                         />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                        <div className="absolute inset-[0px] bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-[12px]">
                                             <button
                                                 onClick={() => window.open(item.url, "_blank")}
-                                                className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+                                                className="p-[8px] bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
                                             >
-                                                <Download className="w-5 h-5" />
+                                                <Download className="w-[20px] h-[20px]" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(item.id)}
-                                                className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                className="p-[8px] bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
                                             >
-                                                <Trash2 className="w-5 h-5" />
+                                                <Trash2 className="w-[20px] h-[20px]" />
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-[8px]">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs px-2 py-1 bg-cny-gold/20 text-cny-gold rounded">
+                                            <span className="text-xs px-[8px] py-[4px] bg-[#EC2E2E]/10 text-[#EC2E2E] rounded-md font-medium">
                                                 {getTypeLabel(item.generationType)}
                                             </span>
-                                            <span className="text-xs text-cny-ivory/40">
+                                            <span className="text-xs text-[#9b9a9d]">
                                                 {new Date(item.createdAt).toLocaleDateString("zh-CN")}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-cny-ivory/60 truncate">{item.fileName}</p>
+                                        <p className="text-sm text-[#1a1c1c] font-medium truncate">{item.fileName}</p>
                                     </div>
                                 </motion.div>
                             ))}
@@ -204,23 +204,23 @@ export default function HistoryPage() {
 
                         {/* 分页 */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-4">
+                            <div className="flex items-center justify-center gap-[16px] mt-[32px]">
                                 <button
                                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                                     disabled={page === 1}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-[8px] rounded-full bg-white hover:bg-[#e8e8e8] shadow-sm disabled:opacity-30 disabled:cursor-not-allowed text-[#1a1c1c]"
                                 >
-                                    <ChevronLeft className="w-5 h-5" />
+                                    <ChevronLeft className="w-[20px] h-[20px]" />
                                 </button>
-                                <span className="text-sm text-cny-ivory/60">
+                                <span className="text-sm text-[#6a696c] font-medium">
                                     第 {page} 页 / 共 {totalPages} 页
                                 </span>
                                 <button
                                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                     disabled={page === totalPages}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-[8px] rounded-full bg-white hover:bg-[#e8e8e8] shadow-sm disabled:opacity-30 disabled:cursor-not-allowed text-[#1a1c1c]"
                                 >
-                                    <ChevronRight className="w-5 h-5" />
+                                    <ChevronRight className="w-[20px] h-[20px]" />
                                 </button>
                             </div>
                         )}

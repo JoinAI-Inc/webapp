@@ -2,10 +2,6 @@
 
 import Image from "next/image";
 import { TemplateGallery } from "./TemplateGallery";
-import { MyGallery } from "./MyGallery";
-import { FavoritesPanel } from "./FavoritesPanel";
-import { TemplateDetailPanel } from "./TemplateDetailPanel";
-import { useGenerateContext } from "./GenerateLayoutProvider";
 
 interface Tag { id: string; name: string; }
 interface Template {
@@ -21,54 +17,22 @@ export function GenerateStudio({
     tags: Tag[];
     templates: Template[];
 }) {
-    const {
-        activeTab, setActiveTab,
-        latestTaskId, setLatestTaskId,
-        selectedTemplateId, setSelectedTemplateId
-    } = useGenerateContext();
-
     return (
-        <main className="w-full h-full overflow-y-auto flex justify-center">
-            <div className="w-[92vw] max-w-[92vw] desktop:max-w-[1600px] py-[20px]">
-                {activeTab === "idea" && !selectedTemplateId && (
-                    <div className="p-0">
-                        <div className="j-h5 text-gray-900 mb-1 flex items-center gap-2">
-                            <Image src="/new-home/icon-idea.png" alt="idea" width={24} height={24} />
-                            Ideas for You
-                        </div>
-                        <div className="mt-5">
-                            <TemplateGallery
-                                initialTags={tags}
-                                initialTemplates={templates}
-                                onSelect={(id) => setSelectedTemplateId(id)}
-                            />
-                        </div>
+        <main className="w-full h-full overflow-y-auto flex justify-center bg-white">
+            <div className="w-[92vw] max-w-[1280px]">
+                <div className="p-[0px]">
+                    <div className="j-h5 text-[#080606] flex items-center gap-[6px] pt-[32px]">
+                        <Image src="/new-home/icon-idea.png" alt="idea" width={28} height={28} />
+                        Ideas for You
                     </div>
-                )}
-
-                {activeTab === "idea" && selectedTemplateId && (
-                    <TemplateDetailPanel
-                        templateId={selectedTemplateId}
-                        onBack={() => setSelectedTemplateId(null)}
-                        onTaskSubmitted={(taskId) => {
-                            setLatestTaskId(taskId);
-                        }}
-                    />
-                )}
-
-                {activeTab === "gallery" && (
-                    <div className="p-8">
-                        <MyGallery newTaskId={latestTaskId} forceVisible />
+                    <div className="mt-[24px]">
+                        <TemplateGallery
+                            initialTags={tags}
+                            initialTemplates={templates}
+                        />
                     </div>
-                )}
-
-                {activeTab === "favorites" && (
-                    <div className="p-8">
-                        <FavoritesPanel onSelect={(id) => { setActiveTab("idea"); setSelectedTemplateId(id); }} />
-                    </div>
-                )}
+                </div>
             </div>
-
         </main>
     );
 }

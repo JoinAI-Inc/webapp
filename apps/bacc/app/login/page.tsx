@@ -68,37 +68,37 @@ function LoginContent() {
 
     if (status === 'loading' || status === 'authenticated') {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="w-10 h-10 border-2 border-[#C51412] border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen bg-white flex items-center justify-center font-['Inter',_sans-serif]">
+                <div className="w-[40px] h-[40px] border-2 border-[#EC2E2E] border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex bg-white">
+        <div className="min-h-screen flex bg-white font-['Inter',_sans-serif]">
             {/* 左侧 - 登录区域，宽度约50% */}
-            <div className="w-1/2 flex flex-col px-10 py-10 bg-white">
+            <div className="w-1/2 flex flex-col px-[40px] py-[40px] bg-white">
                 {/* Logo - 左上角 */}
-                <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-[#C51412] rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-[10px]">
+                    <div className="w-[32px] h-[32px] bg-[#EC2E2E] rounded-xl flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-xs font-bold">赛</span>
                     </div>
-                    <span className="text-[#C51412] font-bold text-base tracking-wide">赛博中国人</span>
+                    <span className="text-[#EC2E2E] font-bold text-base tracking-wide">赛博中国人</span>
                 </div>
 
                 {/* 居中表单区域 */}
                 <div className="flex-1 flex flex-col justify-center items-center">
-                    <div className="w-[420px] space-y-8">
+                    <div className="w-[420px] space-y-[32px]">
                         {/* 标题区域 */}
-                        <div className="text-center space-y-3">
-                            <h1 className="text-[40px] font-bold text-black leading-tight">
+                        <div className="text-center space-y-[12px]">
+                            <h1 className="text-[40px] font-bold text-[#1a1c1c] leading-tight font-['Plus_Jakarta_Sans',_sans-serif]">
                                 Hey Your First Lucky Shot Awaits
                             </h1>
                             {/* 副标题 + 装饰图标 */}
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-[8px]">
                                 <SparkleOrange />
                                 <SparkleGreen />
-                                <span className="text-[#C51412] text-[15px] font-medium">
+                                <span className="text-[#EC2E2E] text-[15px] font-medium">
                                     Sign up for free credits to get started
                                 </span>
                                 <FestiveFlame />
@@ -107,7 +107,7 @@ function LoginContent() {
                         </div>
 
                         {/* 登录按钮 - 只有 Google 和 Discord */}
-                        <div className="space-y-3">
+                        <div className="space-y-[12px]">
                             <SocialLoginButton
                                 icon={<GoogleIcon />}
                                 label="Login from Google"
@@ -150,8 +150,8 @@ function LoginContent() {
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="w-10 h-10 border-2 border-[#C51412] border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen bg-white flex items-center justify-center font-['Inter',_sans-serif]">
+                <div className="w-[40px] h-[40px] border-2 border-[#EC2E2E] border-t-transparent rounded-full animate-spin" />
             </div>
         }>
             <LoginContent />

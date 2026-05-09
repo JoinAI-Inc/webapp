@@ -102,42 +102,42 @@ export default function PaymentSuccessPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-            <div className="max-w-md text-center space-y-6">
+        <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] flex items-center justify-center px-[24px] font-['Inter',_sans-serif]">
+            <div className="max-w-md text-center space-y-[24px] bg-white p-[32px] rounded-[2rem] shadow-[0_12px_40px_rgba(26,28,28,0.04)]">
                 {/* 状态图标 */}
-                <div className="w-20 h-20 bg-cny-gold/20 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-[80px] h-[80px] bg-[#EC2E2E]/10 rounded-full flex items-center justify-center mx-auto">
                     {status === 'syncing' || status === 'retrying' ? (
-                        <Loader2 className="w-10 h-10 text-cny-gold animate-spin" />
+                        <Loader2 className="w-[40px] h-[40px] text-[#EC2E2E] animate-spin" />
                     ) : status === 'success' ? (
-                        <CheckCircle className="w-10 h-10 text-cny-gold" />
+                        <CheckCircle className="w-[40px] h-[40px] text-[#0ec423]" />
                     ) : (
-                        <AlertCircle className="w-10 h-10 text-yellow-500" />
+                        <AlertCircle className="w-[40px] h-[40px] text-yellow-500" />
                     )}
                 </div>
 
                 {/* 标题 */}
-                <h1 className="text-3xl font-bold text-cny-gold">
+                <h1 className="text-3xl font-bold text-[#1a1c1c] font-['Plus_Jakarta_Sans',_sans-serif]">
                     {status === 'error' ? '同步中遇到问题' : '支付成功！'}
                 </h1>
 
                 {/* 状态消息 */}
-                <div className="space-y-2">
+                <div className="space-y-[8px]">
                     {status === 'syncing' && (
-                        <p className="text-cny-ivory/60">正在同步支付状态...</p>
+                        <p className="text-[#6a696c]">正在同步支付状态...</p>
                     )}
                     {status === 'retrying' && (
-                        <div className="space-y-1">
-                            <p className="text-cny-ivory/60">同步中，请稍候...</p>
-                            <p className="text-sm text-cny-ivory/40">（重试 {retryCount}/{5}）</p>
+                        <div className="space-y-[4px]">
+                            <p className="text-[#6a696c]">同步中，请稍候...</p>
+                            <p className="text-sm text-[#9b9a9d]">（重试 {retryCount}/{5}）</p>
                         </div>
                     )}
                     {status === 'success' && (
-                        <p className="text-cny-ivory/60">订阅已激活，即将跳转到首页...</p>
+                        <p className="text-[#6a696c]">订阅已激活，即将跳转到首页...</p>
                     )}
                     {status === 'error' && (
-                        <div className="space-y-3">
-                            <p className="text-cny-ivory/60">{errorMessage}</p>
-                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm text-yellow-200/80">
+                        <div className="space-y-[12px]">
+                            <p className="text-[#6a696c]">{errorMessage}</p>
+                            <div className="p-[16px] bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-800">
                                 <p>💡 支付可能已成功但状态同步延迟。请稍后在订阅页面确认。</p>
                             </div>
                         </div>
@@ -146,16 +146,16 @@ export default function PaymentSuccessPage() {
 
                 {/* 操作按钮 */}
                 {status === 'error' && (
-                    <div className="flex flex-col gap-3 mt-6">
+                    <div className="flex flex-col gap-[12px] mt-[24px]">
                         <button
                             onClick={handleManualRedirect}
-                            className="px-6 py-3 bg-gradient-to-r from-cny-red to-cny-red-dark rounded-lg font-bold shadow-[0_0_30px_rgba(238,45,47,0.3)] hover:scale-105 transition-all"
+                            className="px-[24px] py-[12px] bg-gradient-to-b from-[#EC2E2E] to-[#d62626] text-white rounded-full font-bold shadow-[0_12px_40px_rgba(236,46,46,0.2)] hover:scale-[1.02] transition-transform"
                         >
                             返回首页
                         </button>
                         <button
                             onClick={() => router.push('/subscribe')}
-                            className="px-6 py-3 bg-cny-gold/10 hover:bg-cny-gold/20 border border-cny-gold/20 rounded-lg text-cny-gold transition-all"
+                            className="px-[24px] py-[12px] bg-white hover:bg-[#f3f3f3] shadow-sm rounded-full text-[#1a1c1c] font-medium transition-colors border border-[#e8e8e8]"
                         >
                             查看订阅状态
                         </button>

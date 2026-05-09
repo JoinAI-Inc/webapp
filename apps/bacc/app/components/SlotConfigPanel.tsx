@@ -1,83 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, X, UserSearch, Shuffle, Sparkles, Image as ImageIcon, Loader2, LogIn, ShoppingCart } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, LogIn } from "lucide-react";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import { useUsage } from "@/contexts/UsageContext";
-
-interface Slot {
-    id: string;
-    refId: string;
-    slotType: 'PERSON' | 'OOTD' | 'DECORATION';
-    label: string;
-    description: string | null;
-}
-
-// 文件 → base64 data URL
-function fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-// 轮询任务状态（用 taskId 精准查询，最多等待 10 分钟）
-async function pollTaskStatus(taskId: string, maxAttempts = 120, intervalMs = 5000): Promise<{
-    status: string;
-    result?: { imageUrl?: string; fileId?: string };
-    error?: string;
-}> {
-    for (let i = 0; i < maxAttempts; i++) {
-        await new Promise(r => setTimeout(r, intervalMs));
-        const res = await fetch(`/api/queue/status?taskId=${taskId}`);
-        if (!res.ok) continue;
-        const data = await res.json();
-        if (data.status === 'completed' || data.status === 'failed') {
-            return data;
-        }
-    }
-    return { status: 'timeout', error: 'Generation timed out' };
-}
-
-// 余额不足弹窗
-function NoCreditsModal({ onClose, remainingCount }: { onClose: () => void; remainingCount: number }) {
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl">
-                <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <ShoppingCart size={28} className="text-orange-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        {remainingCount === 0 ? "Counts Exhausted" : "Insufficient Counts"}
-                    </h2>
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                        You have <span className="font-bold text-orange-500">{remainingCount}</span> generation counts remaining.
-                        Purchase more to continue creating stunning AI photos.
-                    </p>
-                </div>
-                <div className="flex flex-col gap-3">
-                    <a
-                        href="/subscribe"
-                        className="w-full py-3 px-6 bg-[#1a1a1a] text-white text-center rounded-full font-bold hover:bg-black transition-colors"
-                    >
-                        Buy Counts
-                    </a>
-                    <button
-                        onClick={onClose}
-                        className="w-full py-3 px-6 border border-gray-200 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
+import { Slot, fileToBase64, pollTaskStatus } from "./slot-config/slot-config.types";
+import { NoCreditsModal } from "./slot-config/NoCreditsModal";
+import { PremiumFeatureSubscribeBanner } from "./slot-config/PremiumBanner";
+import { UploadWidget } from "./slot-config/UploadWidget";
+import { AssetSelectionWidget } from "./slot-config/AssetSelectionWidget";
 
 export function SlotConfigPanel({
     templateId,
@@ -94,6 +27,11 @@ export function SlotConfigPanel({
     const [resultImage, setResultImage] = useState<string | null>(null);
     const [showNoCredits, setShowNoCredits] = useState(false);
     const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null);
+    const [activeSlotId, setActiveSlotId] = useState<string | null>(slots[0]?.id || null);
+    const [selectedAssets, setSelectedAssets] = useState<Record<string, string>>({});
+    const [genders, setGenders] = useState<Record<string, string>>({});
+    const [makeups, setMakeups] = useState<Record<string, string>>({});
+
     const pathname = usePathname();
     const { data: session, status: sessionStatus } = useSession();
     const { balances, checkAccess, refreshBalances } = useUsage();
@@ -107,15 +45,6 @@ export function SlotConfigPanel({
         setUploads(prev => ({ ...prev, [slotId]: { preview: base64, base64 } }));
     };
 
-    const getSlotIcon = (type: string) => {
-        switch (type) {
-            case 'PERSON': return <UserSearch size={20} className="text-blue-500" />;
-            case 'OOTD': return <Shuffle size={20} className="text-purple-500" />;
-            case 'DECORATION': return <Sparkles size={20} className="text-pink-500" />;
-            default: return <ImageIcon size={20} className="text-gray-500" />;
-        }
-    };
-
     // 仅 PERSON 槽位为必填，OOTD / DECORATION 可选
     const personSlots = slots.filter(s => s.slotType === 'PERSON');
     const isReadyToGenerate = personSlots.length === 0 || personSlots.every(s => uploads[s.id] != null);
@@ -125,8 +54,107 @@ export function SlotConfigPanel({
     const baccBalance = balances.find(b => b.feature.featureKey === FEATURE_KEY);
     const totalRemaining = baccBalance?.remainingCount ?? 0;
 
+    const ootdSlots = slots.filter(s => s.slotType === 'OOTD');
+    const decorationSlots = slots.filter(s => s.slotType === 'DECORATION');
+
+    const selectedPremiumFeatures = useMemo(() => {
+        const features = new Map<string, string>();
+
+        Object.entries(selectedAssets).forEach(([slotId, assetId]) => {
+            const slot = slots.find(s => s.id === slotId);
+            const asset = slot?.assets?.find(a => a.id === assetId);
+            if (asset?.requiredFeatureKey) {
+                features.set(asset.requiredFeatureKey, asset.name);
+            }
+        });
+
+        return Array.from(features.entries()).map(([featureKey, assetName]) => ({ featureKey, assetName }));
+    }, [selectedAssets, slots]);
+
+    const selectedPremiumFeatureKeys = useMemo(
+        () => selectedPremiumFeatures.map(feature => feature.featureKey),
+        [selectedPremiumFeatures]
+    );
+    const selectedPremiumFeatureSignature = selectedPremiumFeatureKeys.join("|");
+    const currentUserKey = ((session as any)?.userId || session?.user?.email || "");
+    const [premiumAssetAccess, setPremiumAssetAccess] = useState<Record<string, boolean>>({});
+    const [checkingPremiumAssetAccess, setCheckingPremiumAssetAccess] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        if (selectedPremiumFeatureKeys.length === 0) {
+            setPremiumAssetAccess({});
+            setCheckingPremiumAssetAccess(false);
+            return;
+        }
+
+        if (sessionStatus === 'loading') {
+            setCheckingPremiumAssetAccess(true);
+            return;
+        }
+
+        if (!session) {
+            setPremiumAssetAccess(Object.fromEntries(selectedPremiumFeatureKeys.map(featureKey => [featureKey, false])));
+            setCheckingPremiumAssetAccess(false);
+            return;
+        }
+
+        setCheckingPremiumAssetAccess(true);
+        Promise.all(
+            selectedPremiumFeatureKeys.map(async (featureKey) => {
+                const access = await checkAccess(featureKey);
+                return [featureKey, access.hasAccess] as const;
+            })
+        ).then((entries) => {
+            if (cancelled) return;
+            setPremiumAssetAccess(Object.fromEntries(entries));
+        }).finally(() => {
+            if (!cancelled) setCheckingPremiumAssetAccess(false);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedPremiumFeatureSignature, sessionStatus, currentUserKey, session, checkAccess, selectedPremiumFeatureKeys]);
+
+    const unauthenticatedPremiumFeatureKey = sessionStatus !== 'loading' && !session
+        ? selectedPremiumFeatures[0]?.featureKey
+        : undefined;
+    const lockedPremiumFeatures = selectedPremiumFeatures.filter(feature => premiumAssetAccess[feature.featureKey] === false);
+    const firstLockedPremiumFeatureKey = unauthenticatedPremiumFeatureKey ?? lockedPremiumFeatures[0]?.featureKey;
+    const hasLockedPremiumAsset = !!firstLockedPremiumFeatureKey;
+    const canGenerate = isReadyToGenerate && !loading && !checkingPremiumAssetAccess && !hasLockedPremiumAsset;
+
+    const handleAssetSelect = (slotId: string, assetId: string, requiredFeatureKey: string | null) => {
+        // Selection stays responsive; access is checked immediately after state updates.
+        setError(null);
+        setSelectedAssets((prev) => {
+            const current = prev[slotId];
+            if (current === assetId) {
+                // Deselect if already selected -> goes back to 'default'
+                const newState = { ...prev };
+                delete newState[slotId];
+                return newState;
+            }
+            return { ...prev, [slotId]: assetId };
+        });
+    };
+
+    const handleDefaultSelect = (slotId: string) => {
+        setSelectedAssets(prev => {
+            const newState = { ...prev };
+            delete newState[slotId];
+            return newState;
+        });
+    };
+
     const handleGenerate = async () => {
-        if (!isReadyToGenerate || loading) return;
+        if (!isReadyToGenerate || loading || checkingPremiumAssetAccess) return;
+        if (hasLockedPremiumAsset) {
+            setError('This premium feature requires top up before generating.');
+            return;
+        }
 
         setLoading(true);
         setError(null);
@@ -153,18 +181,35 @@ export function SlotConfigPanel({
                 }
             }
 
-            const slotsPayload = slots
-                .filter(slot => uploadsSnapshot[slot.id] != null)
-                .map(slot => ({
+            // Notice: PERSON slots are user uploads (imageSource), 
+            // OOTD/DECORATION slots are asset IDs, mapped differently.
+            const configuredSlots: any[] = [];
+
+            // 1. Process uploaded images (PERSON slots)
+            slots.filter(s => uploadsSnapshot[s.id] != null).forEach(slot => {
+                configuredSlots.push({
                     refId: slot.refId,
                     slotType: slot.slotType,
                     imageSource: uploadsSnapshot[slot.id]!.base64,
-                }));
+                });
+            });
+
+            // 2. Process selected assets (OOTD / DECORATION)
+            Object.entries(selectedAssets).forEach(([slotId, assetId]) => {
+                const specTargetSlot = slots.find(s => s.id === slotId);
+                if (specTargetSlot) {
+                    configuredSlots.push({
+                        refId: specTargetSlot.refId,
+                        slotType: specTargetSlot.slotType,
+                        assetId: assetId
+                    });
+                }
+            });
 
             const submitRes = await fetch('/api/generate/template', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ templateId, slots: slotsPayload }),
+                body: JSON.stringify({ templateId, slots: configuredSlots }),
             });
 
             if (!submitRes.ok) {
@@ -195,7 +240,7 @@ export function SlotConfigPanel({
     };
 
     return (
-        <div className="flex flex-col gap-6 w-full">
+        <div className="w-full overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white p-[15px] desktop:min-h-[776px]">
             {/* 余额不足弹窗 */}
             {showNoCredits && (
                 <NoCreditsModal
@@ -207,21 +252,21 @@ export function SlotConfigPanel({
             {/* 结果图展示 */}
             {resultImage && (
                 <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
-                    <p className="text-center text-sm text-gray-500 py-2">✅ Generation complete</p>
+                    <p className="text-center text-sm text-gray-500 py-[8px]">✅ Generation complete</p>
                     <div className="relative w-full aspect-[2/3]">
                         <Image src={resultImage} alt="Generated result" fill className="object-cover" />
                     </div>
-                    <div className="flex gap-3 p-4">
+                    <div className="flex gap-[12px] p-[16px]">
                         <a
                             href={resultImage}
                             download
-                            className="flex-1 py-2 px-4 bg-[#1a1a1a] text-white text-center rounded-full text-sm font-semibold hover:bg-black"
+                            className="flex-1 py-[8px] px-[16px] bg-[#1a1a1a] text-white text-center rounded-full text-sm font-semibold hover:bg-black"
                         >
                             Download
                         </a>
                         <button
                             onClick={() => { setResultImage(null); setUploads({}); }}
-                            className="flex-1 py-2 px-4 border border-gray-300 rounded-full text-sm font-semibold hover:bg-gray-50"
+                            className="flex-1 py-[8px] px-[16px] border border-gray-300 rounded-full text-sm font-semibold hover:bg-gray-50"
                         >
                             Generate Again
                         </button>
@@ -231,8 +276,8 @@ export function SlotConfigPanel({
 
             {/* 已提交：One More 提示卡片 */}
             {submittedTaskId && !resultImage && (
-                <div className="rounded-2xl border border-[#FF3F2A]/30 bg-orange-50/50 p-6 flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-2">
+                <div className="rounded-2xl border border-[#FF3F2A]/30 bg-orange-50/50 p-[24px] flex flex-col items-center gap-[12px]">
+                    <div className="flex items-center gap-[8px]">
                         <Loader2 size={18} className="text-[#FF3F2A] animate-spin" />
                         <p className="text-sm font-semibold text-gray-800">✨ Your LuckyFoto is brewing!</p>
                     </div>
@@ -242,7 +287,7 @@ export function SlotConfigPanel({
                     </p>
                     <button
                         onClick={() => setSubmittedTaskId(null)}
-                        className="mt-1 px-6 py-2.5 bg-[#1a1a1a] text-white rounded-full text-sm font-bold hover:bg-black transition-all hover:-translate-y-0.5 shadow-md"
+                        className="mt-[4px] px-[24px] py-[10px] bg-[#1a1a1a] text-white rounded-full text-sm font-bold hover:bg-black transition-all hover:translate-y-[-2px] shadow-md"
                     >
                         One More ✨
                     </button>
@@ -253,78 +298,174 @@ export function SlotConfigPanel({
             {!resultImage && !submittedTaskId && (
                 <>
                     {slots.length === 0 ? (
-                        <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-2xl">
+                        <div className="py-[32px] text-center text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
                             No configuration needed for this template.
                         </div>
                     ) : (
-                        slots.map((slot) => (
-                            <div key={slot.id} className="border border-gray-100 bg-gray-50/50 p-5 rounded-2xl flex flex-col sm:flex-row gap-5">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        {getSlotIcon(slot.slotType)}
-                                        <h3 className="font-bold text-gray-900 text-lg">{slot.label}</h3>
-                                        <span className="px-2 py-0.5 text-[11px] font-semibold bg-gray-200 text-gray-700 rounded-full tracking-wider uppercase">
-                                            {slot.slotType}
-                                        </span>
-                                        {slot.slotType !== 'PERSON' && (
-                                            <span className="px-2 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-400 rounded-full">
-                                                Optional
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-gray-500 text-sm mb-4">
-                                        {slot.description || `Upload an image for ${slot.label.toLowerCase()}`}
-                                    </p>
+                        <div className="flex flex-col">
+                            {firstLockedPremiumFeatureKey && (
+                                <PremiumFeatureSubscribeBanner featureKey={firstLockedPremiumFeatureKey} />
+                            )}
 
-                                    <div className="relative">
-                                        {!uploads[slot.id] ? (
-                                            <label className="flex flex-col items-center justify-center w-full min-h-[140px] border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors">
-                                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                    <Upload className="w-8 h-8 mb-3 text-gray-400" />
-                                                    <p className="mb-2 text-sm text-gray-500">
-                                                        <span className="font-semibold text-[#FF3F2A]">Click to upload</span> or drag and drop
-                                                    </p>
-                                                    <p className="text-xs text-gray-400">PNG, JPG, WebP up to 10MB</p>
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    className="hidden"
-                                                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                                                    onChange={(e) => handleFileChange(slot.id, e.target.files?.[0] || null)}
+                            {/* Tabs Header */}
+                            {personSlots.length > 0 && (
+                                <div className="flex gap-[8px] overflow-x-auto scrollbar-hide">
+                                    {personSlots.map((slot, index) => {
+                                        const isActive = activeSlotId === slot.id || (activeSlotId === null && index === 0);
+                                        return (
+                                            <div
+                                                key={slot.id}
+                                                onClick={() => setActiveSlotId(slot.id)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        setActiveSlotId(slot.id);
+                                                    }
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
+                                                className="relative shrink-0"
+                                            >
+                                                <UploadWidget
+                                                    slot={slot}
+                                                    index={index}
+                                                    isActive={isActive}
+                                                    upload={uploads[slot.id]}
+                                                    onFileChange={handleFileChange}
                                                 />
-                                            </label>
-                                        ) : (
-                                            <div className="relative w-full h-40 rounded-xl overflow-hidden border border-gray-200 group bg-gray-100">
-                                                <Image
-                                                    src={uploads[slot.id]!.preview}
-                                                    alt={slot.label}
-                                                    fill
-                                                    className="object-contain"
-                                                />
-                                                <button
-                                                    onClick={() => handleFileChange(slot.id, null)}
-                                                    className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <X size={16} />
-                                                </button>
                                             </div>
-                                        )}
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Active Tab Content Area - The "Box" (For active PERSON slot) */}
+                            {personSlots.length > 0 && activeSlotId && personSlots.some(s => s.id === activeSlotId) && (
+                                <div className="relative mt-[16px] flex min-h-[174px] flex-col rounded-[8px] border border-[#8364ff] bg-white px-[16px] py-[21px]">
+                                    {/* The small connector arrow at the top */}
+                                    <div
+                                        className="hidden tablet:block absolute w-[14px] h-[14px] bg-white border-l border-t border-[#7A5AF8] transform rotate-45 transition-all duration-300 z-10"
+                                        style={{
+                                            top: '-8px',
+                                            left: `${Math.max(0, personSlots.findIndex(s => s.id === activeSlotId)) * 146 + 62}px`
+                                        }}
+                                    ></div>
+
+                                    <div className="flex-1">
+                                        <div className="flex flex-col gap-[16px]">
+                                            <div className="flex flex-col gap-[12px] tablet:flex-row tablet:items-center">
+                                                <span className="w-[130px] shrink-0 whitespace-nowrap text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">Protagonist gender</span>
+                                                <div className="flex shrink-0 items-center gap-[8px]">
+                                                    {['Feminine', 'Masculine', 'Furbaby'].map(opt => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={() => setGenders(prev => ({ ...prev, [activeSlotId]: opt }))}
+                                                            className={`rounded-[16px] px-[16px] py-[6px] text-[14px] leading-[1.4] tracking-[0.14px] whitespace-nowrap transition-colors ${(genders[activeSlotId] || 'Feminine') === opt
+                                                                ? 'font-medium text-[#EC2E2E] bg-[#fef2f2] border border-[#fcdada]'
+                                                                : 'font-normal text-[#6a696c] hover:text-[#080606] border border-transparent'
+                                                                }`}
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-[12px] tablet:flex-row tablet:items-center">
+                                                <span className="w-[130px] shrink-0 whitespace-nowrap text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">Makeup Look</span>
+                                                <div className="flex shrink-0 items-center gap-[8px]">
+                                                    {['Need', 'No need'].map(opt => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={() => setMakeups(prev => ({ ...prev, [activeSlotId]: opt }))}
+                                                            className={`rounded-[16px] px-[16px] py-[6px] text-[14px] leading-[1.4] tracking-[0.14px] whitespace-nowrap transition-colors ${(makeups[activeSlotId] || 'Need') === opt
+                                                                ? 'font-medium text-[#EC2E2E] bg-[#fef2f2] border border-[#fcdada]'
+                                                                : 'font-normal text-[#6a696c] hover:text-[#080606] border border-transparent'
+                                                                }`}
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-[16px] flex flex-col gap-[16px]">
+                                            {(() => {
+                                                const personIndex = personSlots.findIndex(s => s.id === activeSlotId);
+                                                const currentOotd = ootdSlots[personIndex];
+                                                if (!currentOotd) return null;
+                                                return (
+                                                    <div className="w-full">
+                                                        <h3 className="mb-[6px] text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">OOTD</h3>
+                                                        <div>
+                                                            <AssetSelectionWidget
+                                                                slot={currentOotd}
+                                                                selectedAssets={selectedAssets}
+                                                                onAssetSelect={handleAssetSelect}
+                                                                onDefaultSelect={handleDefaultSelect}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            )}
+
+                            {/* Fallback if no person slot but has OOTD isolated */}
+                            {personSlots.length === 0 && ootdSlots.length > 0 && (
+                                <div className="mt-[16px] flex flex-col gap-[24px]">
+                                    {ootdSlots.map(slot => (
+                                        <div key={slot.id} className="overflow-hidden">
+                                            <h3 className="mb-[6px] text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">{slot.label} (OOTD)</h3>
+                                            <div>
+                                                <AssetSelectionWidget
+                                                    slot={slot}
+                                                    selectedAssets={selectedAssets}
+                                                    onAssetSelect={handleAssetSelect}
+                                                    onDefaultSelect={handleDefaultSelect}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Divider & Global Decorate */}
+                            {decorationSlots.length > 0 && (
+                                <>
+                                    <div className="my-[24px] h-px w-full bg-[#e8e8e8]"></div>
+                                    <div className="w-full">
+                                        <h3 className="mb-[6px] text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">Decorate</h3>
+                                        <div>
+                                            {decorationSlots.map(slot => (
+                                                <div key={slot.id}>
+                                                    <AssetSelectionWidget
+                                                        slot={slot}
+                                                        selectedAssets={selectedAssets}
+                                                        onAssetSelect={handleAssetSelect}
+                                                        onDefaultSelect={handleDefaultSelect}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     )}
 
                     {/* 错误提示 */}
                     {error && (
-                        <p className="text-red-500 text-sm text-center bg-red-50 rounded-xl py-3 px-4">{error}</p>
+                        <p className="text-red-500 text-sm text-center bg-red-50 rounded-xl py-[12px] px-[16px]">{error}</p>
                     )}
 
                     {/* 生成按钮区域 */}
                     {sessionStatus !== 'loading' && !session ? (
                         // 未登录：引导登录
                         <button
-                            className="mt-4 w-full py-4 px-6 rounded-full text-lg font-bold transition-all flex justify-center items-center gap-2 bg-[#1a1a1a] text-white hover:bg-black shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                            className="mt-[24px] flex w-fit items-center justify-center gap-[8px] rounded-[23px] bg-[#EC2E2E] px-[18px] py-[8px] text-white j-t2"
                             onClick={() => signIn('google', { callbackUrl: pathname })}
                         >
                             <LogIn size={20} />
@@ -332,22 +473,22 @@ export function SlotConfigPanel({
                         </button>
                     ) : (
                         // 已登录：正常生成（含次数检查）
-                        <div className="flex flex-col gap-2">
+                        <div className="mt-[24px] flex flex-col items-start gap-[8px]">
                             {/* 余额标签 */}
                             {session && balances.length > 0 && (
-                                <p className="text-center text-sm text-gray-400">
+                                <p className="text-[12px] text-[#9b9a9d]">
                                     {totalRemaining > 0
                                         ? <><span className="font-semibold text-gray-700">{totalRemaining}</span> counts remaining</>
-                                        : <span className="text-orange-500 font-medium">No counts — <a href="/subscribe" className="underline">buy more</a></span>
+                                        : <span className="text-[#F63E48] font-medium">No counts — <a href="/subscribe" className="underline">buy more</a></span>
                                     }
                                 </p>
                             )}
                             <button
-                                className={`mt-2 w-full py-4 px-6 rounded-full text-lg font-bold transition-all flex justify-center items-center gap-2 ${isReadyToGenerate && !loading
-                                    ? "bg-[#1a1a1a] text-white hover:bg-black shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                className={`mt-[4px] flex w-fit items-center justify-center gap-[4px] rounded-[23px] px-[18px] py-[8px] j-t2 ${canGenerate
+                                    ? "bg-[#EC2E2E] text-white hover:bg-[#d92727]"
+                                    : "bg-[#cccbce] text-white cursor-not-allowed"
                                     }`}
-                                disabled={!isReadyToGenerate || loading}
+                                disabled={!canGenerate}
                                 onClick={handleGenerate}
                             >
                                 {loading ? (
@@ -355,11 +496,10 @@ export function SlotConfigPanel({
                                         <Loader2 size={20} className="animate-spin" />
                                         Generating...
                                     </>
+                                ) : checkingPremiumAssetAccess ? (
+                                    "Checking access..."
                                 ) : (
-                                    <>
-                                        <Sparkles size={20} />
-                                        Generate Now
-                                    </>
+                                    "Start to show Magic"
                                 )}
                             </button>
                         </div>
