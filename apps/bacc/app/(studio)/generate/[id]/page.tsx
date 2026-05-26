@@ -1,4 +1,4 @@
-import { TemplateDetailPageClient } from "../../../../components/TemplateDetailPageClient";
+import { TemplateDetailPageClient } from "../../../components/TemplateDetailPageClient";
 
 export const runtime = 'edge';
 export const dynamic = "force-dynamic";

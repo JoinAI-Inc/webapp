@@ -4,8 +4,11 @@ import { GenerationTask, SubmitTaskParams, TaskStatus } from './types.js';
 
 const KEYS = {
     task: (id: string) => `task:${id}`,
+    refundMarker: (id: string) => `task:${id}:refund_started`,
+    workerLock: 'queue:worker:lock',
     pendingQueue: 'queue:pending',
-    processingSet: 'queue:processing',
+    processingQueue: 'queue:processing:list',
+    legacyProcessingSet: 'queue:processing',
     userTasks: (userId: string) => `user:${userId}:tasks`,
 };
 
@@ -36,12 +39,13 @@ export class TaskManager {
         const taskTTL = parseInt(process.env.TASK_REDIS_TTL || '86400');
         await this.redis.expire(KEYS.task(taskId), taskTTL);
 
-        // 添加到待处理队列
-        await this.redis.lpush(KEYS.pendingQueue, taskId);
-
-        // 关联到用户，并续期（保留最近 7 天的任务记录）
+        // 关联到用户，并续期（保留最近 7 天的任务记录）。入队必须放最后，
+        // 这样非关键元数据失败时不会出现“已入队但提交失败”的状态。
         await this.redis.sadd(KEYS.userTasks(params.userId), taskId);
         await this.redis.expire(KEYS.userTasks(params.userId), 7 * 24 * 3600);
+
+        // 添加到待处理队列
+        await this.redis.lpush(KEYS.pendingQueue, taskId);
 
         console.log(`[TaskManager] Task ${taskId} submitted (type: ${params.type}, user: ${params.userId})`);
         return taskId;
@@ -110,11 +114,13 @@ export class TaskManager {
      * 获取下一个待处理任务
      */
     async getNextPendingTask(): Promise<string | null> {
-        const taskId = await this.redis.rpop(KEYS.pendingQueue);
+        const taskId = await this.redis.lmove<string | null>(
+            KEYS.pendingQueue,
+            KEYS.processingQueue,
+            'right',
+            'left'
+        );
         if (!taskId) return null;
-
-        // 移到处理中集合
-        await this.redis.sadd(KEYS.processingSet, taskId);
         return taskId as string;
     }
 
@@ -122,22 +128,70 @@ export class TaskManager {
      * 任务处理完成（从处理中移除）
      */
     async completeTask(taskId: string): Promise<void> {
-        await this.redis.srem(KEYS.processingSet, taskId);
+        await this.redis.lrem(KEYS.processingQueue, 0, taskId);
+        await this.redis.srem(KEYS.legacyProcessingSet, taskId);
     }
 
     /**
      * 任务重新入队（重试）
      */
     async requeueTask(taskId: string): Promise<void> {
-        await this.redis.srem(KEYS.processingSet, taskId);
-        await this.redis.lpush(KEYS.pendingQueue, taskId);
-
         const task = await this.getTask(taskId);
         if (task) {
             await this.updateTaskStatus(taskId, 'pending', {
                 retryCount: task.retryCount + 1,
             });
         }
+
+        await this.redis.eval(
+            `
+            redis.call("LREM", KEYS[1], 0, ARGV[1])
+            redis.call("SREM", KEYS[3], ARGV[1])
+            return redis.call("LPUSH", KEYS[2], ARGV[1])
+            `,
+            [KEYS.processingQueue, KEYS.pendingQueue, KEYS.legacyProcessingSet],
+            [taskId]
+        );
+    }
+
+    async getProcessingTaskIds(): Promise<string[]> {
+        const [listIds, legacySetIds] = await Promise.all([
+            this.redis.lrange<string>(KEYS.processingQueue, 0, -1),
+            this.redis.smembers(KEYS.legacyProcessingSet) as Promise<string[]>,
+        ]);
+
+        return Array.from(new Set([...(listIds || []), ...(legacySetIds || [])]));
+    }
+
+    async markRefundStarted(taskId: string): Promise<boolean> {
+        const taskTTL = parseInt(process.env.TASK_REDIS_TTL || '86400');
+        const result = await this.redis.set(KEYS.refundMarker(taskId), '1', {
+            nx: true,
+            ex: taskTTL,
+        });
+        return result === 'OK';
+    }
+
+    async acquireWorkerLock(token: string): Promise<boolean> {
+        const ttl = parseInt(process.env.QUEUE_WORKER_LOCK_TTL || '7200');
+        const result = await this.redis.set(KEYS.workerLock, token, {
+            nx: true,
+            ex: ttl,
+        });
+        return result === 'OK';
+    }
+
+    async releaseWorkerLock(token: string): Promise<void> {
+        await this.redis.eval(
+            `
+            if redis.call("GET", KEYS[1]) == ARGV[1] then
+                return redis.call("DEL", KEYS[1])
+            end
+            return 0
+            `,
+            [KEYS.workerLock],
+            [token]
+        );
     }
 
     /**
@@ -145,11 +199,14 @@ export class TaskManager {
      */
     async getQueueStats() {
         const pendingCount = await this.redis.llen(KEYS.pendingQueue);
-        const processingCount = await this.redis.scard(KEYS.processingSet);
+        const [processingCount, legacyProcessingCount] = await Promise.all([
+            this.redis.llen(KEYS.processingQueue),
+            this.redis.scard(KEYS.legacyProcessingSet),
+        ]);
 
         return {
             pending: pendingCount,
-            processing: processingCount,
+            processing: processingCount + legacyProcessingCount,
         };
     }
 }

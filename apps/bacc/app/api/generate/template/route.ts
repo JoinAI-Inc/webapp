@@ -16,9 +16,12 @@ export async function POST(req: NextRequest) {
     const userId = ((session as any).userId || session.user.id) as string;
     if (!userId) return NextResponse.json({ error: "用户ID未找到" }, { status: 401 });
 
-    const { templateId, slots } = await req.json();
+    const { templateId, slots, featureKey } = await req.json();
     if (!templateId || !Array.isArray(slots) || slots.length === 0) {
         return NextResponse.json({ error: "templateId 和 slots 必填" }, { status: 400 });
+    }
+    if (!featureKey || typeof featureKey !== 'string') {
+        return NextResponse.json({ error: "featureKey 必填" }, { status: 400 });
     }
 
     const response = await fetch(`${API_BASE_URL}/api/templates/${templateId}/generate`, {
@@ -27,7 +30,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
             ...(await makeInternalHeaders(userId)),
         },
-        body: JSON.stringify({ slots }),
+        body: JSON.stringify({ slots, featureKey }),
     });
 
     const data = await response.json();

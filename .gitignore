@@ -102,4 +102,21 @@ apps/bacc/public/new-home-compressed/
 # package-lock.json files in sub-apps (monorepo uses pnpm at root)
 # yarn.lock at root is used by the Dockerfile for production image builds
 apps/*/package-lock.json
+package-lock.json
 .docker-stage/
+
+# playwright-cli auto-generated screenshots and logs
+.playwright-cli/
+
+# database backups (sensitive data, managed separately)
+database-backups/
+
+# build/run output
+output/
+
+# local design prototypes and assets (large files, not source code)
+design-html/
+
+# local utility scripts
+compress-images.js
+parse_figma.py

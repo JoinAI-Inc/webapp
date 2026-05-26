@@ -1,0 +1,11 @@
+[data-landing-away] .hero-media-track,
+[data-landing-away] .feature-gradient-card-marquee-track {
+  animation-play-state: paused;
+  will-change: auto;
+}
+
+[data-landing-scrolling="true"] .hero-media-track,
+[data-landing-scrolling="true"] .feature-gradient-card-marquee-track {
+  animation-play-state: paused;
+  will-change: auto;
+}

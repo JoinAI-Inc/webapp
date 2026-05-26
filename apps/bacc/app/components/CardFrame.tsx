@@ -43,6 +43,7 @@ export function CardFrame({
                 borderImageRepeat: "stretch",
                 boxSizing: "border-box",
                 flexShrink: 0,
+                position: "relative",
                 ...style,
             }}
         >
@@ -50,4 +51,3 @@ export function CardFrame({
         </div>
     );
 }
-

@@ -1,6 +1,6 @@
-// generate 目录：用 fixed 层覆盖父级 layout（隐藏顶部 navbar）
+// Studio routes use their own full-screen shell instead of the landing chrome.
 
-import { GenerateLayoutProvider } from "../../components/GenerateLayoutProvider";
+import { GenerateLayoutProvider } from "../components/GenerateLayoutProvider";
 
 export default function GenerateLayout({ children }: { children: React.ReactNode }) {
     return (

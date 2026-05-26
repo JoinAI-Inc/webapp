@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { makeInternalHeaders } from "@/lib/internal-auth";
 
 const API_BASE_URL = process.env.API_BACKEND_URL || 'http://localhost:3001';
 
@@ -19,8 +20,14 @@ export async function GET(req: NextRequest) {
         if (!taskId) {
             return NextResponse.json({ error: "Missing taskId" }, { status: 400 });
         }
+        const userId = ((session as any).userId || session.user.id) as string;
+        if (!userId) {
+            return NextResponse.json({ error: "User ID not found" }, { status: 401 });
+        }
 
-        const response = await fetch(`${API_BASE_URL}/api/queue/status?taskId=${taskId}`);
+        const response = await fetch(`${API_BASE_URL}/api/queue/status?taskId=${encodeURIComponent(taskId)}`, {
+            headers: await makeInternalHeaders(userId),
+        });
 
         if (!response.ok) {
             const error = await response.json();

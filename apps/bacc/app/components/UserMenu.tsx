@@ -313,7 +313,7 @@ export function UserMenuButton({ mobileCompact = false }: { mobileCompact?: bool
 
                     {/* Popup Menu */}
                     {showMenu && (
-                        <div className="absolute right-[0px] top-full mt-[8px] w-[240px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150 py-[4px]">
+                        <div className="absolute right-[0px] top-full z-[300] mt-[8px] w-[240px] overflow-hidden rounded-2xl border border-gray-100 bg-white py-[4px] shadow-xl animate-in fade-in slide-in-from-top-2 duration-150">
                             {/* User info */}
                             <div className="px-[20px] py-[16px] flex items-center gap-[12px]">
                                 <div className="w-[40px] h-[40px] rounded-full bg-[#4A646C] text-white flex items-center justify-center text-lg font-medium flex-shrink-0">
@@ -355,7 +355,7 @@ export function UserMenuButton({ mobileCompact = false }: { mobileCompact?: bool
                             <div className="py-[8px]">
                                 <button
                                     onClick={() => signOut({ callbackUrl: "/" })}
-                                    className="w-full text-left px-[20px] py-[10px] hover:bg-gray-50 transition-colors"
+                                    className="w-full px-[20px] py-[10px] text-left text-[#EC2E2E] transition-colors hover:bg-[#fef2f2]"
                                 >
                                     Exit
                                 </button>

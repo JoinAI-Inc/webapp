@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Images } from "lucide-react";
 import { RecreateIcon } from "./gallery-icons";
@@ -71,6 +72,24 @@ function GalleryText({
     );
 }
 
+function GeneratingLabel() {
+    const [dotCount, setDotCount] = useState(1);
+
+    useEffect(() => {
+        const interval = window.setInterval(() => {
+            setDotCount((current) => (current % 3) + 1);
+        }, 500);
+
+        return () => window.clearInterval(interval);
+    }, []);
+
+    return (
+        <span className="text-[12px] font-normal leading-[1.4] tracking-[0.12px] text-white">
+            Generating{".".repeat(dotCount)}
+        </span>
+    );
+}
+
 // 生成中卡片
 export function BrewingCard({ task }: { task: PendingTask }) {
     const slots = extractPendingSlotImages(task);
@@ -94,7 +113,7 @@ export function BrewingCard({ task }: { task: PendingTask }) {
 
                     <div className="absolute inset-[0px] bg-black/[0.08]" />
                     <div className="absolute left-[12px] top-[12px] flex h-[25px] w-[100px] items-center justify-center rounded-[4px] bg-[#EC2E2E]">
-                        <span className="text-[12px] font-normal leading-[1.4] tracking-[0.12px] text-white">Generating 72%</span>
+                        <GeneratingLabel />
                     </div>
                     <div className="absolute inset-[0px] flex items-center justify-center px-[16px]">
                         <p className="text-center text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-white">✨Your LuckyFoto is brewing!</p>

@@ -1,4 +1,4 @@
-import { GenerateStudio } from "../../../components/GenerateStudio";
+import { GenerateStudio } from "../../components/GenerateStudio";
 
 export const runtime = 'edge';
 export const dynamic = "force-dynamic";

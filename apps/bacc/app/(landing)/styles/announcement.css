@@ -1,0 +1,137 @@
+.split-feature-section {
+  width: 100%;
+  margin-bottom: 80px;
+}
+
+.split-feature-inner {
+  display: grid;
+  width: 87.5vw;
+  max-width: 1069px;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 120px;
+  align-items: center;
+}
+
+.split-feature-copy,
+.split-feature-media {
+  width: 100%;
+}
+
+.split-feature-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.split-feature-copy-inner {
+  width: 100%;
+  text-align: left;
+}
+
+.split-feature-title {
+  margin: 0;
+  color: #0a0708;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.split-feature-title-highlight,
+.split-feature-support-highlight {
+  color: #ec2e2e;
+}
+
+.split-feature-support {
+  margin: 16px 0 0;
+  color: #39383b;
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.split-feature-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split-feature-media-bg {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.9;
+}
+
+.split-feature-image {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 480px;
+  object-fit: contain;
+}
+
+@media (min-width: 735px) {
+  .split-feature-copy {
+    box-sizing: border-box;
+    padding-left: 24px;
+  }
+
+  .split-feature-media {
+    box-sizing: border-box;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 1068px) {
+  .split-feature-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 60px;
+  }
+
+  .split-feature-section {
+    margin-bottom: 60px;
+  }
+
+  .split-feature-image {
+    height: 400px;
+  }
+}
+
+@media (max-width: 734px) {
+  .split-feature-inner {
+    grid-template-columns: 1fr;
+    row-gap: 24px;
+  }
+
+  .split-feature-section {
+    margin-bottom: 40px;
+  }
+
+  .split-feature-copy-inner {
+    width: 87.5vw;
+    max-width: 480px;
+    text-align: center;
+  }
+
+  .split-feature-title {
+    font-size: 24px;
+  }
+
+  .split-feature-support {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .split-feature-image {
+    height: clamp(240px, calc(85.41px + 48.31vw), 440px);
+  }
+}

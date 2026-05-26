@@ -1,0 +1,166 @@
+.year-feature-section {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-bottom: 120px;
+  padding: 104px 0 124px;
+  overflow: hidden;
+  background-color: #dd1e1b;
+}
+
+.year-feature-pattern {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.6;
+}
+
+.year-feature-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 87.5vw;
+  max-width: 1440px;
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.year-feature-copy {
+  width: 87.5vw;
+  max-width: 480px;
+}
+
+.year-feature-decor-slot {
+  position: absolute;
+  bottom: 0;
+  width: 50%;
+  height: 70%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.year-feature-decor-slot-left {
+  left: 0;
+}
+
+.year-feature-decor-slot-right {
+  right: 0;
+}
+
+.year-feature-decor {
+  position: absolute;
+  bottom: 0;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.year-feature-decor-base {
+  height: 100%;
+}
+
+.year-feature-decor-overlay {
+  height: 82%;
+}
+
+.year-feature-decor-left {
+  left: 0;
+}
+
+.year-feature-decor-right {
+  right: 0;
+}
+
+.year-feature-decor-overlay-right {
+  height: 58%;
+  right: 7%;
+  bottom: 4%;
+}
+
+.year-feature-icon {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 0 16px;
+  object-fit: contain;
+}
+
+.year-feature-title {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.year-feature-support {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.year-feature-support-line-break-safe {
+  white-space: nowrap;
+}
+
+@media (min-width: 735px) {
+  .year-feature-title {
+    font-size: 28px;
+  }
+
+  .year-feature-support {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1068px) {
+  .year-feature-icon {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 1068px) {
+  .year-feature-section {
+    margin-bottom: 100px;
+    padding-top: 64px;
+    padding-bottom: 74px;
+  }
+}
+
+@media (max-width: 734px) {
+  .year-feature-section {
+    margin-bottom: 60px;
+    padding-top: 44px;
+    padding-bottom: 54px;
+  }
+
+  .year-feature-copy {
+    width: 60vw;
+  }
+
+  .year-feature-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+  }
+
+  .year-feature-decor-slot {
+    height: 50%;
+  }
+
+  .year-feature-decor-overlay {
+    height: 70%;
+  }
+}

@@ -1,4 +1,4 @@
-import { TemplateDetailSkeleton } from "../../../../components/Skeletons";
+import { TemplateDetailSkeleton } from "../../../components/Skeletons";
 
 export default function TemplateDetailLoading() {
     return (

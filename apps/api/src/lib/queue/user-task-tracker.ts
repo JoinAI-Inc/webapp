@@ -17,13 +17,20 @@ export class UserTaskTracker {
      * 保存用户当前任务
      */
     async setCurrentTask(userId: string, taskId: string, metadata: any): Promise<void> {
-        await this.redis.hset(`user:${userId}:current_task`, {
+        const listKey = `user:${userId}:current_tasks`;
+        const itemKey = `user:${userId}:current_task:${taskId}`;
+
+        await this.redis.hset(itemKey, {
             taskId,
             metadata: JSON.stringify(metadata),
             timestamp: Date.now().toString(),
         });
-        // 根据配置的 TTL 过期
-        await this.redis.expire(`user:${userId}:current_task`, this.ttl);
+        await this.redis.expire(itemKey, this.ttl);
+
+        await this.redis.lrem(listKey, 0, taskId);
+        await this.redis.lpush(listKey, taskId);
+        await this.redis.ltrim(listKey, 0, 19);
+        await this.redis.expire(listKey, this.ttl);
     }
 
     /**
@@ -34,11 +41,49 @@ export class UserTaskTracker {
         metadata: any;
         timestamp: number;
     } | null> {
+        const tasks = await this.getCurrentTasks(userId);
+        if (tasks.length > 0) {
+            return tasks[0];
+        }
+
+        // 兼容旧版本的单任务 key，等待其 TTL 自然过期。
         const data = await this.redis.hgetall(`user:${userId}:current_task`) as Record<string, string>;
         if (!data || !data.taskId) {
             return null;
         }
 
+        return this.parseTaskData(data);
+    }
+
+    async getCurrentTasks(userId: string): Promise<Array<{
+        taskId: string;
+        metadata: any;
+        timestamp: number;
+    }>> {
+        const listKey = `user:${userId}:current_tasks`;
+        const taskIds = await this.redis.lrange<string>(listKey, 0, 19);
+
+        if (!taskIds || taskIds.length === 0) {
+            return [];
+        }
+
+        const tasks = await Promise.all(taskIds.map(async (taskId) => {
+            const data = await this.redis.hgetall(`user:${userId}:current_task:${taskId}`) as Record<string, string>;
+            if (!data || !data.taskId) {
+                await this.redis.lrem(listKey, 0, taskId);
+                return null;
+            }
+            return this.parseTaskData(data);
+        }));
+
+        return tasks.filter((task): task is NonNullable<typeof task> => task !== null);
+    }
+
+    private parseTaskData(data: Record<string, any>): {
+        taskId: string;
+        metadata: any;
+        timestamp: number;
+    } {
         // metadata 可能已经是对象或字符串，需要判断
         let parsedMetadata;
         try {
@@ -60,8 +105,15 @@ export class UserTaskTracker {
     /**
      * 清除用户当前任务
      */
-    async clearCurrentTask(userId: string): Promise<void> {
-        await this.redis.del(`user:${userId}:current_task`);
+    async clearCurrentTask(userId: string, taskId?: string): Promise<void> {
+        if (!taskId) {
+            await this.redis.del(`user:${userId}:current_task`);
+            await this.redis.del(`user:${userId}:current_tasks`);
+            return;
+        }
+
+        await this.redis.lrem(`user:${userId}:current_tasks`, 0, taskId);
+        await this.redis.del(`user:${userId}:current_task:${taskId}`);
     }
 }
 

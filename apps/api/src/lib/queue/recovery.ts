@@ -6,14 +6,8 @@
  * 2. 恢复计数：超过 maxRetries 的任务标记为 failed 并退还次数，而不是无限重试
  */
 
-import { getRedisClient } from './client.js';
 import { taskManager } from './task-manager.js';
 import { prisma } from '@repo/database';
-
-const KEYS = {
-    pendingQueue: 'queue:pending',
-    processingSet: 'queue:processing',
-};
 
 /**
  * 退还用户次数（任务恢复失败时确保不扣双倍）
@@ -21,6 +15,12 @@ const KEYS = {
 async function refundIfNeeded(task: any) {
     const featureKey: string | null = task.payload?._deductedFeatureKey ?? null;
     if (!featureKey) return;
+
+    const shouldRefund = await taskManager.markRefundStarted(task.id);
+    if (!shouldRefund) {
+        console.log(`[Recovery] Refund for task ${task.id} already started, skipping duplicate refund.`);
+        return;
+    }
 
     try {
         const feature = await prisma.feature.findUnique({ where: { featureKey } });
@@ -46,12 +46,11 @@ async function refundIfNeeded(task: any) {
  * 启动时恢复孤儿任务
  */
 export async function recoverOrphanTasks(): Promise<void> {
-    const redis = getRedisClient();
     console.log('[Recovery] Checking for orphaned tasks in processing set...');
 
     try {
-        // 获取所有仍在 processingSet 中的任务（服务崩溃前未完成）
-        const orphanIds = await redis.smembers(KEYS.processingSet) as string[];
+        // 获取所有仍在 processing 队列中的任务（服务崩溃前未完成）
+        const orphanIds = await taskManager.getProcessingTaskIds();
 
         if (orphanIds.length === 0) {
             console.log('[Recovery] No orphaned tasks found.');
@@ -65,8 +64,8 @@ export async function recoverOrphanTasks(): Promise<void> {
                 const task = await taskManager.getTask(taskId);
 
                 if (!task) {
-                    // 任务数据已过期从 Redis 消失，清理 processingSet
-                    await redis.srem(KEYS.processingSet, taskId);
+                    // 任务数据已过期从 Redis 消失，清理 processing 记录
+                    await taskManager.completeTask(taskId);
                     console.log(`[Recovery] Task ${taskId} data expired, removed from processing set.`);
                     continue;
                 }
@@ -84,11 +83,7 @@ export async function recoverOrphanTasks(): Promise<void> {
                     console.log(`[Recovery] Task ${taskId} exceeded max retries, marked as failed and refunded.`);
                 } else {
                     // 重新入队（retryCount +1）
-                    await redis.srem(KEYS.processingSet, taskId);
-                    await taskManager.updateTaskStatus(taskId, 'pending', {
-                        retryCount: retryCount + 1,
-                    } as any);
-                    await redis.lpush(KEYS.pendingQueue, taskId);
+                    await taskManager.requeueTask(taskId);
                     console.log(`[Recovery] Task ${taskId} re-queued (retry ${retryCount + 1}/${maxRetries}).`);
                 }
             } catch (e: any) {

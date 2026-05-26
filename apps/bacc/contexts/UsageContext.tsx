@@ -33,7 +33,7 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/usage/balance/${user.id}`, {
+            const res = await fetch('/api/usage/balance', {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include'
             });

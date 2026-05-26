@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SlotConfigPanel } from "./SlotConfigPanel";
 import { TemplateDetailSkeleton } from "./Skeletons";
@@ -18,6 +19,7 @@ interface TemplateDetail {
     id: string;
     name: string;
     imageUrl: string;
+    favoriteCount: number;
     slots: Slot[];
 }
 
@@ -32,10 +34,13 @@ export function TemplateDetailPanel({
 }) {
     const [template, setTemplate] = useState<TemplateDetail | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         setLoading(true);
         setTemplate(null);
+        setGeneratedImageUrl(null);
         fetch(`/api/templates/${templateId}`)
             .then((r) => r.json())
             .then((data) => setTemplate(data))
@@ -55,8 +60,14 @@ export function TemplateDetailPanel({
         );
     }
 
+    const displayImageUrl = generatedImageUrl || template.imageUrl;
+    const handleTaskSubmitted = (taskId: string) => {
+        setGeneratedImageUrl(null);
+        onTaskSubmitted?.(taskId);
+    };
+
     return (
-        <div className="w-full max-w-[1280px] px-[16px] tablet:px-[24px] py-[24px] tablet:py-[32px] mx-auto">
+        <div className="w-full max-w-[1280px] py-[24px] tablet:py-[32px]">
             {/* Header: Desktop & Tablet shows Title here. Mobile only shows Back & Stats */}
             <div className="mb-[14px] flex items-center justify-between gap-[6px] tablet:justify-start">
                 <div className="flex min-w-[0px] items-center gap-[16px]">
@@ -67,9 +78,9 @@ export function TemplateDetailPanel({
                         <ArrowLeft size={16} />
                         <span className="j-t3">Back</span>
                     </button>
-                    <h1 className="hidden truncate text-[#080606] tablet:block j-h6 text-center">
+                    <p className="hidden truncate text-[#080606] tablet:block j-h6 text-center">
                         {template.name}
-                    </h1>
+                    </p>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-[10px] tablet:gap-[6px]">
@@ -81,7 +92,7 @@ export function TemplateDetailPanel({
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <path d="M5.5 15.1751C2.47 15.1751 0 12.7051 0 9.67513C0 8.16513 0.63 6.70513 1.73 5.67513C1.83 5.58513 1.94 5.48513 2.06 5.38513C3.01 4.54513 4.44 3.28513 4.18 0.745134C4.15 0.485134 4.28 0.235134 4.5 0.095134C4.72 -0.0348659 5 -0.034866 5.22 0.115134C7.11 1.37513 9.31 3.11513 9.53 5.36513C9.62 6.31513 9.38 7.27514 8.78 8.26513C9 8.09513 9.25 7.87513 9.51 7.61513C9.67 7.45513 9.91 7.38513 10.14 7.43513C10.37 7.48513 10.55 7.65513 10.62 7.87513C10.79 8.35513 10.98 8.99514 10.98 9.68513C10.98 12.7151 8.51 15.1851 5.48 15.1851L5.5 15.1751ZM5.53 1.97513C5.29 4.31513 3.81 5.62513 2.95 6.38513C2.84 6.48513 2.74 6.56513 2.65 6.65513C1.82 7.43513 1.34 8.53513 1.34 9.67513C1.34 11.9651 3.2 13.8251 5.49 13.8251C7.78 13.8251 9.64 11.9651 9.64 9.67513C9.64 9.55513 9.64 9.43513 9.62 9.31513C8.29 10.3451 7.37 10.3451 6.78 10.3451C6.51 10.3451 6.26 10.1851 6.16 9.92513C6.06 9.66513 6.11 9.38513 6.31 9.18513C7.69 7.80513 8.31 6.59513 8.2 5.48513C8.09 4.37513 7.26 3.26513 5.53 1.96513V1.97513Z" fill="#EC2E2E" />
                             </svg>
-                            <span>123</span>
+                            <span>{template.favoriteCount ?? 0}</span>
                         </div>
                     </div>
 
@@ -102,20 +113,20 @@ export function TemplateDetailPanel({
             </div>
 
             {/* Content Structure */}
-            <div className="grid grid-cols-1 desktop:grid-cols-[506px_minmax(0,758px)] gap-[16px] items-start bg-black">
+            <div className="grid grid-cols-1 desktop:grid-cols-[calc(40%-16px)_60%] gap-[16px] items-start">
                 <div className="relative left-1/2 w-[92vw] -translate-x-1/2 desktop:sticky desktop:left-auto desktop:top-[24px] desktop:w-full desktop:translate-x-[0px]">
                     <div className="flex w-full justify-center desktop:block">
                         <div className="relative inline-flex max-w-full overflow-hidden rounded-[16px] border border-[#e8e8e8] bg-[#f2f2f3] p-[12px] tablet:flex tablet:h-[360px] tablet:w-full tablet:items-center tablet:justify-center tablet:rounded-[8px] tablet:bg-white tablet:p-[16px] desktop:block desktop:h-auto">
                             <div className="relative inline-block overflow-hidden rounded-[4px] align-top tablet:h-[328px] desktop:block desktop:h-auto desktop:w-full">
                                 <Image
-                                    src={template.imageUrl}
-                                    alt={template.name}
+                                    src={displayImageUrl}
+                                    alt={generatedImageUrl ? `${template.name} generated result` : template.name}
                                     width={474}
                                     height={706}
                                     className="block h-auto max-h-[296px] w-auto max-w-[calc(92vw-24px)] object-contain tablet:h-full tablet:max-h-none tablet:max-w-none desktop:h-auto desktop:w-full"
                                     priority
                                 />
-                                {template.slots.filter(slot => slot.slotType === "PERSON").slice(0, 4).map((slot, index) => {
+                                {!isGenerating && !generatedImageUrl && template.slots.filter(slot => slot.slotType === "PERSON").slice(0, 4).map((slot, index) => {
                                     const markerPositions = [
                                         "left-[28%] top-[25%]",
                                         "left-[73%] top-[24%]",
@@ -133,11 +144,49 @@ export function TemplateDetailPanel({
                                         </div>
                                     );
                                 })}
+                                {!isGenerating && generatedImageUrl && (
+                                    <>
+                                        <div className="absolute left-[8px] top-[8px] flex h-[25px] items-center justify-center rounded-[4px] bg-[#080606]/70 px-[8px] text-[12px] font-normal leading-[1.4] tracking-[0.12px] text-white">
+                                            Generation complete
+                                        </div>
+                                        <a
+                                            href={generatedImageUrl}
+                                            download
+                                            className="absolute bottom-[8px] right-[8px] flex h-[32px] items-center justify-center rounded-[16px] bg-[#ec2e2e] px-[14px] text-[13px] font-medium leading-[1.4] tracking-[0.13px] text-white transition-opacity hover:opacity-90"
+                                        >
+                                            Download
+                                        </a>
+                                    </>
+                                )}
+                                {isGenerating && (
+                                    <>
+                                        <div className="generation-preview-visual absolute inset-0 rounded-[4px]" aria-hidden="true" />
+                                        <div className="absolute inset-0 rounded-[4px] bg-[#080606]/[0.03]" aria-hidden="true" />
+                                        <div className="absolute left-[4px] top-[4px] flex h-[25px] w-[104px] items-center justify-center gap-[6px] rounded-[4px] bg-[#ec2e2e] px-[8px] text-[12px] font-normal leading-[1.4] tracking-[0.12px] text-white tablet:left-[8px] tablet:top-[8px]">
+                                            <span className="size-[6px] rounded-full bg-white/90 animate-pulse" aria-hidden="true" />
+                                            Generating
+                                        </div>
+                                        <div className="absolute left-1/2 top-1/2 flex w-[75%] max-w-[354px] -translate-x-1/2 -translate-y-1/2 flex-col items-start gap-[8px] tablet:gap-[12px]">
+                                            <p className="w-full text-[17px] font-medium leading-[1.4] tracking-[0.17px] text-white tablet:text-[21px] tablet:tracking-[0.21px]">
+                                                ✨ Your LuckyFoto is brewing！
+                                            </p>
+                                            <div className="flex w-full flex-col gap-[4px] text-[14px] font-normal leading-[1.4] tracking-[0.14px] text-[#f2f2f3] tablet:gap-[8px] tablet:text-[17px] tablet:tracking-[0.17px]">
+                                                <p>
+                                                    It&apos;ll be ready in about&nbsp;30 seconds&nbsp;and automatically saved to{" "}
+                                                    <Link href="/gallery" className="font-medium text-[#ffc107] underline underline-offset-[2px] transition-opacity hover:opacity-80">
+                                                        My Gallery
+                                                    </Link>.
+                                                </p>
+                                                <p>Feel free to keep creating—we&apos;ll notify you when it&apos;s done.</p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
-                    <div className="tablet:hidden w-full mt-[20px] mb-[8px]">
-                        <h1 className="text-[22px] font-bold text-gray-900 leading-tight">{template.name}</h1>
+                    <div className="tablet:hidden w-full py-[16px] text-center">
+                        <p className="text-[22px] font-bold text-gray-900 leading-tight">{template.name}</p>
                     </div>
                 </div>
 
@@ -145,10 +194,14 @@ export function TemplateDetailPanel({
                     <SlotConfigPanel
                         templateId={template.id}
                         slots={template.slots}
-                        onTaskSubmitted={onTaskSubmitted}
+                        onTaskSubmitted={handleTaskSubmitted}
+                        onGeneratingChange={setIsGenerating}
+                        onGenerationComplete={setGeneratedImageUrl}
                     />
                 </div>
             </div>
+
+
         </div>
     );
 }

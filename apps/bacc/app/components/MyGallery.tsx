@@ -24,17 +24,17 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
     const newTaskId = propNewTaskId || latestTaskId;
     const { user, loading: authLoading } = useAuth();
     const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
-    const [pendingTask, setPendingTask] = useState<PendingTask | null>(null);
+    const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([]);
     const [previewItem, setPreviewItem] = useState<HistoryItem | null>(null);
     const [loading, setLoading] = useState(false);
     const [reachedEnd, setReachedEnd] = useState(false);
     const pageRef = useRef(1);
     const pollingRef = useRef<NodeJS.Timeout | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-    // 用 ref 持有 pendingTask，避免 useCallback 依赖导致无限循环
-    const pendingTaskRef = useRef<PendingTask | null>(null);
-    pendingTaskRef.current = pendingTask;
-    const hasPendingTask = !!pendingTask;
+    // 用 ref 持有 pendingTasks，避免 useCallback 依赖导致无限循环
+    const pendingTasksRef = useRef<PendingTask[]>([]);
+    pendingTasksRef.current = pendingTasks;
+    const hasPendingTask = pendingTasks.length > 0;
 
     const handleRecreate = useCallback((item: HistoryItem) => {
         const templateId = getTemplateId(item);
@@ -72,21 +72,23 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
         }
     }, [user]);
 
-    // 单一轮询函数，用 ref 读取 pendingTask 避免循环依赖
+    // 单一轮询函数，用 ref 读取 pendingTasks 避免循环依赖
     const pollCurrentTask = useCallback(async () => {
         if (!user) return;
         try {
             const res = await fetch("/api/queue/current-task");
             if (!res.ok) {
-                setPendingTask(null);
+                setPendingTasks([]);
                 return;
             }
             const data = await res.json();
+            const taskList = Array.isArray(data.tasks) ? data.tasks : (data.taskId ? [data] : []);
+            const activeTasks = taskList.filter((task: any) => task.status === "pending" || task.status === "processing");
 
-            if (!data.taskId || !data.status || data.status === "completed" || data.status === "failed") {
+            if (activeTasks.length === 0) {
                 // 任务结束，若之前有任务则刷新历史
-                if (pendingTaskRef.current) {
-                    setPendingTask(null);
+                if (pendingTasksRef.current.length > 0) {
+                    setPendingTasks([]);
                     fetchHistory(true);
                 }
                 // 停止轮询
@@ -97,16 +99,16 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
                 return;
             }
 
-            setPendingTask({
-                taskId: data.taskId,
-                status: data.status,
-                metadata: data.metadata || null,
-                createdAt: data.createdAt || new Date().toISOString(),
-            });
+            setPendingTasks(activeTasks.map((task: any) => ({
+                taskId: task.taskId,
+                status: task.status,
+                metadata: task.metadata || null,
+                createdAt: task.createdAt || new Date().toISOString(),
+            })));
         } catch {
             // ignore
         }
-    }, [user, fetchHistory]); // 不依赖 pendingTask
+    }, [user, fetchHistory]); // 不依赖 pendingTasks
 
     // 初始加载 + 检查是否有进行中任务
     useEffect(() => {
@@ -115,7 +117,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
         pollCurrentTask();
     }, [user]); // eslint-disable-line
 
-    // pendingTask 变化时，管理 interval（启动/停止）
+    // pendingTasks 变化时，管理 interval（启动/停止）
     useEffect(() => {
         if (hasPendingTask && !pollingRef.current) {
             pollingRef.current = setInterval(pollCurrentTask, 5000);
@@ -166,7 +168,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
 
     if (authLoading) return <GalleryGridSkeleton />;
     if (!user) return null;
-    if (loading && historyItems.length === 0 && !pendingTask) return <GalleryGridSkeleton />;
+    if (loading && historyItems.length === 0 && pendingTasks.length === 0) return <GalleryGridSkeleton />;
 
     return (
         <section id="gallery" className="w-full">
@@ -187,7 +189,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
             {/* Grid container */}
             <div className="grid grid-cols-2 gap-[4px] tablet:grid-cols-3 desktop:grid-cols-4 desktop-l:grid-cols-5 desktop-l:grid-cols-6">
                 {/* Brewing card first */}
-                {pendingTask && <BrewingCard task={pendingTask} />}
+                {pendingTasks.map((task) => <BrewingCard key={task.taskId} task={task} />)}
 
                 {/* History cards */}
                 {historyItems.map(item => (
@@ -233,7 +235,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
             )}
 
             {/* 空态 */}
-            {reachedEnd && historyItems.length === 0 && !pendingTask && !loading && (
+            {reachedEnd && historyItems.length === 0 && pendingTasks.length === 0 && !loading && (
                 <div className="flex flex-col items-center justify-center h-[50vh] w-full text-center gap-[16px]">
                     <div className="relative mb-[16px]">
                         <svg width="128" height="96" viewBox="0 0 128 96" fill="none" xmlns="http://www.w3.org/2000/svg">

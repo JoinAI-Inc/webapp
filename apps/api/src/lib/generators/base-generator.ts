@@ -2,6 +2,87 @@ import axios from 'axios';
 
 const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
+function estimateBase64Bytes(base64Data: string): number {
+    const clean = base64Data.replace(/\s/g, '');
+    const padding = clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0;
+    return Math.max(0, Math.floor(clean.length * 3 / 4) - padding);
+}
+
+function summarizeGeminiPayload(payload: any) {
+    const contents = Array.isArray(payload?.contents) ? payload.contents : [];
+    const images: Array<{
+        contentIndex: number;
+        partIndex: number;
+        mimeType: string;
+        base64Chars: number;
+        approxBytes: number;
+        approxMB: string;
+    }> = [];
+    let partCount = 0;
+    let textParts = 0;
+    let textChars = 0;
+
+    contents.forEach((content: any, contentIndex: number) => {
+        const parts = Array.isArray(content?.parts) ? content.parts : [];
+        partCount += parts.length;
+
+        parts.forEach((part: any, partIndex: number) => {
+            if (typeof part?.text === 'string') {
+                textParts++;
+                textChars += part.text.length;
+            }
+
+            const inlineImage = part?.inline_data || part?.inlineData;
+            if (typeof inlineImage?.data === 'string') {
+                const approxBytes = estimateBase64Bytes(inlineImage.data);
+                images.push({
+                    contentIndex,
+                    partIndex,
+                    mimeType: inlineImage.mime_type || inlineImage.mimeType || 'unknown',
+                    base64Chars: inlineImage.data.length,
+                    approxBytes,
+                    approxMB: (approxBytes / 1024 / 1024).toFixed(2),
+                });
+            }
+        });
+    });
+
+    return {
+        contentCount: contents.length,
+        partCount,
+        textParts,
+        textChars,
+        imageParts: images.length,
+        images,
+        generationConfig: payload?.generationConfig ?? null,
+    };
+}
+
+function summarizeAxiosError(err: any) {
+    return {
+        message: err?.message,
+        code: err?.code,
+        errno: err?.errno,
+        syscall: err?.syscall,
+        address: err?.address,
+        port: err?.port,
+        status: err?.response?.status,
+        timeout: err?.config?.timeout,
+        maxBodyLength: err?.config?.maxBodyLength,
+        cause: err?.cause ? {
+            message: err.cause.message,
+            code: err.cause.code,
+            errno: err.cause.errno,
+            syscall: err.cause.syscall,
+            address: err.cause.address,
+            port: err.cause.port,
+        } : undefined,
+        responseData: err?.response?.data
+            ? JSON.stringify(err.response.data).substring(0, 1000)
+            : undefined,
+    };
+}
+
 export abstract class BaseGenerator {
     protected apiKey: string;
     protected baseUrl: string;
@@ -49,10 +130,15 @@ export abstract class BaseGenerator {
 
             try {
                 const payload = payloadFn(modelId);
+                const payloadJson = JSON.stringify(payload);
+                const payloadBytes = Buffer.byteLength(payloadJson);
+                console.log(`[Generator] Request payload size: ${(payloadBytes / 1024 / 1024).toFixed(2)} MB (${payloadBytes} bytes)`);
+                console.log(`[Generator] Request payload summary: ${JSON.stringify(summarizeGeminiPayload(payload))}`);
 
-                const response = await axios.post(endpoint, payload, {
+                const response = await axios.post(endpoint, payloadJson, {
                     headers: {
                         'Content-Type': 'application/json',
+                        'Content-Length': String(payloadBytes),
                         'Authorization': `Bearer ${this.apiKey}`,
                     },
                     timeout: 1_200_000,  // 20 分钟
@@ -83,6 +169,7 @@ export abstract class BaseGenerator {
                     ? `timeout after 20min`
                     : err.message;
                 console.error(`[Generator] ❌ ${modelId} request error: ${msg}`);
+                console.error(`[Generator] Request error detail: ${JSON.stringify(summarizeAxiosError(err))}`);
                 lastError = msg;
             }
         }
@@ -116,4 +203,3 @@ export abstract class BaseGenerator {
         return null;
     }
 }
-

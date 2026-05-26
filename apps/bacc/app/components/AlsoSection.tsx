@@ -1,387 +1,249 @@
-"use client";
-import React from "react";
+import { LandingImage } from "./LandingImage";
+import { OotdCarouselDots } from "./OotdCarouselDots";
 import { TryItFreeButton } from "./TryItFreeButton";
 
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+const BASE = `${IMAGE_URL}/new-home`;
 
-// Section 3 - Also / Pet / OOTD
-const BASE = IMAGE_URL + "/new-home/";
+const galleryImages = [
+  `${BASE}/img-also-1.png`,
+  `${BASE}/img-also-2.png`,
+  `${BASE}/img-also-3.png`,
+  `${BASE}/img-also-4.png`,
+];
 
-// Also section 4 photos
-const imgRect2720 = BASE + "img-also-1.png";
-const imgRect2717 = BASE + "img-also-2.png";
-const imgRect2718 = BASE + "img-also-3.png";
-const imgRect2719 = BASE + "img-also-4.png";
-
-// Pet section decorative
-const imgCoin = BASE + "bg-also-1.png";
-const imgPetBg = BASE + "bg-also-3.png";
-const imgPetMain = BASE + "img-also-pet-bl.png";
-const imgPetSmall1 = BASE + "img-also-pet-tr.png";
-const imgPetSmall2 = BASE + "img-also-pet-tl.png";
-const imgPetSmall3 = BASE + "img-also-pet-br.png";
-
-// OOTD section
-const imgOotd1 = BASE + "img-also-gen-1-2.png";
-const imgOotd2 = BASE + "img-also-gen-2-2.png";
-const imgOotd3 = BASE + "img-also-gen-3-2.png";
-const imgAfter1 = BASE + "img-also-gen-1-3.jpg";
-const imgAfter2 = BASE + "img-also-gen-2-3.jpg";
-const imgAfter3 = BASE + "img-also-gen-3-3.jpg";
-const imgBefore1 = BASE + "img-also-gen-1-1.jpg";
-const imgBefore2 = BASE + "img-also-gen-2-1.jpg";
-const imgBefore3 = BASE + "img-also-gen-3-1.jpg";
-
-const headingStyle: React.CSSProperties = {
-    fontFamily: "Manrope, sans-serif",
-    fontWeight: 600,
-    fontSize: 40,
-    lineHeight: 1.3,
-    letterSpacing: 0.4,
-    color: "#000",
-    margin: 0,
+const petImages = {
+  cloud: `${BASE}/bg-also-3.png`,
+  topLeft: `${BASE}/img-also-pet-tl.png`,
+  topRight: `${BASE}/img-also-pet-tr.png`,
+  bottomLeft: `${BASE}/img-also-pet-bl.png`,
+  bottomRight: `${BASE}/img-also-pet-br.png`,
 };
 
-const bodyStyle: React.CSSProperties = {
-    fontFamily: "Manrope, sans-serif",
-    fontWeight: 400,
-    fontSize: 17,
-    lineHeight: 1.4,
-    letterSpacing: 0.17,
-    color: "#404040",
-    margin: 0,
-};
+const ootdCards = [
+  {
+    before: `${BASE}/img-also-gen-1-1.jpg`,
+    outfit: `${BASE}/img-also-gen-1-2.png`,
+    after: `${BASE}/img-also-gen-1-3.jpg`,
+  },
+  {
+    before: `${BASE}/img-also-gen-2-1.jpg`,
+    outfit: `${BASE}/img-also-gen-2-2.png`,
+    after: `${BASE}/img-also-gen-2-3.jpg`,
+  },
+  {
+    before: `${BASE}/img-also-gen-3-1.jpg`,
+    outfit: `${BASE}/img-also-gen-3-2.png`,
+    after: `${BASE}/img-also-gen-3-3.jpg`,
+  },
+];
 
 const CAPTION =
-    "Capture the moments in the new year,Let every click of the shutter preserve the essence of time.May the coming year be as splendid as a brocade, with all wishes fulfilled.";
+  "Capture the moments in the new year,Let every click of the shutter preserve the essence of time.May the coming year be as splendid as a brocade, with all wishes fulfilled.";
+const OOTD_CAROUSEL_ID = "ootd-feature-carousel";
 
-// ─── Section 3a: Also can not just you (48:9215) ─────────────────────────────
+function GalleryFeatureCopy({
+  title,
+  highlight,
+  suffix,
+  id,
+}: {
+  title: string;
+  highlight: string;
+  suffix?: string;
+  id: string;
+}) {
+  return (
+    <div className="gallery-feature-copy">
+      <h2 className="gallery-feature-title gallery-feature-title-fluid" id={id}>
+        <span className="gallery-feature-title-base">{title}</span>{" "}
+        <span className="gallery-feature-title-highlight">{highlight}</span>
+        {suffix ? (
+          <span className="gallery-feature-title-base"> {suffix}</span>
+        ) : null}
+      </h2>
+      <p className="gallery-feature-support">{CAPTION}</p>
+    </div>
+  );
+}
+
+function GalleryImageCard({ src }: { src: string }) {
+  return (
+    <figure className="gallery-feature-card">
+      <LandingImage src={src} />
+    </figure>
+  );
+}
+
 function AlsoSubSection() {
-    return (
-        <section
-            style={{
-                width: "100%",
-                height: 1000,
-                padding: "120px 240px 80px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 48,
-                alignItems: "center",
-                boxSizing: "border-box",
-                position: "relative",
-            }}
-        >
-            {/* 左侧装饰铜钱 */}
-            <div
-                style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: 180,
-                    height: 368,
-                    opacity: 0.6,
-                    overflow: "hidden",
-                    pointerEvents: "none",
-                }}
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgCoin} alt="" style={{ position: "absolute", left: "-100%", top: 0, width: "200%", height: "100%", maxWidth: "none" }} />
-            </div>
+  return (
+    <section
+      className="gallery-feature-section"
+      aria-labelledby="gallery-feature-title"
+      data-floating-cta-start
+      data-landing-section
+    >
+      <div className="gallery-feature-inner">
+        <GalleryFeatureCopy
+          title="Also, can"
+          highlight="not just you..."
+          id="gallery-feature-title"
+        />
 
-            {/* 右下角装饰铜钱 */}
-            <div
-                style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: 0,
-                    width: 180,
-                    height: 368,
-                    opacity: 0.6,
-                    overflow: "hidden",
-                    pointerEvents: "none",
-                }}
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgCoin} alt="" style={{ position: "absolute", left: 0, top: "5%", width: "200%", height: "100%", maxWidth: "none" }} />
-            </div>
-
-            {/* 标题 */}
-            <div style={{ width: 760, textAlign: "center", display: "flex", flexDirection: "column", gap: 16 }}>
-                <h2 style={headingStyle}>
-                    Also, can <span style={{ color: "#FF3F2A" }}>not just  you...</span>
-                </h2>
-                <p style={bodyStyle}>{CAPTION}</p>
-            </div>
-
-            {/* 4图区域 */}
-            <div style={{ display: "flex", gap: 24, height: 512, alignItems: "center", width: "100%" }}>
-                {[imgRect2720, imgRect2717, imgRect2718, imgRect2719].map((src, i) => (
-                    <div key={i} className="image-placeholder" style={{ flex: "1 0 0", height: "100%", borderRadius: 15, overflow: "hidden", position: "relative" }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt="" loading="eager"
-                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", zIndex: 1 }} />
-                    </div>
-                ))}
-            </div>
-        </section>
-    );
+        <div className="gallery-feature-grid">
+          {galleryImages.map((src) => (
+            <GalleryImageCard key={src} src={src} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
-// ─── Section 3b: OR, Even for your pet ───────────────────────────────────────
 function PetSection() {
-    return (
-        <section style={{ width: "100%", position: "relative", minHeight: 720 }}>
-            {/* 全宽背景图 */}
-            <div style={{ position: "absolute", left: 0, bottom: -200, width: "100%", height: 527, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgPetBg} alt="" style={{ width: "auto", height: "100%", objectFit: "cover", maxWidth: "none" }} />
-            </div>
+  const mobileImages = [
+    petImages.topLeft,
+    petImages.topRight,
+    petImages.bottomLeft,
+    petImages.bottomRight,
+  ];
 
+  return (
+    <section
+      className="pet-feature-section"
+      aria-labelledby="pet-feature-title"
+      data-landing-section
+    >
+      <LandingImage
+        className="page-pet-cloud"
+        src={petImages.cloud}
+        media="(min-width: 735px)"
+      />
 
+      <div className="pet-feature-inner">
+        <div className="pet-feature-story">
+          <LandingImage
+            className="pet-feature-collage pet-feature-collage-bottom-left"
+            src={petImages.bottomLeft}
+            media="(min-width: 735px)"
+          />
+          <p className="pet-feature-story-copy">{CAPTION}</p>
+        </div>
 
-            {/* 小图 - 左上 */}
-            <div
-                className="image-placeholder"
-                style={{
-                    position: "absolute",
-                    left: "588px",
-                    top: "-50px",
-                    width: 133,
-                    height: 191,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    border: "1px solid #ddd",
-                }}
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgPetSmall2} alt="" loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-            </div>
+        <LandingImage
+          className="pet-feature-collage pet-feature-collage-left"
+          src={petImages.topLeft}
+          media="(min-width: 735px)"
+        />
+        <LandingImage
+          className="pet-feature-collage"
+          src={petImages.topRight}
+          media="(min-width: 735px)"
+        />
+        <LandingImage
+          className="pet-feature-collage pet-feature-collage-bottom-right"
+          src={petImages.bottomRight}
+          media="(min-width: 735px)"
+        />
 
-            {/* 主标题 */}
-            <div
-                style={{
-                    position: "absolute",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    top: 220,
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                    fontFamily: "Manrope, sans-serif",
-                    fontWeight: 600,
-                    fontSize: 100,
-                    lineHeight: 1.3,
-                    letterSpacing: 1,
-                    color: "#000",
-                    zIndex: 10,
-                }}
-            >
-                <span style={{ color: "#FF3F2A" }}>OR, </span>
-                <span>Even for </span>
-                <span style={{ color: "#FF3F2A" }}>your pet</span>
-            </div>
-
-            {/* 说明文字 */}
-            <div
-                style={{
-                    position: "absolute",
-                    left: "600px",
-                    top: 450,
-                    width: 560,
-                    zIndex: 10,
-                }}
-            >
-                <p style={bodyStyle}>{CAPTION}</p>
-            </div>
-
-            {/* 小图 - 右上 */}
-            <div
-                className="image-placeholder"
-                style={{
-                    position: "absolute",
-                    right: "350px",
-                    top: "-70px",
-                    width: 256,
-                    height: 331,
-                    borderRadius: 24,
-                    overflow: "hidden",
-                }}
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgPetSmall1} alt="" loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-            </div>
-
-            {/* 主大图 - 左 */}
-            <div
-                className="image-placeholder"
-                style={{
-                    position: "absolute",
-                    left: 0,
-                    bottom: 0,
-                    width: 307,
-                    height: 410,
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    marginLeft: 240,
-                }}
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgPetMain} alt="" loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-            </div>
-
-            {/* 小图 - 右下 */}
-            <div
-                className="image-placeholder"
-                style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: 60,
-                    width: 157,
-                    height: 204,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    marginRight: 240,
-                }}
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgPetSmall3} alt="" loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-            </div>
-
-            {/* 占位高度 */}
-            <div style={{ height: 700 }} />
-        </section>
-    );
-}
-
-// ─── Section 3c: IN Every OOTD You LIKE ─────────────────────────────────────
-function OotdSection() {
-    const cards = [
-        { before: imgBefore1, after: imgAfter1, ootd: imgOotd1 },
-        { before: imgBefore2, after: imgAfter2, ootd: imgOotd2 },
-        { before: imgBefore3, after: imgAfter3, ootd: imgOotd3 },
-    ];
-
-    return (
-        <section
-            style={{
-                width: "100%",
-                padding: "80px 240px 40px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 48,
-                alignItems: "center",
-                boxSizing: "border-box",
-            }}
+        <h2
+          className="pet-feature-title pet-feature-title-fluid"
+          id="pet-feature-title"
         >
-            {/* 标题 */}
-            <div style={{ width: 760, textAlign: "center", display: "flex", flexDirection: "column", gap: 16 }}>
-                <h2 style={headingStyle}>
-                    IN Every <span style={{ color: "#FF3F2A" }}>OOTD</span> You LIKE
-                </h2>
-                <p style={bodyStyle}>{CAPTION}</p>
-            </div>
+          <span className="pet-feature-title-highlight">OR, </span>
+          <span className="pet-feature-title-base">Even for </span>
+          <span className="pet-feature-title-highlight">your pet</span>
+        </h2>
 
-            {/* 3列卡片 */}
-            <div style={{ display: "flex", gap: 24, width: "100%", justifyContent: "center" }}>
-                {cards.map((card, i) => (
-                    <div
-                        key={i}
-                        style={{
-                            flex: "1 0 0",
-                            backgroundColor: "#F5F5F5",
-                            borderRadius: 18,
-                            padding: "20px 20px 32px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 16,
-                            boxSizing: "border-box",
-                            position: "relative",
-                            minWidth: 464,
-                            minHeight: 546,
-                        }}
-                    >
-                        {/* 顶部 before/after 小图行 */}
-                        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                            {/* before 小图 */}
-                            <div
-                                className="image-placeholder"
-                                style={{
-                                    width: 133,
-                                    height: 178,
-                                    borderRadius: 12,
-                                    overflow: "hidden",
-                                    border: "1px solid #ddd",
-                                    flexShrink: 0,
-                                }}
-                            >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={card.before} alt="" loading="lazy"
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-                            </div>
-                            {/* OOTD 参考图 */}
-                            <div
-                                className="image-placeholder"
-                                style={{
-                                    width: 145,
-                                    height: 178,
-                                    borderRadius: 12,
-                                    overflow: "hidden",
-                                    border: "1px solid #ddd",
-                                }}
-                            >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={card.ootd} alt="" loading="lazy"
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-                            </div>
-                        </div>
-
-                        {/* 箭头 */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <div style={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
-                            <img src={`${IMAGE_URL}/new-home/icon-arrow-g.png`} alt="arrow" style={{ display: "block", marginLeft: 80, marginTop: 12 }} />
-                        </div>
-
-
-                        {/* after 大图 */}
-                        <div
-                            className="image-placeholder"
-                            style={{
-                                position: "absolute",
-                                right: 20,
-                                bottom: 20,
-                                width: 260,
-                                height: 348,
-                                borderRadius: 16,
-                                overflow: "hidden",
-                                border: "6px solid #FFD322",
-                                alignSelf: "center",
-                            }}
-                        >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={card.after} alt="" loading="lazy"
-                                style={{ width: "100%", height: "100%", objectFit: "cover", maxWidth: "none", position: "relative", zIndex: 1 }} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </section>
-    );
+        <div className="pet-feature-mobile-grid" aria-hidden="true">
+          {mobileImages.map((src) => (
+            <figure className="pet-feature-mobile-card" key={src}>
+              <LandingImage src={src} media="(max-width: 734px)" />
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
-// ─── 对外导出：合并三个子 section ────────────────────────────────────────────
-export function AlsoSection() {
-    return (
-        <>
-            <AlsoSubSection />
-            <PetSection />
-            <OotdSection />
+function SmallPhoto({ src }: { src: string }) {
+  return (
+    <div className="ootd-small-photo">
+      <LandingImage src={src} />
+    </div>
+  );
+}
 
-            <div style={{ marginTop: 50, marginBottom: 100, display: "flex", justifyContent: "center" }}>
-                <TryItFreeButton />
-            </div>
-        </>
-    );
+function OotdCompositeCard({ card }: { card: (typeof ootdCards)[number] }) {
+  return (
+    <figure className="gallery-feature-card gallery-feature-card-natural ootd-feature-card">
+      <div className="ootd-card-pair">
+        <SmallPhoto src={card.before} />
+        <SmallPhoto src={card.outfit} />
+      </div>
+
+      <LandingImage
+        className="ootd-card-arrow"
+        src={`${BASE}/icon-arrow-g.png`}
+      />
+
+      <div className="ootd-card-result">
+        <LandingImage src={card.after} />
+      </div>
+    </figure>
+  );
+}
+
+function OotdSection() {
+  return (
+    <section
+      className="gallery-feature-section gallery-feature-section-secondary"
+      aria-labelledby="ootd-feature-title"
+      data-landing-section
+    >
+      <div className="gallery-feature-inner">
+        <GalleryFeatureCopy
+          title="IN Every"
+          highlight="OOTD"
+          suffix="You LIKE"
+          id="ootd-feature-title"
+        />
+
+        <div
+          className="gallery-feature-grid gallery-feature-grid-three gallery-feature-grid-carousel"
+          id={OOTD_CAROUSEL_ID}
+        >
+          {ootdCards.map((card, index) => (
+            <OotdCompositeCard card={card} key={index} />
+          ))}
+        </div>
+
+        <OotdCarouselDots
+          carouselId={OOTD_CAROUSEL_ID}
+          slideCount={ootdCards.length}
+        />
+
+        <div
+          data-floating-cta-end
+          className="floating-cta-dock-anchor"
+          aria-hidden="true"
+        />
+      </div>
+    </section>
+  );
+}
+
+export function AlsoSection() {
+  return (
+    <>
+      <AlsoSubSection />
+      <PetSection />
+      <OotdSection />
+
+      <div className="also-section-cta">
+        <TryItFreeButton />
+      </div>
+    </>
+  );
 }

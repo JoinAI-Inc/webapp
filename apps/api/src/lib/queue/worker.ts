@@ -21,6 +21,12 @@ async function refundCredit(task: any) {
     const featureKey: string | null = task.payload?._deductedFeatureKey ?? null;
     if (!featureKey) return; // 订阅用户或无需退款
 
+    const shouldRefund = await taskManager.markRefundStarted(task.id);
+    if (!shouldRefund) {
+        console.log(`[Worker] Refund for task ${task.id} already started, skipping duplicate refund.`);
+        return;
+    }
+
     try {
         const feature = await prisma.feature.findUnique({ where: { featureKey } });
         if (!feature) return;
@@ -112,11 +118,19 @@ export class QueueWorker {
             console.log('[Worker] Previous batch still running, skipping this tick.');
             return 0;
         }
+        const lockToken = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const acquired = await taskManager.acquireWorkerLock(lockToken);
+        if (!acquired) {
+            console.log('[Worker] Another worker owns the queue lock, skipping this tick.');
+            return 0;
+        }
+
         this.isProcessing = true;
         try {
             return await this.processBatch(maxTasks);
         } finally {
             this.isProcessing = false;
+            await taskManager.releaseWorkerLock(lockToken);
         }
     }
 }

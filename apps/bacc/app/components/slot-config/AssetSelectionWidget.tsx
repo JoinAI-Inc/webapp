@@ -30,9 +30,10 @@ function HorizontalAssetScroller({
 
         const maxScrollLeft = el.scrollWidth - el.clientWidth;
         const hasOverflow = maxScrollLeft > 1;
+        // 剩余可滚动距离 < 一张卡片宽度(80px)时视为已到底，避免最后一张几乎完全可见时右箭头仍显示
         setScrollState({
             canScrollLeft: hasOverflow && el.scrollLeft > 1,
-            canScrollRight: hasOverflow && el.scrollLeft < maxScrollLeft - 1,
+            canScrollRight: hasOverflow && el.scrollLeft < maxScrollLeft - 80,
         });
     }, []);
 
@@ -59,10 +60,18 @@ function HorizontalAssetScroller({
     }, [dependencyKey, updateScrollState]);
 
     const scrollByCards = (direction: -1 | 1) => {
-        scrollRef.current?.scrollBy({
-            left: direction * 264,
-            behavior: 'smooth',
-        });
+        const el = scrollRef.current;
+        if (!el) return;
+        if (direction === 1) {
+            const maxScrollLeft = el.scrollWidth - el.clientWidth;
+            const target = el.scrollLeft + 264;
+            // 如果目标超出最右端，直接滚到底，确保 scrollLeft === maxScrollLeft
+            if (target >= maxScrollLeft - 80) {
+                el.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+                return;
+            }
+        }
+        el.scrollBy({ left: direction * 264, behavior: 'smooth' });
     };
 
     return (

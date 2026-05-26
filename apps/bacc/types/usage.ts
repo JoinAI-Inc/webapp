@@ -6,6 +6,7 @@ export interface Feature {
     appId: string;
     name: string;
     description?: string;
+    chargingType?: 'COUNT' | 'TOGGLE';
     isActive: boolean;
     createdAt: string;
     updatedAt: string;

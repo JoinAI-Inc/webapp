@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { makeInternalHeaders } from "@/lib/internal-auth";
 
 export const runtime = 'edge';
 
@@ -19,9 +20,11 @@ export async function POST(req: NextRequest) {
 
     const response = await fetch(`${API_BASE_URL}/api/queue/submit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            ...(await makeInternalHeaders(userId)),
+        },
         body: JSON.stringify({
-            userId: userId.toString(),
             type: 'magic',
             payload: body,
         }),

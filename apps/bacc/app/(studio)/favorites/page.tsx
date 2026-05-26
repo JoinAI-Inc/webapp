@@ -1,6 +1,6 @@
 "use client";
 
-import { FavoritesPanel } from "../../../components/FavoritesPanel";
+import { FavoritesPanel } from "../../components/FavoritesPanel";
 import { useRouter } from "next/navigation";
 
 export default function FavoritesPage() {

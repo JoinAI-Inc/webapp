@@ -119,7 +119,7 @@ export function GenerateLayoutProvider({ children }: { children: ReactNode }) {
     const sidebarItems = [
         { tab: "idea", Icon: IdeaNavIcon, label: "Idea" },
         { tab: "gallery", Icon: GalleryNavIcon, label: "Gallery" },
-        { tab: "favorites", Icon: Heart, label: "Favorites" },
+        // { tab: "favorites", Icon: Heart, label: "Favorites" },
     ] satisfies { tab: TabType; Icon: (props: NavIconProps) => ReactNode; label: string }[];
 
     return (
@@ -129,7 +129,7 @@ export function GenerateLayoutProvider({ children }: { children: ReactNode }) {
         }}>
             <div className="flex flex-col h-screen bg-white overflow-hidden w-full">
                 {/* Top Header */}
-                <header className="h-[56px] tablet:h-[64px] w-full bg-white flex items-center justify-center z-10 border-b border-[#F6F6F6]">
+                <header className="relative z-[150] h-[56px] tablet:h-[64px] w-full bg-white flex items-center justify-center border-b border-[#F6F6F6]">
                     {/* Left: Logo & Nav */}
                     <div className="flex h-full w-full items-center justify-between px-[16px] tablet:w-[92vw] tablet:max-w-[92vw] tablet:px-[0px] desktop:max-w-[1600px]">
                         <div className="flex flex-row items-center justify-center gap-[8px] tablet:gap-[32px]">

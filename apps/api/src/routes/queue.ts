@@ -48,11 +48,15 @@ router.post('/submit', async (req: Request, res: Response) => {
         });
 
         const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
-        await userTaskTracker.setCurrentTask(userId, taskId, {
-            type,
-            payload,
-            submittedAt: new Date().toISOString(),
-        });
+        try {
+            await userTaskTracker.setCurrentTask(userId, taskId, {
+                type,
+                payload,
+                submittedAt: new Date().toISOString(),
+            });
+        } catch (trackErr: any) {
+            console.warn('[Queue API] Failed to track current task (non-fatal):', trackErr.message);
+        }
 
         console.log(`[Queue API] Task ${taskId} submitted by user ${userId}`);
 
@@ -74,6 +78,14 @@ router.post('/submit', async (req: Request, res: Response) => {
 router.get('/status', async (req: Request, res: Response) => {
     try {
         const { taskId } = req.query;
+        const userId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
 
         if (!taskId || typeof taskId !== 'string') {
             return res.status(400).json({ error: 'Missing or invalid taskId parameter' });
@@ -81,7 +93,7 @@ router.get('/status', async (req: Request, res: Response) => {
 
         const task = await taskManager.getTask(taskId);
 
-        if (!task) {
+        if (!task || task.userId !== userId) {
             return res.status(404).json({ error: 'Task not found' });
         }
 
@@ -110,9 +122,9 @@ router.get('/status', async (req: Request, res: Response) => {
  */
 router.post('/process', async (req: Request, res: Response) => {
     try {
-        // 验证调用来源（可选，用于定时任务保护）
+        // 验证调用来源（用于定时任务保护）
         const authHeader = req.headers.authorization;
-        if (authHeader && authHeader !== `Bearer ${WORKER_SECRET}`) {
+        if (authHeader !== `Bearer ${WORKER_SECRET}`) {
             return res.status(401).json({ error: 'Invalid authorization' });
         }
 
@@ -121,7 +133,7 @@ router.post('/process', async (req: Request, res: Response) => {
         const stats = await taskManager.getQueueStats();
         console.log(`[Queue API] Queue stats - Pending: ${stats.pending}, Processing: ${stats.processing}`);
 
-        const processed = await queueWorker.processBatch(5);
+        const processed = await queueWorker.processBatchSafe(5);
 
         res.json({
             success: true,
@@ -173,34 +185,44 @@ router.get('/current-task', async (req: Request, res: Response) => {
         }
 
         const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
-        const currentTask = await userTaskTracker.getCurrentTask(userId.toString());
+        const currentTasks = await userTaskTracker.getCurrentTasks(userId.toString());
 
-        if (!currentTask) {
+        if (currentTasks.length === 0) {
             return res.json({ taskId: null, status: null });
         }
 
-        // 获取任务详细状态
-        const task = await taskManager.getTask(currentTask.taskId);
+        const tasks = [];
+        for (const currentTask of currentTasks) {
+            // 获取任务详细状态
+            const task = await taskManager.getTask(currentTask.taskId);
 
-        if (!task) {
-            // 任务已过期或不存在，清除记录
-            await userTaskTracker.clearCurrentTask(userId.toString());
-            return res.json({ taskId: null, status: null });
+            if (!task || task.userId !== userId) {
+                // 任务已过期、不存在或不属于当前用户，清除记录
+                await userTaskTracker.clearCurrentTask(userId.toString(), currentTask.taskId);
+                continue;
+            }
+
+            tasks.push({
+                taskId: task.id,
+                status: task.status,
+                result: task.result,
+                error: task.error,
+                metadata: currentTask.metadata,
+                createdAt: task.createdAt,
+                updatedAt: task.updatedAt,
+                completedAt: task.completedAt,
+            });
         }
 
-        // 如果任务已完成或失败，清除当前任务记录
-        if (task.status === 'completed' || task.status === 'failed') {
-            await userTaskTracker.clearCurrentTask(userId.toString());
+        if (tasks.length === 0) {
+            return res.json({ taskId: null, status: null, tasks: [] });
         }
+
+        const primaryTask = tasks.find((task) => task.status === 'pending' || task.status === 'processing') ?? tasks[0];
 
         res.json({
-            taskId: task.id,
-            status: task.status,
-            result: task.result,
-            error: task.error,
-            metadata: currentTask.metadata,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
+            ...primaryTask,
+            tasks,
         });
     } catch (error: any) {
         console.error('[Queue API] Current task error:', error);

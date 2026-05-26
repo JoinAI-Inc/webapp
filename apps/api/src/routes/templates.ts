@@ -26,6 +26,48 @@ async function getUserIdFromRequest(req: Request): Promise<string | null> {
     return session.userId;
 }
 
+function getPayloadImageSource(payload: unknown): string | undefined {
+    if (typeof payload === 'string') {
+        return payload.trim() || undefined;
+    }
+    if (!payload || typeof payload !== 'object') {
+        return undefined;
+    }
+
+    const data = payload as Record<string, unknown>;
+    const candidates = [
+        data.imageSource,
+        data.imageUrl,
+        data.url,
+        data.sourceUrl,
+    ];
+
+    return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim();
+}
+
+function isSupportedImageSource(value: unknown): value is string {
+    return typeof value === 'string'
+        && value.trim().length > 0
+        && (
+            value.startsWith('data:image/')
+            || value.startsWith('http://')
+            || value.startsWith('https://')
+        );
+}
+
+async function refundDeductedCount(userId: string, featureId: bigint): Promise<void> {
+    await prisma.$executeRaw`
+        UPDATE "user_feature_balances"
+        SET
+            remaining_count = remaining_count + 1,
+            total_used      = GREATEST(total_used - 1, 0),
+            updated_at      = NOW()
+        WHERE
+            user_id         = ${userId}
+            AND feature_id  = ${featureId}
+    `;
+}
+
 // ─── 公开接口 ─────────────────────────────────────────────────────────────────
 
 /**
@@ -257,12 +299,16 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         const userId = await getUserIdFromRequest(req);
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const { slots } = req.body as {
-            slots: Array<{ refId: string; slotType?: string; imageSource: string }>;
+        const { slots, featureKey } = req.body as {
+            slots: Array<{ refId: string; slotType?: string; imageSource?: string; assetId?: string }>;
+            featureKey?: string;
         };
 
         if (!slots || !Array.isArray(slots) || slots.length === 0) {
             return res.status(400).json({ error: 'slots is required and must be a non-empty array' });
+        }
+        if (!featureKey || typeof featureKey !== 'string') {
+            return res.status(400).json({ error: 'featureKey is required', code: 'FEATURE_KEY_REQUIRED' });
         }
 
         const template = await prisma.template.findUnique({
@@ -283,65 +329,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
             return res.status(400).json({ error: `Missing required slots: ${missing.join(', ')}` });
         }
 
-        // ── 入队前原子扣减（核心并发防线）─────────────────────────────────────
-        const FEATURE_KEY = 'bacc_generation';
-        const feature = await prisma.feature.findUnique({
-            where: { featureKey: FEATURE_KEY }
-        });
-
-        let deductedFeatureKey: string | null = null;
-
-        if (!feature || !feature.isActive) {
-            return res.status(500).json({
-                error: 'Generation feature (bacc_generation) not configured.',
-                code: 'FEATURE_NOT_FOUND'
-            });
-        }
-
-        const affected = await prisma.$executeRaw`
-            UPDATE "user_feature_balances"
-            SET
-                remaining_count = remaining_count - 1,
-                total_used      = total_used + 1,
-                last_used_at    = NOW(),
-                updated_at      = NOW()
-            WHERE
-                user_id         = ${userId}
-                AND feature_id  = ${feature.id}
-                AND remaining_count >= 1
-        `;
-
-        if (affected === 0) {
-            return res.status(402).json({
-                error: 'Insufficient counts. Please purchase more.',
-                code: 'INSUFFICIENT_COUNT'
-            });
-        } else {
-            deductedFeatureKey = feature.featureKey;
-            console.log(`[Templates API] Deducted 1 count for user ${userId} (${feature.featureKey})`);
-            // 写入使用流水，供 Usage History 展示
-            try {
-                const updatedBalance = await prisma.userFeatureBalance.findUnique({
-                    where: { userId_featureId: { userId, featureId: feature.id } }
-                });
-                const balanceAfter = Number(updatedBalance?.remainingCount ?? 0);
-                await prisma.usageLog.create({
-                    data: {
-                        userId,
-                        featureId: feature.id,
-                        sourceType: 'USAGE_PACK',
-                        usedCount: 1,
-                        balanceBefore: balanceAfter + 1,
-                        balanceAfter,
-                        metadata: { templateId: id, templateName: template.name },
-                    }
-                });
-            } catch (logErr: any) {
-                console.warn('[Templates API] Failed to write usageLog (non-fatal):', logErr.message);
-            }
-        }
-
-        // ── 获取并验证 Assets ──────────────────────────────────────────────────────────
+        // ── 获取并验证 Assets：必须在扣生成次数前完成，避免鉴权失败仍扣费 ─────────
         const selectedAssetIds = slots.filter((s: any) => s.assetId).map((s: any) => s.assetId as string);
         let assetsMap: Record<string, any> = {};
 
@@ -353,44 +341,141 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
                 assetsMap[asset.id] = asset;
             }
 
-            // 鉴权校验 `requiredFeatureKey`
-            const requiredFeatures = assets.map(a => a.requiredFeatureKey).filter(Boolean) as string[];
+            const missingAssetIds = selectedAssetIds.filter((assetId: string) => !assetsMap[assetId]);
+            if (missingAssetIds.length > 0) {
+                return res.status(400).json({
+                    error: `Selected assets not found: ${missingAssetIds.join(', ')}`,
+                    code: 'ASSET_NOT_FOUND'
+                });
+            }
+
+            const requiredFeatures = Array.from(new Set(assets.map(a => a.requiredFeatureKey).filter(Boolean))) as string[];
             if (requiredFeatures.length > 0) {
-                // Find all features required
                 const featuresInfo = await prisma.feature.findMany({
                     where: { featureKey: { in: requiredFeatures }, isActive: true },
-                    select: { id: true, featureKey: true }
-                });
-                
-                const featureIds = featuresInfo.map(f => f.id);
-                
-                // Check if user has unlocked all these features
-                const unlocks = await prisma.userFeatureUnlock.findMany({
-                    where: {
-                        userId,
-                        featureId: { in: featureIds },
-                        OR: [
-                            { expireAt: null },
-                            { expireAt: { gt: new Date() } }
-                        ]
-                    }
+                    select: { id: true, featureKey: true, appId: true, chargingType: true }
                 });
 
-                const unlockedFeatureIds = new Set(unlocks.map(u => u.featureId.toString()));
-                
-                for (const asset of assets) {
-                    if (asset.requiredFeatureKey) {
-                        const featureObj = featuresInfo.find(f => f.featureKey === asset.requiredFeatureKey);
-                        if (!featureObj || !unlockedFeatureIds.has(featureObj.id.toString())) {
-                            return res.status(403).json({
-                                error: `Premium asset "${asset.name}" requires subscription upgrade.`,
-                                code: 'PREMIUM_ASSET_LOCKED'
-                            });
+                const featureByKey = new Map<string, typeof featuresInfo[number]>(
+                    featuresInfo.map(feature => [feature.featureKey, feature])
+                );
+                const featureIds = featuresInfo.map(f => f.id);
+                const appIds = Array.from(new Set<bigint>(featuresInfo.map(f => f.appId)));
+
+                const [subscriptions, unlocks, balances] = await Promise.all([
+                    prisma.userEntitlement.findMany({
+                        where: {
+                            userId,
+                            status: 'ACTIVE',
+                            OR: [{ expireTime: null }, { expireTime: { gt: new Date() } }],
+                            apps: { some: { appId: { in: appIds } } }
+                        },
+                        include: { apps: { select: { appId: true } } }
+                    }),
+                    prisma.userFeatureUnlock.findMany({
+                        where: {
+                            userId,
+                            featureId: { in: featureIds },
+                            OR: [{ expireAt: null }, { expireAt: { gt: new Date() } }]
                         }
+                    }),
+                    prisma.userFeatureBalance.findMany({
+                        where: {
+                            userId,
+                            featureId: { in: featureIds },
+                            remainingCount: { gt: 0 }
+                        }
+                    })
+                ]);
+
+                const entitledAppIds = new Set(subscriptions.flatMap(entitlement => entitlement.apps.map(app => app.appId.toString())));
+                const unlockedFeatureIds = new Set(unlocks.map(unlock => unlock.featureId.toString()));
+                const positiveBalanceFeatureIds = new Set(balances.map(balance => balance.featureId.toString()));
+
+                const hasFeatureAccess = (requiredFeatureKey: string) => {
+                    const requiredFeature = featureByKey.get(requiredFeatureKey);
+                    if (!requiredFeature) return false;
+                    if (entitledAppIds.has(requiredFeature.appId.toString())) return true;
+                    if (requiredFeature.chargingType === 'TOGGLE') {
+                        return unlockedFeatureIds.has(requiredFeature.id.toString());
+                    }
+                    return positiveBalanceFeatureIds.has(requiredFeature.id.toString());
+                };
+
+                for (const asset of assets) {
+                    if (asset.requiredFeatureKey && !hasFeatureAccess(asset.requiredFeatureKey)) {
+                        return res.status(403).json({
+                            error: `Premium asset "${asset.name}" requires subscription upgrade.`,
+                            code: 'PREMIUM_ASSET_LOCKED',
+                            requiredFeatureKey: asset.requiredFeatureKey
+                        });
                     }
                 }
             }
         }
+
+        const normalizedSlots = slots.map((s: any) => {
+            const selectedAsset = s.assetId ? assetsMap[s.assetId] : null;
+            const directImageSource = typeof s.imageSource === 'string' ? s.imageSource.trim() : undefined;
+            const assetImageSource = selectedAsset
+                ? getPayloadImageSource(selectedAsset.payload) || selectedAsset.thumbnailUrl
+                : undefined;
+
+            return {
+                refId: s.refId,
+                slotType: s.slotType || 'IMAGE',
+                imageSource: directImageSource || assetImageSource,
+                assetId: s.assetId,
+                assetPayload: selectedAsset?.payload ?? undefined,
+            };
+        });
+
+        const invalidSlots = normalizedSlots.filter((s) => !isSupportedImageSource(s.imageSource));
+        if (invalidSlots.length > 0) {
+            return res.status(400).json({
+                error: `Invalid or missing image source for slots: ${invalidSlots.map((s) => s.refId || '(unknown)').join(', ')}`,
+                code: 'INVALID_SLOT_IMAGE_SOURCE'
+            });
+        }
+
+        // ── 入队前原子扣减（核心并发防线）─────────────────────────────────────
+        const feature = await prisma.feature.findUnique({
+            where: { featureKey }
+        });
+
+        let deductedFeatureKey: string | null = null;
+
+        if (!feature || !feature.isActive || feature.chargingType !== 'COUNT') {
+            return res.status(400).json({
+                error: `Generation feature (${featureKey}) is not configured for count usage.`,
+                code: 'FEATURE_NOT_FOUND'
+            });
+        }
+
+        const updatedBalances = await prisma.$queryRaw<Array<{ remaining_count: number }>>`
+            UPDATE "user_feature_balances"
+            SET
+                remaining_count = remaining_count - 1,
+                total_used      = total_used + 1,
+                last_used_at    = NOW(),
+                updated_at      = NOW()
+            WHERE
+                user_id         = ${userId}
+                AND feature_id  = ${feature.id}
+                AND remaining_count >= 1
+            RETURNING remaining_count
+        `;
+
+        if (updatedBalances.length === 0) {
+            return res.status(402).json({
+                error: 'Insufficient counts. Please purchase more.',
+                code: 'INSUFFICIENT_COUNT'
+            });
+        } else {
+            deductedFeatureKey = feature.featureKey;
+            console.log(`[Templates API] Deducted 1 count for user ${userId} (${feature.featureKey})`);
+        }
+        const balanceAfter = Number(updatedBalances[0].remaining_count);
 
         // 构建 payload（_deductedFeatureKey 供 worker 失败退款用）
         const payload = {
@@ -398,24 +483,50 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
             templateName: template.name,
             templateImageUrl: template.imageUrl ?? undefined,
             descriptor: template.descriptor,
-            slots: slots.map((s: any) => ({
-                refId: s.refId,
-                slotType: s.slotType || 'IMAGE',
-                imageSource: s.imageSource,
-                // 对于预设素材，我们将 payload 合并进去透传给底层服务
-                assetPayload: s.assetId && assetsMap[s.assetId] ? assetsMap[s.assetId].payload : undefined
-            })),
+            slots: normalizedSlots.map(({ assetId, ...slot }) => slot),
             _deductedFeatureKey: deductedFeatureKey,
         };
 
         const { taskManager } = await import('../lib/queue/task-manager.js');
         const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
 
-        const taskId = await taskManager.submitTask({ userId, type: 'template', payload });
-        await userTaskTracker.setCurrentTask(userId, taskId, {
-            type: 'template', payload,
-            submittedAt: new Date().toISOString(),
-        });
+        let taskId: string;
+        try {
+            taskId = await taskManager.submitTask({ userId, type: 'template', payload });
+        } catch (queueErr: any) {
+            await refundDeductedCount(userId, feature.id);
+            console.error('[Templates API] Queue submit failed after deduction, refunded count:', queueErr);
+            return res.status(500).json({
+                error: 'Failed to submit generation task. Count has been refunded.',
+                code: 'QUEUE_SUBMIT_FAILED'
+            });
+        }
+
+        try {
+            await userTaskTracker.setCurrentTask(userId, taskId, {
+                type: 'template', payload,
+                submittedAt: new Date().toISOString(),
+            });
+        } catch (trackErr: any) {
+            console.warn('[Templates API] Failed to track current task (non-fatal):', trackErr.message);
+        }
+
+        // 写入使用流水，供 Usage History 展示。任务已经入队后再写，避免“扣费流水有了但任务不存在”。
+        try {
+            await prisma.usageLog.create({
+                data: {
+                    userId,
+                    featureId: feature.id,
+                    sourceType: 'USAGE_PACK',
+                    usedCount: 1,
+                    balanceBefore: balanceAfter + 1,
+                    balanceAfter,
+                    metadata: { templateId: id, templateName: template.name, taskId },
+                }
+            });
+        } catch (logErr: any) {
+            console.warn('[Templates API] Failed to write usageLog (non-fatal):', logErr.message);
+        }
 
         console.log(`[Templates API] Task ${taskId} submitted by user ${userId}`);
         res.json({ taskId, status: 'pending', message: 'Task submitted. Poll /api/queue/status?taskId= to track progress.' });
