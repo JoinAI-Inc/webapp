@@ -98,6 +98,11 @@ temp/
 # bacc public image assets (large files, managed separately)
 apps/bacc/public/new-home/
 apps/bacc/public/new-home-compressed/
+apps/bacc/public/assets/
+apps/bacc/public/landing-footer/lucky-photo-footer-bg.png
+apps/bacc/public/landing-footer/lucky-photo-footer-collage.png
+apps/bacc/public/login-design/lucky-photo-login-collage.png
+apps/bacc/public/login-design/lucky-photo-mobile-collage.png
 
 # package-lock.json files in sub-apps (monorepo uses pnpm at root)
 # yarn.lock at root is used by the Dockerfile for production image builds
