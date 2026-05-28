@@ -167,6 +167,7 @@ export function HeroSection({
         <div
           className="hero-reveal mt-6 flex justify-center md:mt-8 xl:mt-10"
           style={{ "--reveal-delay": "240ms" } as CSSProperties}
+          data-hero-cta
         >
           <TryItFreeButton
             className="h-10 px-6 text-[15px] md:h-12 md:px-8 md:text-[16px]"

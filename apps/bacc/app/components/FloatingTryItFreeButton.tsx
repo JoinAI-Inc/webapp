@@ -105,9 +105,9 @@ export function FloatingTryItFreeButton({
       frame = window.requestAnimationFrame(() => {
         if (!el) return;
 
-        const startSection = document.querySelector<HTMLElement>("[data-floating-cta-start]");
+        const heroCta = document.querySelector<HTMLElement>("[data-hero-cta]");
         const endAnchor = document.querySelector<HTMLElement>("[data-floating-cta-end]");
-        if (!startSection || !endAnchor) return;
+        if (!heroCta || !endAnchor) return;
 
         const parent = el.offsetParent as HTMLElement | null;
         const parentDocTop = parent
@@ -117,19 +117,22 @@ export function FloatingTryItFreeButton({
         const viewportHeight = window.innerHeight;
         const isMobile = window.innerWidth < 735;
         const isTablet = window.innerWidth >= 735 && window.innerWidth <= 1068;
-        const bottomOffset = isMobile ? 40 : isTablet ? 60 : 80;
+        const bottomOffset = isMobile ? 24 : isTablet ? 40 : 48;
         const dockLift = isMobile ? 16 : 40;
         const buttonHeight = el.offsetHeight || 48;
 
         const fixedTop = viewportHeight - bottomOffset - buttonHeight;
 
-        const startDocY = startSection.getBoundingClientRect().top + window.scrollY;
+        // Hero CTA 底边的文档绝对 Y — 滚过这里就触发
+        const heroCtaRect = heroCta.getBoundingClientRect();
+        const heroCtaBottomDocY = heroCtaRect.bottom + window.scrollY;
+        const startScroll = heroCtaBottomDocY;
+
         const endDocY = endAnchor.getBoundingClientRect().top + window.scrollY - buttonHeight - dockLift;
 
-        const startScroll = Math.max(0, startDocY - fixedTop);
         const scrollY = window.scrollY;
 
-        // ── 第一段：隐藏 ──
+        // ── 第一段：隐藏（Hero CTA 还在视口内）──
         if (scrollY < startScroll) {
           hide();
           return;
