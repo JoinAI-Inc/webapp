@@ -1,0 +1,413 @@
+/* ─── Home Skeleton Overlay ─────────────────────────────────── */
+
+.home-sk-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #ffffff;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 220ms ease;
+}
+
+.home-sk-root.home-sk-dismissed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Shimmer base ─────────────────────────────────────────── */
+
+.home-sk-block {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #ebebec;
+  border-radius: 8px;
+}
+
+.home-sk-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.72) 50%,
+    transparent 100%
+  );
+  animation: home-sk-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes home-sk-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ─── Nav ──────────────────────────────────────────────────── */
+
+.home-sk-nav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  width: 87.5vw;
+  max-width: 1440px;
+  height: 64px;
+  margin: 0 auto;
+}
+
+.home-sk-nav-links {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.home-sk-logo {
+  width: 146px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.home-sk-navlink {
+  width: 72px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.home-sk-cta {
+  width: 112px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+/* ─── Hero ─────────────────────────────────────────────────── */
+
+.home-sk-hero {
+  width: 87.5vw;
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 70px;
+}
+
+.home-sk-accent {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+}
+
+.home-sk-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.home-sk-line {
+  border-radius: 8px;
+}
+
+.home-sk-line-xl {
+  width: min(87.5vw, 740px);
+  height: 64px;
+}
+
+.home-sk-line-lg {
+  width: min(87.5vw, 560px);
+  height: 64px;
+}
+
+.home-sk-line-md {
+  width: min(87.5vw, 380px);
+  height: 20px;
+  margin-top: 8px;
+}
+
+.home-sk-line-sm {
+  width: min(87.5vw, 280px);
+  height: 28px;
+}
+
+.home-sk-button {
+  width: 186px;
+  height: 48px;
+  margin-top: 40px;
+  border-radius: 999px;
+}
+
+.home-sk-media {
+  width: 87.5vw;
+  max-width: 1600px;
+  height: 600px;
+  margin-top: 64px;
+  border-radius: clamp(16px, calc(6.98px + 1.05vw), 24px);
+  overflow: hidden;
+  background: #f0eeec;
+  display: grid;
+  align-content: center;
+  gap: 16px;
+}
+
+.home-sk-media-row {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  align-items: flex-start;
+}
+
+.home-sk-media-row-forward {
+  margin-left: -60px;
+}
+
+.home-sk-media-row-reverse {
+  margin-left: -12px;
+}
+
+.home-sk-media-card {
+  width: 200px;
+  height: 264px;
+  border-radius: 16px;
+  flex: 0 0 auto;
+}
+
+/* ─── Year / RedBrand ──────────────────────────────────────── */
+
+.home-sk-year {
+  position: relative;
+  width: 100vw;
+  margin-top: 0;
+  padding: 104px 0 124px;
+  background: #dd1e1b;
+  overflow: hidden;
+}
+
+.home-sk-year-copy {
+  width: 87.5vw;
+  max-width: 526px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.home-sk-year-decor {
+  position: absolute;
+  bottom: 0;
+  width: 26vw;
+  max-width: 360px;
+  height: 70%;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.home-sk-year-decor-left {
+  left: 0;
+  border-radius: 0 32px 0 0;
+}
+
+.home-sk-year-decor-right {
+  right: 0;
+  border-radius: 32px 0 0 0;
+}
+
+.home-sk-year-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.home-sk-year .home-sk-line {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ─── Gallery ──────────────────────────────────────────────── */
+
+.home-sk-gallery {
+  width: 87.5vw;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 100px 0 120px;
+}
+
+.home-sk-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.home-sk-gallery-grid {
+  display: grid;
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.home-sk-gallery-grid-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.home-sk-gallery-card {
+  aspect-ratio: 342 / 512;
+  border-radius: 16px;
+}
+
+/* ─── Pet ──────────────────────────────────────────────────── */
+
+.home-sk-pet {
+  position: relative;
+  width: 87.5vw;
+  max-width: 1440px;
+  margin: 0 auto;
+  height: 360px;
+}
+
+.home-sk-pet-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(87.5vw, 620px);
+  height: 64px;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
+/* ─── Inspiration card ─────────────────────────────────────── */
+
+.home-sk-card-block {
+  width: 100vw;
+  padding: 80px 0;
+  background: #dd1e1b;
+}
+
+.home-sk-card-inner {
+  width: min(87.5vw, 1600px);
+  height: 580px;
+  margin: 0 auto;
+  border-radius: 24px;
+  background: #ebebec;
+  display: grid;
+  grid-template-columns: 60px 1fr 60px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.home-sk-card-frame-side {
+  background: #d8d8da;
+}
+
+.home-sk-card-frame-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+}
+
+.home-sk-card-marquee {
+  width: min(100%, 560px);
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-sk-card-divider {
+  width: min(100%, 560px);
+  height: 1px;
+  margin-top: 24px;
+  border-radius: 0;
+}
+
+/* ─── Split / Announcement ─────────────────────────────────── */
+
+.home-sk-split {
+  width: 87.5vw;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 80px 0;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+.home-sk-split-image {
+  flex: 1;
+  height: 380px;
+  border-radius: 24px;
+}
+
+/* ─── Footer ───────────────────────────────────────────────── */
+
+.home-sk-footer {
+  width: 87.5vw;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 60px 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.home-sk-footer-collage {
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  margin-top: 8px;
+}
+
+/* ─── Mobile ───────────────────────────────────────────────── */
+
+@media (max-width: 734px) {
+  .home-sk-nav-links {
+    display: none;
+  }
+
+  .home-sk-hero {
+    padding-top: 40px;
+  }
+
+  .home-sk-accent {
+    width: 80px;
+    height: 80px;
+  }
+
+  .home-sk-line-xl,
+  .home-sk-line-lg {
+    height: 36px;
+  }
+
+  .home-sk-media {
+    height: 380px;
+    margin-top: 32px;
+  }
+
+  .home-sk-media-card {
+    width: 120px;
+    height: 158px;
+  }
+
+  .home-sk-gallery-grid-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-sk-split {
+    flex-direction: column;
+  }
+
+  .home-sk-split-image {
+    width: 100%;
+  }
+
+  .home-sk-card-inner {
+    height: 340px;
+  }
+}
