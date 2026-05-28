@@ -1,7 +1,8 @@
 /* ─── Floating CTA ──────────────────────────────────────────── */
 
 .floating-cta-root {
-  --floating-cta-half: 24px;
+  --floating-cta-size: 48px;
+  --floating-cta-half: 24px; /* 初始圆的半径 = 按钮高度的一半 */
 
   position: fixed;
   left: 50%;
@@ -21,18 +22,18 @@
   transition: opacity 220ms ease, transform 220ms ease, box-shadow 260ms ease;
 }
 
-/* ── 悬浮阶段：固定在视口底部 ── */
+/* ── 悬浮阶段 ── */
 .floating-cta-root.is-fixed {
   pointer-events: auto;
 }
 
-/* ── is-fixed 或 is-docked 共享 transform 重置 ── */
+/* ── is-fixed / is-docked 共享 transform ── */
 .floating-cta-root.is-fixed,
 .floating-cta-root.is-docked {
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
-/* ── 停靠阶段：绝对定位 ── */
+/* ── 停靠阶段 ── */
 .floating-cta-root.is-docked {
   position: absolute;
   top: var(--floating-cta-top, 0px);
@@ -40,48 +41,43 @@
   pointer-events: auto;
 }
 
-/* ── 入场动画（容器：clip-path 展开 + 微弹） ── */
+/* ── 容器入场动画 ── */
 .floating-cta-root.is-visible:not(.is-exiting) {
   opacity: 1;
   pointer-events: auto;
   animation: floating-cta-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* ── 退场动画（容器：clip-path 收缩 + 下沉） ── */
+/* ── 容器退场动画 ── */
 .floating-cta-root.is-exiting {
   opacity: 1;
   pointer-events: none;
   animation: floating-cta-exit 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-/* ─── 内容动画（文字/图标独立于容器） ────────────────────── */
+/* ─── 内容动画（文字+图标） ─────────────────────────────── */
 
-/* 内容初始：不可见 + 微微下移 */
+/* 初始：不可见 + 微下移 */
 .floating-cta-root > a {
   opacity: 0;
   transform: translateY(4px);
 }
 
-/* 入场：容器展开后 280ms 延迟，内容淡入上移 */
+/* 入场：280ms 延迟后淡入（与圆→按钮展开同步） */
 .floating-cta-root.is-visible:not(.is-exiting) > a {
   animation: floating-cta-content-in 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: 280ms;
 }
 
-/* 退场：内容先快速淡出 */
+/* 退场：快速淡出 */
 .floating-cta-root.is-exiting > a {
   animation: floating-cta-content-out 180ms ease-in forwards;
 }
 
-/* 已经定住后（fixed/docked），内容保持可见 */
-.floating-cta-root.is-fixed > a,
-.floating-cta-root.is-docked > a {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* ─── 容器关键帧 ──────────────────────────────────────────── */
 
+/* 0→58%：红色圆从下方弹出（clip-path 保持窄=圆形）
+   58→100%：圆向两侧展开成完整按钮 */
 @keyframes floating-cta-enter {
   0% {
     opacity: 0;
@@ -146,9 +142,11 @@
   }
 }
 
-/* ── 响应式底部偏移 ── */
+/* ── 响应式 ── */
 @media (max-width: 734px) {
   .floating-cta-root {
+    --floating-cta-size: 40px;
+    --floating-cta-half: 20px;
     bottom: 24px;
   }
 }
