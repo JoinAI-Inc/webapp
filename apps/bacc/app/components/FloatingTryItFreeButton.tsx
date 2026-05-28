@@ -58,13 +58,15 @@ export function FloatingTryItFreeButton({
     }
 
     // ── 停靠（position: absolute，top 锁定）──
+    // 保留 is-fixed 不移除，避免类切换瞬间闪烁
+    // is-docked 在 CSS 中后声明，其 position: absolute 会覆盖
     function showDocked(topValue: number) {
       if (!el) return;
       const wasHidden = stateRef.current === "hidden";
 
       clearExitTimer();
-      el.classList.remove("is-exiting", "is-fixed");
-      el.classList.add("is-docked");
+      el.classList.remove("is-exiting");
+      el.classList.add("is-fixed", "is-docked");
       el.style.setProperty("--floating-cta-top", `${topValue}px`);
 
       if (wasHidden) {
