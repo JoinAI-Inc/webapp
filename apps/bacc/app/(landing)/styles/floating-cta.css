@@ -55,22 +55,22 @@
   animation: floating-cta-exit 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-/* ─── 内容动画（文字+图标） ─────────────────────────────── */
+/* ─── 内容动画（仅文字，不隐藏按钮红色背景） ─────────── */
 
-/* 初始：不可见 + 微下移 */
-.floating-cta-root > a {
+/* 只隐藏文字 span（z-10），按钮背景始终可见 → 红色圆可见 */
+.floating-cta-root .relative.z-10 {
   opacity: 0;
   transform: translateY(4px);
 }
 
-/* 入场：280ms 延迟后淡入（与圆→按钮展开同步） */
-.floating-cta-root.is-visible:not(.is-exiting) > a {
+/* 入场：280ms 延迟后文字淡入（与圆→按钮展开同步） */
+.floating-cta-root.is-visible:not(.is-exiting) .relative.z-10 {
   animation: floating-cta-content-in 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: 280ms;
 }
 
-/* 退场：快速淡出 */
-.floating-cta-root.is-exiting > a {
+/* 退场：文字先快速淡出 */
+.floating-cta-root.is-exiting .relative.z-10 {
   animation: floating-cta-content-out 180ms ease-in forwards;
 }
 
