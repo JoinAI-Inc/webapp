@@ -114,7 +114,9 @@ export function FloatingTryItFreeButton({
         const endAnchor = document.querySelector<HTMLElement>("[data-floating-cta-end]");
         if (!heroCta || !endAnchor) return;
 
-        const parent = el.offsetParent as HTMLElement | null;
+        // 用 parentElement 而非 offsetParent：
+        // position: fixed 时 offsetParent 返回 null，导致 parentDocTop=0 坐标偏移
+        const parent = el.parentElement;
         const parentDocTop = parent
           ? parent.getBoundingClientRect().top + window.scrollY
           : 0;
