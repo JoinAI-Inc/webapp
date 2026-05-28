@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
 import { OotdCarouselDots } from "./OotdCarouselDots";
-import { TryItFreeButton } from "./TryItFreeButton";
 
 const OOTD_CAROUSEL_ID = "ootd-feature-carousel";
 
@@ -247,18 +246,6 @@ export function AlsoSection({ material }: { material: SiteThemeConfig }) {
       <AlsoSubSection material={material} />
       <PetSection material={material} />
       <OotdSection material={material} />
-
-      <div className="also-section-cta">
-        <TryItFreeButton
-          label={material.hero.ctaLabel}
-          backgroundImageUrl={material.hero.ctaBackgroundImageUrl}
-          gradient={{
-            from: material.theme.ctaGradientStart,
-            to: material.theme.ctaGradientEnd,
-          }}
-          focusColor={material.theme.ctaFocusColor}
-        />
-      </div>
     </>
   );
 }

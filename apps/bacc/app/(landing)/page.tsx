@@ -32,7 +32,15 @@ export default async function HomePage() {
           <AnnouncementSection material={siteTheme} />
           <FooterSection material={siteTheme} />
         </div>
-        <FloatingTryItFreeButton />
+        <FloatingTryItFreeButton
+          label={siteTheme.hero.ctaLabel}
+          backgroundImageUrl={siteTheme.hero.ctaBackgroundImageUrl}
+          gradient={{
+            from: siteTheme.theme.ctaGradientStart,
+            to: siteTheme.theme.ctaGradientEnd,
+          }}
+          focusColor={siteTheme.theme.ctaFocusColor}
+        />
       </main>
     </>
   );

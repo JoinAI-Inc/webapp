@@ -5,10 +5,21 @@ import { TryItFreeButton } from "./TryItFreeButton";
 
 const EXIT_DURATION = 420;
 
-export function FloatingTryItFreeButton() {
+interface FloatingTryItFreeButtonProps {
+  label?: string;
+  backgroundImageUrl?: string;
+  gradient?: { from: string; to: string };
+  focusColor?: string;
+}
+
+export function FloatingTryItFreeButton({
+  label,
+  backgroundImageUrl,
+  gradient,
+  focusColor,
+}: FloatingTryItFreeButtonProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  // 用 ref 追踪状态，避免 re-render 影响动画
-  const stateRef = useRef<"hidden" | "docked">("hidden");
+  const stateRef = useRef<"hidden" | "visible">("hidden");
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -17,35 +28,33 @@ export function FloatingTryItFreeButton() {
 
     let frame = 0;
 
-    function showFloatingCta(topValue: number) {
+    function show(topValue: number) {
       if (!el) return;
-      const wasHidden = stateRef.current !== "docked";
+      const wasHidden = stateRef.current !== "visible";
 
-      // 取消退出计时
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
         exitTimerRef.current = null;
       }
 
       el.classList.remove("is-exiting");
-      // 切换到停靠定位
-      el.style.setProperty("--floating-cta-top", `${topValue}px`);
       el.classList.add("is-docked");
+      el.style.setProperty("--floating-cta-top", `${topValue}px`);
 
       if (wasHidden) {
-        // 强制重排，确保入场动画从初始状态开始
+        // 强制重排，让入场动画从初始状态开始
         el.classList.remove("is-visible");
         void el.offsetWidth;
       }
 
       el.classList.add("is-visible");
-      stateRef.current = "docked";
+      stateRef.current = "visible";
     }
 
-    function hideFloatingCta() {
+    function hide() {
       if (!el) return;
 
-      // 已经不可见，直接清理
+      // 还没显示过，直接清理
       if (!el.classList.contains("is-visible")) {
         if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
         exitTimerRef.current = null;
@@ -55,18 +64,17 @@ export function FloatingTryItFreeButton() {
         return;
       }
 
-      // 已在退出中，不重复触发
+      // 已在退出中
       if (stateRef.current === "hidden" || el.classList.contains("is-exiting")) {
         return;
       }
 
       stateRef.current = "hidden";
-      el.classList.add("is-visible", "is-exiting");
+      el.classList.add("is-exiting");
 
       exitTimerRef.current = setTimeout(() => {
         exitTimerRef.current = null;
-        if (!el) return;
-        if (stateRef.current !== "hidden") return;
+        if (!el || stateRef.current !== "hidden") return;
         el.classList.remove("is-visible", "is-exiting", "is-docked");
         el.style.removeProperty("--floating-cta-top");
       }, EXIT_DURATION);
@@ -79,8 +87,13 @@ export function FloatingTryItFreeButton() {
 
         const startSection = document.querySelector<HTMLElement>("[data-floating-cta-start]");
         const endAnchor = document.querySelector<HTMLElement>("[data-floating-cta-end]");
-
         if (!startSection || !endAnchor) return;
+
+        // 获取父容器（position: relative 的 main）的文档偏移，用于坐标转换
+        const parent = el.offsetParent as HTMLElement | null;
+        const parentDocTop = parent
+          ? parent.getBoundingClientRect().top + window.scrollY
+          : 0;
 
         const viewportHeight = window.innerHeight;
         const isMobile = window.innerWidth < 735;
@@ -89,25 +102,31 @@ export function FloatingTryItFreeButton() {
         const dockLift = isMobile ? 16 : 40;
         const buttonHeight = el.offsetHeight || 48;
 
-        // 按钮固定在视口底部时的 top 值（距页面顶部）
+        // 按钮在视口底部 bottomOffset 处时，对应的 document Y
         const fixedTop = viewportHeight - bottomOffset - buttonHeight;
 
-        // 开始显示：gallery section 顶部滚入固定位置时
-        const startTop = startSection.getBoundingClientRect().top + window.scrollY;
-        const startScroll = Math.max(0, startTop - fixedTop);
+        // 各锚点的文档绝对 Y
+        const startDocY = startSection.getBoundingClientRect().top + window.scrollY;
+        const endDocY = endAnchor.getBoundingClientRect().top + window.scrollY - buttonHeight - dockLift;
 
-        // 停靠位置：endAnchor 顶部往上 buttonHeight + dockLift
-        const endTop = endAnchor.getBoundingClientRect().top + window.scrollY - buttonHeight - dockLift;
-
+        // 触发显示的 scrollY 阈值
+        const startScroll = Math.max(0, startDocY - fixedTop);
         const scrollY = window.scrollY;
 
+        // ── 第一段：隐藏 ──
         if (scrollY < startScroll) {
-          hideFloatingCta();
+          hide();
           return;
         }
 
-        // top = min(当前滚动位置对应的fixed位置, 停靠位置)
-        showFloatingCta(Math.min(scrollY + fixedTop, endTop));
+        // ── 第二/三段 ──
+        // 文档绝对 Y（第二段跟随 scroll，第三段锁定在 endDocY）
+        const docTop = Math.min(scrollY + fixedTop, endDocY);
+
+        // 转换为父容器相对坐标
+        const relativeTop = docTop - parentDocTop;
+
+        show(relativeTop);
       });
     };
 
@@ -125,7 +144,12 @@ export function FloatingTryItFreeButton() {
 
   return (
     <div ref={wrapRef} className="floating-cta-root" aria-hidden="true">
-      <TryItFreeButton />
+      <TryItFreeButton
+        label={label}
+        backgroundImageUrl={backgroundImageUrl}
+        gradient={gradient}
+        focusColor={focusColor}
+      />
     </div>
   );
 }
