@@ -18,7 +18,7 @@ export function AnnouncementSection({ material }: { material: SiteThemeConfig })
       } as CSSProperties}
     >
       <div className="split-feature-inner">
-        <div className="split-feature-copy">
+        <div className="split-feature-copy" data-scroll-reveal>
           <div className="split-feature-copy-inner">
             <h2 className="split-feature-title">
               <span>{announcement.titlePrefix} </span>
@@ -32,7 +32,7 @@ export function AnnouncementSection({ material }: { material: SiteThemeConfig })
           </div>
         </div>
 
-        <div className="split-feature-media">
+        <div className="split-feature-media" data-scroll-reveal style={{ "--reveal-delay": "80ms" } as CSSProperties}>
           <div
             className="split-feature-media-bg"
             style={{ backgroundImage: `url(${announcement.mediaBackgroundImageUrl})` }}

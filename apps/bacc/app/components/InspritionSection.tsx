@@ -50,6 +50,7 @@ export function InspritionSection({ material }: { material: SiteThemeConfig }) {
     >
       <div
         className="feature-gradient-card"
+        data-scroll-reveal
         style={
           {
             "--feature-gradient-card-pattern": `url(${inspiration.patternImageUrl})`,

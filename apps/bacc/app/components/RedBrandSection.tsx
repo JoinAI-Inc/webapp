@@ -26,6 +26,7 @@ export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
       <div
         className="year-feature-decor-slot year-feature-decor-slot-left"
         aria-hidden="true"
+        data-scroll-reveal
       >
         <LandingImage
           className="year-feature-decor year-feature-decor-left year-feature-decor-base"
@@ -40,6 +41,8 @@ export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
       <div
         className="year-feature-decor-slot year-feature-decor-slot-right"
         aria-hidden="true"
+        data-scroll-reveal
+        style={{ "--reveal-delay": "80ms" } as CSSProperties}
       >
         <LandingImage
           className="year-feature-decor year-feature-decor-right year-feature-decor-base"
@@ -51,7 +54,7 @@ export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
         />
       </div>
 
-      <div className="year-feature-inner">
+      <div className="year-feature-inner" data-scroll-reveal style={{ "--reveal-delay": "160ms" } as CSSProperties}>
         <LandingImage className="year-feature-icon" src={redBrand.iconUrl} />
 
         <div className="year-feature-copy">

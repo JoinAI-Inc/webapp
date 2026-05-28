@@ -33,6 +33,9 @@ function cancelIdleWork(id: number | ReturnType<typeof setTimeout>) {
   globalThis.clearTimeout(id);
 }
 
+const REVEAL_THRESHOLD = 0.12;
+const REVEAL_ROOT_MARGIN = "0px 0px -10% 0px";
+
 export function LandingScrollOptimizer() {
   useEffect(() => {
     const sections = Array.from(
@@ -110,6 +113,54 @@ export function LandingScrollOptimizer() {
       },
       { rootMargin: DECODE_ROOT_MARGIN },
     );
+
+    // ─── Scroll Reveal ──────────────────────────────────────────────
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const revealElements = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-scroll-reveal]"),
+    );
+
+    if (prefersReducedMotion) {
+      for (const el of revealElements) {
+        el.classList.add("is-revealed");
+      }
+    } else {
+      const revealObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add("is-revealed");
+            revealObserver.unobserve(entry.target);
+          }
+        },
+        {
+          root: null,
+          threshold: REVEAL_THRESHOLD,
+          rootMargin: REVEAL_ROOT_MARGIN,
+        },
+      );
+
+      for (const el of revealElements) {
+        revealObserver.observe(el);
+      }
+
+      sections.forEach((section) => sectionObserver.observe(section));
+      images.forEach((image) => imageObserver.observe(image));
+
+      return () => {
+        if (idleId) {
+          cancelIdleWork(idleId);
+        }
+        sectionObserver.disconnect();
+        imageObserver.disconnect();
+        revealObserver.disconnect();
+        pendingImages.clear();
+      };
+    }
+    // ────────────────────────────────────────────────────────────────
 
     sections.forEach((section) => sectionObserver.observe(section));
     images.forEach((image) => imageObserver.observe(image));

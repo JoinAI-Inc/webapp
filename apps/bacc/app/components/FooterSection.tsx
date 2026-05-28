@@ -20,7 +20,7 @@ export function FooterSection({ material }: { material?: SiteThemeConfig }) {
         "--site-footer-meta-color": footer.metaColor,
       } as CSSProperties}
     >
-      <div className="site-footer-inner">
+      <div className="site-footer-inner" data-scroll-reveal>
         <h2 className="site-footer-title">{footer.title}</h2>
         <Link
           href="/generate"

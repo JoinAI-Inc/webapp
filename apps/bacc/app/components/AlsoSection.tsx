@@ -64,15 +64,17 @@ function AlsoSubSection({ material }: { material: SiteThemeConfig }) {
       } as CSSProperties}
     >
       <div className="gallery-feature-inner">
-        <GalleryFeatureCopy
-          title={gallery.title}
-          highlight={gallery.highlight}
-          suffix={gallery.suffix}
-          support={gallery.support}
-          id="gallery-feature-title"
-        />
+        <div data-scroll-reveal>
+          <GalleryFeatureCopy
+            title={gallery.title}
+            highlight={gallery.highlight}
+            suffix={gallery.suffix}
+            support={gallery.support}
+            id="gallery-feature-title"
+          />
+        </div>
 
-        <div className="gallery-feature-grid">
+        <div className="gallery-feature-grid" data-scroll-reveal style={{ "--reveal-delay": "80ms" } as CSSProperties}>
           {gallery.images.map((src, index) => (
             <GalleryImageCard
               key={`${src}-${index}`}
@@ -100,6 +102,7 @@ function PetSection({ material }: { material: SiteThemeConfig }) {
       className="pet-feature-section"
       aria-labelledby="pet-feature-title"
       data-landing-section
+      data-scroll-reveal
       style={{
         "--pet-feature-bg": pet.backgroundColor,
         "--pet-feature-title-color": pet.titleColor,
@@ -193,6 +196,7 @@ function OotdSection({ material }: { material: SiteThemeConfig }) {
       className="gallery-feature-section gallery-feature-section-secondary"
       aria-labelledby="ootd-feature-title"
       data-landing-section
+      data-scroll-reveal
       style={{
         "--gallery-feature-bg": ootd.backgroundColor,
         "--gallery-feature-title-color": ootd.titleColor,
