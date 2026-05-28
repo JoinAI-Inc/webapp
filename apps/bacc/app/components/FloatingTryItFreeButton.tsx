@@ -28,6 +28,9 @@ export function FloatingTryItFreeButton({
 
     let frame = 0;
 
+    // 缓存初始 CSS bottom 值（is-docked 时 bottom 变成 auto，不能动态读）
+    let cachedBottom = parseFloat(getComputedStyle(el).bottom) || 48;
+
     function clearExitTimer() {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
@@ -116,12 +119,10 @@ export function FloatingTryItFreeButton({
 
         const viewportHeight = window.innerHeight;
         const isMobile = window.innerWidth < 735;
-        const isTablet = window.innerWidth >= 735 && window.innerWidth <= 1068;
-        const bottomOffset = isMobile ? 24 : isTablet ? 40 : 48;
         const dockLift = isMobile ? 16 : 40;
         const buttonHeight = el.offsetHeight || 48;
 
-        const fixedTop = viewportHeight - bottomOffset - buttonHeight;
+        const fixedTop = viewportHeight - cachedBottom - buttonHeight;
 
         // Hero CTA 底边的文档绝对 Y — 滚过这里就触发
         const heroCtaRect = heroCta.getBoundingClientRect();
@@ -149,14 +150,30 @@ export function FloatingTryItFreeButton({
       });
     };
 
+    // resize 时刷新缓存的 bottom（响应式断点可能改变）
+    const handleResize = () => {
+      // 临时切回 fixed 状态读取正确的 bottom
+      const wasDocked = el.classList.contains("is-docked");
+      if (wasDocked) {
+        el.classList.remove("is-docked");
+        el.classList.add("is-fixed");
+      }
+      cachedBottom = parseFloat(getComputedStyle(el).bottom) || 48;
+      if (wasDocked) {
+        el.classList.remove("is-fixed");
+        el.classList.add("is-docked");
+      }
+      sync();
+    };
+
     sync();
     window.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", sync);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", sync);
-      window.removeEventListener("resize", sync);
+      window.removeEventListener("resize", handleResize);
       clearExitTimer();
     };
   }, []);
