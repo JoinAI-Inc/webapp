@@ -1,14 +1,10 @@
 .hero-media-stack {
-  --media-gap: 16px;
-  --media-card-width: clamp(132px, calc(115.03px + 5.3vw), 200px);
-  --media-card-height: calc(var(--media-card-width) * 1.315);
   --items-per-group: 8;
   position: absolute;
-  top: 50%;
+  /* top: var(--media-shell-y-padding); */
   left: 0;
   display: flex;
   width: 100%;
-  transform: translateY(-50%);
   flex-direction: column;
   align-items: flex-start;
   gap: var(--media-gap);
@@ -40,20 +36,21 @@
   height: var(--media-card-height);
   flex: 0 0 auto;
   border-radius: clamp(8px, calc(1.31px + 1.39vw), 16px);
-  background: linear-gradient(
-    180deg,
-    var(--hero-media-card-from, #d8d8da) 0%,
-    var(--hero-media-card-to, #cfcfd3) 100%
-  );
+  background: linear-gradient(180deg,
+      var(--hero-media-card-from, #d8d8da) 0%,
+      var(--hero-media-card-to, #cfcfd3) 100%);
   contain: layout paint;
 }
 
 .hero-media-shell {
-  background: linear-gradient(
-    180deg,
-    var(--hero-media-shell-from, #f7f4f2) 0%,
-    var(--hero-media-shell-to, #eee9e5) 100%
-  );
+  --media-gap: 16px;
+  --media-card-width: clamp(132px, calc(115.03px + 5.3vw), 200px);
+  --media-card-height: calc(var(--media-card-width) * 1.315);
+  --media-shell-y-padding: clamp(18px, calc(11.31px + 1.39vw), 26px);
+  height: calc((var(--media-card-height) * 3) + (var(--media-gap) * 2) + (var(--media-shell-y-padding) * 0));
+  background: linear-gradient(180deg,
+      var(--hero-media-shell-from, #f7f4f2) 0%,
+      var(--hero-media-shell-to, #eee9e5) 100%);
   contain: layout paint;
 }
 
@@ -67,8 +64,7 @@
 .hero-reveal {
   opacity: 0;
   transform: translateY(20px);
-  animation: hero-reveal 420ms cubic-bezier(0.22, 1, 0.36, 1)
-    var(--reveal-delay, 0ms) both;
+  animation: hero-reveal 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms) both;
 }
 
 @keyframes hero-reveal {
@@ -85,9 +81,10 @@
 }
 
 @media (max-width: 734px) {
-  .hero-media-stack {
+  .hero-media-shell {
     --media-gap: 8px;
     --media-card-width: clamp(96px, calc(73.71px + 6.96vw), 132px);
+    --media-shell-y-padding: 16px;
   }
 
   .hero-media-row-desktop {

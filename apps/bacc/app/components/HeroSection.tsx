@@ -182,7 +182,7 @@ export function HeroSection({
       </div>
 
       <div
-        className="hero-media-shell relative mt-12 mb-[60px] h-[600px] w-[87.5vw] max-w-[1600px] overflow-hidden rounded-2xl md:mt-14 md:mb-20 xl:mt-16 xl:mb-[100px] xl:h-[clamp(600px,calc(486.29px+10.65vw),700px)] xl:rounded-[clamp(24px,calc(14.9px+0.85vw),32px)]"
+        className="hero-media-shell relative mt-12 mb-[60px] w-[87.5vw] max-w-[1600px] overflow-hidden rounded-2xl md:mt-14 md:mb-20 xl:mt-16 xl:mb-[100px] xl:rounded-[clamp(24px,calc(14.9px+0.85vw),32px)]"
         style={
           {
             "--hero-media-shell-from": theme.mediaShellStart,

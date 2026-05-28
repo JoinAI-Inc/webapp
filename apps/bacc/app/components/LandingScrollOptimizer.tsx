@@ -8,7 +8,6 @@ type IdleDeadlineLike = {
 
 const DECODE_ROOT_MARGIN = "900px 0px";
 const SECTION_ROOT_MARGIN = "640px 0px";
-const SCROLL_IDLE_DELAY = 140;
 const FALLBACK_IDLE_TIMEOUT = 180;
 const MAX_DECODE_PER_IDLE = 2;
 
@@ -45,18 +44,10 @@ export function LandingScrollOptimizer() {
       ),
     );
     const pendingImages = new Set<HTMLImageElement>();
-    const root = document.documentElement;
     let idleId: number | ReturnType<typeof setTimeout> | undefined;
-    let scrollTimer = 0;
-    let isScrolling = false;
 
     const decodeNext = (deadline: IdleDeadlineLike) => {
       idleId = undefined;
-
-      if (isScrolling) {
-        scheduleDecode();
-        return;
-      }
 
       const imagesToDecode = Array.from(pendingImages);
       let decodedCount = 0;
@@ -92,21 +83,6 @@ export function LandingScrollOptimizer() {
       idleId = requestIdleWork(decodeNext);
     }
 
-    const markScrolling = () => {
-      isScrolling = true;
-      root.dataset.landingScrolling = "true";
-
-      if (scrollTimer) {
-        window.clearTimeout(scrollTimer);
-      }
-
-      scrollTimer = window.setTimeout(() => {
-        isScrolling = false;
-        delete root.dataset.landingScrolling;
-        scheduleDecode();
-      }, SCROLL_IDLE_DELAY);
-    };
-
     const sectionObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -135,7 +111,6 @@ export function LandingScrollOptimizer() {
       { rootMargin: DECODE_ROOT_MARGIN },
     );
 
-    window.addEventListener("scroll", markScrolling, { passive: true });
     sections.forEach((section) => sectionObserver.observe(section));
     images.forEach((image) => imageObserver.observe(image));
 
@@ -144,12 +119,6 @@ export function LandingScrollOptimizer() {
         cancelIdleWork(idleId);
       }
 
-      if (scrollTimer) {
-        window.clearTimeout(scrollTimer);
-      }
-
-      window.removeEventListener("scroll", markScrolling);
-      delete root.dataset.landingScrolling;
       sectionObserver.disconnect();
       imageObserver.disconnect();
       pendingImages.clear();
