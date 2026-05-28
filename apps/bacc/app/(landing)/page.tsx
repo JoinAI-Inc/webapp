@@ -18,8 +18,9 @@ export default async function HomePage() {
   return (
     <>
       <HomeSkeleton />
+      {/* position: relative 是 FloatingTryItFreeButton is-docked 绝对定位的锚点 */}
       <main
-        className="w-full overflow-x-hidden bg-white text-[#0A0708]"
+        className="relative w-full overflow-x-hidden bg-white text-[#0A0708]"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
         <div className="flex w-full flex-col items-center">
@@ -31,8 +32,8 @@ export default async function HomePage() {
           <AnnouncementSection material={siteTheme} />
           <FooterSection material={siteTheme} />
         </div>
+        <FloatingTryItFreeButton />
       </main>
-      <FloatingTryItFreeButton />
     </>
   );
 }

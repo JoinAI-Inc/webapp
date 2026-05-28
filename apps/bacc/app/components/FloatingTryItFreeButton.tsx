@@ -1,104 +1,131 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { TryItFreeButton } from "./TryItFreeButton";
 
 const EXIT_DURATION = 420;
 
 export function FloatingTryItFreeButton() {
-    // visible: 按钮是否在 DOM 里可见（opacity）
-    // exiting: 是否正在播放退出动画
-    const [visible, setVisible] = useState(false);
-    const [exiting, setExiting] = useState(false);
-    const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const stateRef = useRef<"hidden" | "visible">("hidden");
+  const wrapRef = useRef<HTMLDivElement>(null);
+  // 用 ref 追踪状态，避免 re-render 影响动画
+  const stateRef = useRef<"hidden" | "docked">("hidden");
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    useEffect(() => {
-        let frame = 0;
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
 
-        function showCta() {
-            if (stateRef.current === "visible") return;
+    let frame = 0;
 
-            // 取消正在进行的退出计时
-            if (exitTimerRef.current) {
-                clearTimeout(exitTimerRef.current);
-                exitTimerRef.current = null;
-            }
+    function showFloatingCta(topValue: number) {
+      if (!el) return;
+      const wasHidden = stateRef.current !== "docked";
 
-            stateRef.current = "visible";
-            setExiting(false);
-            setVisible(true);
+      // 取消退出计时
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+
+      el.classList.remove("is-exiting");
+      // 切换到停靠定位
+      el.style.setProperty("--floating-cta-top", `${topValue}px`);
+      el.classList.add("is-docked");
+
+      if (wasHidden) {
+        // 强制重排，确保入场动画从初始状态开始
+        el.classList.remove("is-visible");
+        void el.offsetWidth;
+      }
+
+      el.classList.add("is-visible");
+      stateRef.current = "docked";
+    }
+
+    function hideFloatingCta() {
+      if (!el) return;
+
+      // 已经不可见，直接清理
+      if (!el.classList.contains("is-visible")) {
+        if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+        stateRef.current = "hidden";
+        el.classList.remove("is-visible", "is-exiting", "is-docked");
+        el.style.removeProperty("--floating-cta-top");
+        return;
+      }
+
+      // 已在退出中，不重复触发
+      if (stateRef.current === "hidden" || el.classList.contains("is-exiting")) {
+        return;
+      }
+
+      stateRef.current = "hidden";
+      el.classList.add("is-visible", "is-exiting");
+
+      exitTimerRef.current = setTimeout(() => {
+        exitTimerRef.current = null;
+        if (!el) return;
+        if (stateRef.current !== "hidden") return;
+        el.classList.remove("is-visible", "is-exiting", "is-docked");
+        el.style.removeProperty("--floating-cta-top");
+      }, EXIT_DURATION);
+    }
+
+    const sync = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        if (!el) return;
+
+        const startSection = document.querySelector<HTMLElement>("[data-floating-cta-start]");
+        const endAnchor = document.querySelector<HTMLElement>("[data-floating-cta-end]");
+
+        if (!startSection || !endAnchor) return;
+
+        const viewportHeight = window.innerHeight;
+        const isMobile = window.innerWidth < 735;
+        const isTablet = window.innerWidth >= 735 && window.innerWidth <= 1068;
+        const bottomOffset = isMobile ? 40 : isTablet ? 60 : 80;
+        const dockLift = isMobile ? 16 : 40;
+        const buttonHeight = el.offsetHeight || 48;
+
+        // 按钮固定在视口底部时的 top 值（距页面顶部）
+        const fixedTop = viewportHeight - bottomOffset - buttonHeight;
+
+        // 开始显示：gallery section 顶部滚入固定位置时
+        const startTop = startSection.getBoundingClientRect().top + window.scrollY;
+        const startScroll = Math.max(0, startTop - fixedTop);
+
+        // 停靠位置：endAnchor 顶部往上 buttonHeight + dockLift
+        const endTop = endAnchor.getBoundingClientRect().top + window.scrollY - buttonHeight - dockLift;
+
+        const scrollY = window.scrollY;
+
+        if (scrollY < startScroll) {
+          hideFloatingCta();
+          return;
         }
 
-        function hideCta() {
-            if (stateRef.current === "hidden") return;
-            if (exitTimerRef.current) return; // 已在退出中
+        // top = min(当前滚动位置对应的fixed位置, 停靠位置)
+        showFloatingCta(Math.min(scrollY + fixedTop, endTop));
+      });
+    };
 
-            stateRef.current = "hidden";
-            setExiting(true); // 触发退出动画
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
 
-            exitTimerRef.current = setTimeout(() => {
-                exitTimerRef.current = null;
-                setVisible(false);
-                setExiting(false);
-            }, EXIT_DURATION);
-        }
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", sync);
+      window.removeEventListener("resize", sync);
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    };
+  }, []);
 
-        const sync = () => {
-            window.cancelAnimationFrame(frame);
-            frame = window.requestAnimationFrame(() => {
-                const start = document.querySelector<HTMLElement>("[data-floating-cta-start]");
-                const end = document.querySelector<HTMLElement>("[data-floating-cta-end]");
-                const viewportHeight = window.innerHeight;
-                const bottomOffset = window.innerWidth < 735 ? 40 : window.innerWidth < 1068 ? 60 : 80;
-                const buttonHeight = 48;
-                const fixedTop = viewportHeight - bottomOffset - buttonHeight;
-                const startTop = (start?.getBoundingClientRect().top ?? viewportHeight) + window.scrollY;
-                const endTop = (end?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY) + window.scrollY;
-                const scrollY = window.scrollY;
-
-                const shouldShow = scrollY >= Math.max(0, startTop - fixedTop)
-                    && scrollY < endTop - viewportHeight * 0.25;
-
-                if (shouldShow) {
-                    showCta();
-                } else {
-                    hideCta();
-                }
-            });
-        };
-
-        sync();
-        window.addEventListener("scroll", sync, { passive: true });
-        window.addEventListener("resize", sync);
-
-        return () => {
-            window.cancelAnimationFrame(frame);
-            window.removeEventListener("scroll", sync);
-            window.removeEventListener("resize", sync);
-            if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-        };
-    }, []);
-
-    // 完全隐藏时不渲染（节省事件开销）
-    if (!visible && !exiting) return null;
-
-    return (
-        <div
-            className={[
-                "fixed left-1/2 z-[60] -translate-x-1/2",
-                "bottom-10 md:bottom-[60px] xl:bottom-20",
-                // 进入：从下方滑入 + 淡入
-                // 退出：向下滑出 + 淡出，duration 与 EXIT_DURATION 对应
-                "transition-[opacity,transform]",
-                visible && !exiting
-                    ? "pointer-events-auto translate-y-0 opacity-100 duration-300"
-                    : "pointer-events-none translate-y-3 opacity-0 duration-[420ms]",
-            ].join(" ")}
-            aria-hidden={exiting || !visible}
-            style={{ easing: "cubic-bezier(0.22, 1, 0.36, 1)" } as React.CSSProperties}
-        >
-            <TryItFreeButton className="shadow-[0_24px_56px_rgba(212,36,36,0.30),0_10px_22px_rgba(10,7,8,0.12)]" />
-        </div>
-    );
+  return (
+    <div ref={wrapRef} className="floating-cta-root" aria-hidden="true">
+      <TryItFreeButton />
+    </div>
+  );
 }
