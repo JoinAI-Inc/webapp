@@ -7,6 +7,7 @@ import { AnnouncementSection } from "../components/AnnouncementSection";
 import { FooterSection } from "../components/FooterSection";
 import { LandingScrollOptimizer } from "../components/LandingScrollOptimizer";
 import { HomeSkeleton } from "../components/HomeSkeleton";
+import { FloatingTryItFreeButton } from "../components/FloatingTryItFreeButton";
 import { getSiteTheme } from "../lib/site-theme";
 
 // ─── 主导出 ───────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ export default async function HomePage() {
           <FooterSection material={siteTheme} />
         </div>
       </main>
+      <FloatingTryItFreeButton />
     </>
   );
 }
