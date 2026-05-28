@@ -1,10 +1,12 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import type { SiteThemeConfig } from "../lib/site-theme";
+import { HeroMarquee } from "./HeroMarquee";
 import { LandingImage } from "./LandingImage";
 import { TryItFreeButton } from "./TryItFreeButton";
 
-const MARQUEE_DURATIONS = ["32s", "29s", "31s"];
+const DESKTOP_MARQUEE_SPEEDS = [54, 60, 56];
+const MOBILE_MARQUEE_SPEEDS = [20, 22, 21];
 const DESKTOP_ITEMS_PER_GROUP = 8;
 const MOBILE_ITEMS_PER_GROUP = 5;
 const ENABLE_HERO_MARQUEE = true;
@@ -26,45 +28,45 @@ function HeroMediaRow({
     { length: itemCount },
     (_, index) => images[index % images.length],
   );
-  const groupCount = ENABLE_HERO_MARQUEE ? 2 : 1;
+  const speed =
+    variant === "desktop"
+      ? DESKTOP_MARQUEE_SPEEDS[rowIndex]
+      : MOBILE_MARQUEE_SPEEDS[rowIndex];
 
   return (
     <div
       className={`hero-media-row hero-media-row-${variant} w-full overflow-hidden`}
       data-row-index={rowIndex}
       data-marquee-enabled={ENABLE_HERO_MARQUEE}
-      style={
-        {
-          "--marquee-duration": MARQUEE_DURATIONS[rowIndex],
-          "--items-per-group": itemCount,
-        } as CSSProperties
-      }
     >
-      <div className="hero-media-track">
-        {Array.from({ length: groupCount }, (_, groupIndex) => (
-          <div className="hero-media-group" key={groupIndex}>
-            {repeatedImages.map((src, imageIndex) => (
-              <figure
-                className="hero-media-card m-0 overflow-hidden bg-[#d0d0d0]"
-                key={`${groupIndex}-${imageIndex}-${src}`}
-                style={{
-                  opacity: 0.72 + ((imageIndex + rowIndex) % 4) * 0.07,
-                }}
-              >
-                <LandingImage
-                  className="hero-media-image"
-                  src={src}
-                  loading={groupIndex === 0 ? "eager" : "lazy"}
-                  fetchPriority={
-                    groupIndex === 0 && imageIndex < 4 ? "high" : "auto"
-                  }
-                  media={media}
-                />
-              </figure>
-            ))}
-          </div>
+      <HeroMarquee
+        autoFill={false}
+        className="hero-media-track"
+        direction={rowIndex === 1 ? "right" : "left"}
+        gradient={false}
+        pauseOnClick={false}
+        pauseOnHover={false}
+        play={ENABLE_HERO_MARQUEE}
+        speed={speed}
+      >
+        {repeatedImages.map((src, imageIndex) => (
+          <figure
+            className="hero-media-card m-0 overflow-hidden bg-[#d0d0d0]"
+            key={`${imageIndex}-${src}`}
+            style={{
+              opacity: 0.72 + ((imageIndex + rowIndex) % 4) * 0.07,
+            }}
+          >
+            <LandingImage
+              className="hero-media-image"
+              src={src}
+              loading={imageIndex < 4 ? "eager" : "lazy"}
+              fetchPriority="auto"
+              media={media}
+            />
+          </figure>
         ))}
-      </div>
+      </HeroMarquee>
     </div>
   );
 }
