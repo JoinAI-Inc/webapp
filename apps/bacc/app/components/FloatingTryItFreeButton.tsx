@@ -19,7 +19,7 @@ export function FloatingTryItFreeButton({
   focusColor,
 }: FloatingTryItFreeButtonProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const stateRef = useRef<"hidden" | "visible">("hidden");
+  const stateRef = useRef<"hidden" | "fixed" | "docked">("hidden");
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -28,43 +28,63 @@ export function FloatingTryItFreeButton({
 
     let frame = 0;
 
-    function show(topValue: number) {
-      if (!el) return;
-      const wasHidden = stateRef.current !== "visible";
-
+    function clearExitTimer() {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
         exitTimerRef.current = null;
       }
+    }
 
-      el.classList.remove("is-exiting");
+    // ── 悬浮显示（position: fixed，浏览器原生处理，无抖动）──
+    function showFixed() {
+      if (!el) return;
+      const wasHidden = stateRef.current === "hidden";
+
+      clearExitTimer();
+      el.classList.remove("is-exiting", "is-docked");
+      el.classList.add("is-fixed");
+      el.style.removeProperty("--floating-cta-top");
+
+      if (wasHidden) {
+        el.classList.remove("is-visible");
+        void el.offsetWidth; // 强制重排让入场动画从头开始
+      }
+
+      el.classList.add("is-visible");
+      stateRef.current = "fixed";
+    }
+
+    // ── 停靠（position: absolute，top 锁定）──
+    function showDocked(topValue: number) {
+      if (!el) return;
+      const wasHidden = stateRef.current === "hidden";
+
+      clearExitTimer();
+      el.classList.remove("is-exiting", "is-fixed");
       el.classList.add("is-docked");
       el.style.setProperty("--floating-cta-top", `${topValue}px`);
 
       if (wasHidden) {
-        // 强制重排，让入场动画从初始状态开始
         el.classList.remove("is-visible");
         void el.offsetWidth;
       }
 
       el.classList.add("is-visible");
-      stateRef.current = "visible";
+      stateRef.current = "docked";
     }
 
+    // ── 隐藏（播放退场动画后清理）──
     function hide() {
       if (!el) return;
 
-      // 还没显示过，直接清理
       if (!el.classList.contains("is-visible")) {
-        if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-        exitTimerRef.current = null;
+        clearExitTimer();
         stateRef.current = "hidden";
-        el.classList.remove("is-visible", "is-exiting", "is-docked");
+        el.classList.remove("is-visible", "is-exiting", "is-fixed", "is-docked");
         el.style.removeProperty("--floating-cta-top");
         return;
       }
 
-      // 已在退出中
       if (stateRef.current === "hidden" || el.classList.contains("is-exiting")) {
         return;
       }
@@ -75,7 +95,7 @@ export function FloatingTryItFreeButton({
       exitTimerRef.current = setTimeout(() => {
         exitTimerRef.current = null;
         if (!el || stateRef.current !== "hidden") return;
-        el.classList.remove("is-visible", "is-exiting", "is-docked");
+        el.classList.remove("is-visible", "is-exiting", "is-fixed", "is-docked");
         el.style.removeProperty("--floating-cta-top");
       }, EXIT_DURATION);
     }
@@ -89,7 +109,6 @@ export function FloatingTryItFreeButton({
         const endAnchor = document.querySelector<HTMLElement>("[data-floating-cta-end]");
         if (!startSection || !endAnchor) return;
 
-        // 获取父容器（position: relative 的 main）的文档偏移，用于坐标转换
         const parent = el.offsetParent as HTMLElement | null;
         const parentDocTop = parent
           ? parent.getBoundingClientRect().top + window.scrollY
@@ -102,14 +121,11 @@ export function FloatingTryItFreeButton({
         const dockLift = isMobile ? 16 : 40;
         const buttonHeight = el.offsetHeight || 48;
 
-        // 按钮在视口底部 bottomOffset 处时，对应的 document Y
         const fixedTop = viewportHeight - bottomOffset - buttonHeight;
 
-        // 各锚点的文档绝对 Y
         const startDocY = startSection.getBoundingClientRect().top + window.scrollY;
         const endDocY = endAnchor.getBoundingClientRect().top + window.scrollY - buttonHeight - dockLift;
 
-        // 触发显示的 scrollY 阈值
         const startScroll = Math.max(0, startDocY - fixedTop);
         const scrollY = window.scrollY;
 
@@ -119,14 +135,14 @@ export function FloatingTryItFreeButton({
           return;
         }
 
-        // ── 第二/三段 ──
-        // 文档绝对 Y（第二段跟随 scroll，第三段锁定在 endDocY）
-        const docTop = Math.min(scrollY + fixedTop, endDocY);
+        // ── 第二段：固定悬浮（position: fixed） ──
+        if (scrollY + fixedTop < endDocY) {
+          showFixed();
+          return;
+        }
 
-        // 转换为父容器相对坐标
-        const relativeTop = docTop - parentDocTop;
-
-        show(relativeTop);
+        // ── 第三段：停靠（position: absolute, top 锁定） ──
+        showDocked(endDocY - parentDocTop);
       });
     };
 
@@ -138,7 +154,7 @@ export function FloatingTryItFreeButton({
       window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", sync);
       window.removeEventListener("resize", sync);
-      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      clearExitTimer();
     };
   }, []);
 
