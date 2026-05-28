@@ -1,29 +1,7 @@
 import type { CSSProperties } from "react";
+import type { SiteThemeConfig } from "../lib/site-theme";
 import { CardFrame } from "./CardFrame";
 import { LandingImage } from "./LandingImage";
-
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-const BASE = `${IMAGE_URL}/new-home`;
-
-const imgLeftDecor = `${BASE}/bg-insprition-left.png`;
-const imgRightDecor = `${BASE}/bg-insprition-right.png`;
-const imgThanksIcon = "/icon-xhs.svg";
-const imgBgPattern = "/bg-insprition.svg";
-
-const INSPIRATION_ITEMS = [
-  { id: "Yetkitty951004", name: "哈尼桃桃酱" },
-  { id: "207305504", name: "李开心的亲子时光" },
-  { id: "375785978", name: "绵绵岛" },
-  { id: "Hyl95234", name: "Nico匠" },
-  { id: "944605407", name: "-是溪溪呀-" },
-  { id: "95555262084", name: "米米🌸🌸🌸" },
-  { id: "6574283932", name: "是安宁呀！！！" },
-  { id: "R44444444", name: "叔系少年老三" },
-  { id: "bei185448278", name: "贝贝万事屋" },
-  { id: "109627123", name: "鹿儿Tata" },
-  { id: "94118559427", name: "数码侦探小何" },
-  { id: "959628182", name: "Mici" },
-];
 
 function chunkPairs<T>(items: T[]) {
   const rows: T[][] = [];
@@ -33,10 +11,14 @@ function chunkPairs<T>(items: T[]) {
   return rows;
 }
 
-function MarqueeGroup() {
+function MarqueeGroup({
+  items,
+}: {
+  items: SiteThemeConfig["inspiration"]["items"];
+}) {
   return (
     <div className="feature-gradient-card-marquee-group">
-      {chunkPairs(INSPIRATION_ITEMS).map((row, rowIndex) => (
+      {chunkPairs(items).map((row, rowIndex) => (
         <div className="feature-gradient-card-marquee-row" key={rowIndex}>
           {row.map((item) => (
             <div className="feature-gradient-card-marquee-entry" key={item.id}>
@@ -57,7 +39,9 @@ function MarqueeGroup() {
   );
 }
 
-export function InspritionSection() {
+export function InspritionSection({ material }: { material: SiteThemeConfig }) {
+  const inspiration = material.inspiration;
+
   return (
     <section
       className="feature-gradient-card-section"
@@ -68,18 +52,24 @@ export function InspritionSection() {
         className="feature-gradient-card"
         style={
           {
-            "--feature-gradient-card-pattern": `url(${imgBgPattern})`,
+            "--feature-gradient-card-pattern": `url(${inspiration.patternImageUrl})`,
+            "--feature-gradient-card-start": inspiration.backgroundStartColor,
+            "--feature-gradient-card-end": inspiration.backgroundEndColor,
+            "--feature-gradient-card-title-color": inspiration.titleColor,
+            "--feature-gradient-card-entry-color": inspiration.entryColor,
+            "--feature-gradient-card-divider-color": inspiration.dividerColor,
+            "--feature-gradient-card-note-color": inspiration.noteColor,
           } as CSSProperties
         }
       >
         <div className="feature-gradient-card-decor" aria-hidden="true">
           <LandingImage
             className="feature-gradient-card-decor-left"
-            src={imgLeftDecor}
+            src={inspiration.leftDecorImageUrl}
           />
           <LandingImage
             className="feature-gradient-card-decor-right"
-            src={imgRightDecor}
+            src={inspiration.rightDecorImageUrl}
           />
         </div>
 
@@ -89,12 +79,14 @@ export function InspritionSection() {
             width="clamp(442px, calc(222.84px + 29.83vw), 700px)"
             height={420}
           >
-            <h2 className="feature-gradient-card-title">Insprition from</h2>
+            <h2 className="feature-gradient-card-title">
+              {inspiration.title}
+            </h2>
 
             <div className="feature-gradient-card-marquee">
               <div className="feature-gradient-card-marquee-track">
-                <MarqueeGroup />
-                <MarqueeGroup />
+                <MarqueeGroup items={inspiration.items} />
+                <MarqueeGroup items={inspiration.items} />
               </div>
             </div>
 
@@ -104,13 +96,13 @@ export function InspritionSection() {
                 aria-hidden="true"
               />
               <p className="feature-gradient-card-note">
-                鼓励大家去follow他们的话和感谢的话
+                {inspiration.note}
               </p>
               <div className="feature-gradient-card-thanks">
-                <span>Special Thanks to</span>
+                <span>{inspiration.specialThanksText}</span>
                 <LandingImage
                   className="feature-gradient-card-thanks-icon"
-                  src={imgThanksIcon}
+                  src={inspiration.thanksIconUrl}
                 />
               </div>
             </div>

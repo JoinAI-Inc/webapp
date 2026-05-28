@@ -1,10 +1,6 @@
 import { FooterSection } from "../../components/FooterSection";
 import { CardFrame } from "../../components/CardFrame";
-
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
-
-// 灯笼图片（Figma MCP 导出到 new-home 目录）
-const imgLantern = `${IMAGE_URL}/new-home/img-poke-lantern.png`;
+import { getSiteTheme } from "../../lib/site-theme";
 
 // 参与者数据
 const participants = [
@@ -59,9 +55,12 @@ const participants = [
     { name: "Kerry Dowdle", id: "717150236", followers: "206k" },
 ];
 
-export default function PokePage() {
+export default async function PokePage() {
+    const material = await getSiteTheme();
+    const poke = material.poke;
+
     return (
-        <div style={{ background: "#fff9f2", width: "100%", position: "relative", overflowX: "hidden" }}>
+        <div style={{ background: poke.backgroundColor, width: "100%", position: "relative", overflowX: "hidden" }}>
             {/* ─── 顶部红色渐变区域 ─── */}
             <section
                 style={{
@@ -80,7 +79,7 @@ export default function PokePage() {
                         transform: "translateX(-50%)",
                         width: 1920,
                         height: 1299,
-                        background: "linear-gradient(180deg, #C11010 0%, #fff9f2 70.192%)",
+                        background: `linear-gradient(180deg, ${poke.gradientStartColor} 0%, ${poke.gradientEndColor} 70.192%)`,
                         pointerEvents: "none",
                     }}
                 />
@@ -99,7 +98,7 @@ export default function PokePage() {
                     }}
                 >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imgLantern} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={poke.lanternImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
 
                 {/* 灯笼 左侧 */}
@@ -115,7 +114,7 @@ export default function PokePage() {
                     }}
                 >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imgLantern} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={poke.lanternImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
 
                 {/* 标题文字 */}
@@ -131,45 +130,22 @@ export default function PokePage() {
                         textAlign: "center",
                     }}
                 >
-                    <p
-                        style={{
-                            fontFamily: "Manrope, sans-serif",
-                            fontWeight: 600,
-                            fontSize: 32,
-                            lineHeight: 1.4,
-                            color: "#ffffff",
-                            letterSpacing: 0.32,
-                            margin: 0,
-                        }}
-                    >
-                        This Idea can never be happend without
-                    </p>
-                    <p
-                        style={{
-                            fontFamily: "Manrope, sans-serif",
-                            fontWeight: 600,
-                            fontSize: 32,
-                            lineHeight: 1.4,
-                            color: "#ffffff",
-                            letterSpacing: 0.32,
-                            margin: 0,
-                        }}
-                    >
-                        the inspiration form those awesome people
-                    </p>
-                    <p
-                        style={{
-                            fontFamily: "Manrope, sans-serif",
-                            fontWeight: 600,
-                            fontSize: 32,
-                            lineHeight: 1.4,
-                            color: "#ffffff",
-                            letterSpacing: 0.32,
-                            margin: 0,
-                        }}
-                    >
-                        Best wishes &amp; Big thank-you to them
-                    </p>
+                    {poke.headingLines.map((line) => (
+                        <p
+                            key={line}
+                            style={{
+                                fontFamily: "Manrope, sans-serif",
+                                fontWeight: 600,
+                                fontSize: 32,
+                                lineHeight: 1.4,
+                                color: poke.headingColor,
+                                letterSpacing: 0.32,
+                                margin: 0,
+                            }}
+                        >
+                            {line}
+                        </p>
+                    ))}
                 </div>
 
                 {/* ─── 参与者名单卷轴区域 ─── */}
@@ -192,12 +168,12 @@ export default function PokePage() {
                                 display: "grid",
                                 gridTemplateColumns: "2fr 1.5fr 1fr",
                                 padding: "12px 20px 8px",
-                                borderBottom: "1px solid #c9a86c",
+                                borderBottom: `1px solid ${poke.tableBorderColor}`,
                             }}
                         >
-                            <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: "#c39e67", letterSpacing: 0.14 }}>Name</span>
-                            <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: "#c39e67", letterSpacing: 0.14 }}>rednote ID</span>
-                            <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: "#c39e67", letterSpacing: 0.14 }}>Followers</span>
+                            <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: poke.tableHeaderColor, letterSpacing: 0.14 }}>Name</span>
+                            <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: poke.tableHeaderColor, letterSpacing: 0.14 }}>rednote ID</span>
+                            <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: poke.tableHeaderColor, letterSpacing: 0.14 }}>Followers</span>
                         </div>
 
                         {/* 数据行 */}
@@ -210,20 +186,20 @@ export default function PokePage() {
                                     padding: "8px 20px",
                                 }}
                             >
-                                <span style={{ fontFamily: "Manrope, 'Noto Sans SC', 'Noto Sans JP', sans-serif", fontSize: 17, color: "#a16610", letterSpacing: 0.17, lineHeight: 1.4 }}>
+                                <span style={{ fontFamily: "Manrope, 'Noto Sans SC', 'Noto Sans JP', sans-serif", fontSize: 17, color: poke.tableTextColor, letterSpacing: 0.17, lineHeight: 1.4 }}>
                                     {p.name}
                                 </span>
-                                <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 17, color: "#a16610", letterSpacing: 0.17, lineHeight: 1.4 }}>
+                                <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 17, color: poke.tableTextColor, letterSpacing: 0.17, lineHeight: 1.4 }}>
                                     {p.id}
                                 </span>
-                                <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 17, color: "#a16610", letterSpacing: 0.17, lineHeight: 1.4 }}>
+                                <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 17, color: poke.tableTextColor, letterSpacing: 0.17, lineHeight: 1.4 }}>
                                     {p.followers}
                                 </span>
                             </div>
                         ))}
 
                         {/* CardFrame 内底部感谢区域 */}
-                        <div style={{ borderTop: "1px solid #c9a86c", margin: "8px 20px 0" }} />
+                        <div style={{ borderTop: `1px solid ${poke.tableBorderColor}`, margin: "8px 20px 0" }} />
                         <div
                             style={{
                                 display: "flex",
@@ -237,28 +213,28 @@ export default function PokePage() {
                                 style={{
                                     fontFamily: "Manrope, 'Noto Sans JP', 'Noto Sans SC', sans-serif",
                                     fontSize: 17,
-                                    color: "#c51c1b",
+                                    color: poke.thanksTextColor,
                                     textAlign: "center",
                                     letterSpacing: 0.17,
                                     margin: 0,
                                     lineHeight: 1.4,
                                 }}
                             >
-                                鼓励大家去follow他们的话和感谢的话
+                                {poke.thanksText}
                             </p>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <span
                                     style={{
                                         fontFamily: "Manrope, sans-serif",
                                         fontSize: 17,
-                                        color: "#c51c1b",
+                                        color: poke.thanksTextColor,
                                         letterSpacing: 0.17,
                                         lineHeight: 1.4,
                                     }}
                                 >
-                                    Special Thanks to
+                                    {poke.specialThanksText}
                                 </span>
-                                <img src="/icon-xhs.svg" height={24} width={24} />
+                                <img src={poke.xhsIconUrl} alt="" height={24} width={24} />
                             </div>
                         </div>
                     </CardFrame>
@@ -267,7 +243,7 @@ export default function PokePage() {
             </section>
 
             {/* ─── 底部 Footer CTA ─── */}
-            <FooterSection />
+            <FooterSection material={material} />
         </div>
     );
 }

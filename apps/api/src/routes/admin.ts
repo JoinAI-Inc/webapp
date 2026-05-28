@@ -8,6 +8,8 @@ import templatesRouter from './admin/templates.js';
 import featuresRouter from './admin/features.js';
 import tagsRouter from './admin/tags.js';
 import assetsRouter from './admin/assets.js';
+import siteThemesRouter from './admin/site-themes.js';
+import uploadsRouter from './admin/uploads.js';
 
 const router = express.Router();
 
@@ -32,5 +34,7 @@ router.use('/templates', templatesRouter);
 router.use('/features', featuresRouter);
 router.use('/tags', tagsRouter);
 router.use('/assets', assetsRouter);
+router.use('/site-themes', siteThemesRouter);
+router.use('/uploads', uploadsRouter);
 
 export default router;

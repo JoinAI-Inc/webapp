@@ -5,7 +5,7 @@
   margin-bottom: 120px;
   padding: 104px 0 124px;
   overflow: hidden;
-  background-color: #dd1e1b;
+  background-color: var(--year-feature-bg, #dd1e1b);
 }
 
 .year-feature-pattern {
@@ -93,7 +93,7 @@
 
 .year-feature-title {
   margin: 0;
-  color: #fff;
+  color: var(--year-feature-title-color, #fff);
   font-size: 24px;
   font-weight: 600;
   line-height: 1.4;
@@ -102,7 +102,7 @@
 
 .year-feature-support {
   margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--year-feature-support-color, rgba(255, 255, 255, 0.82));
   font-size: 14px;
   font-weight: 400;
   line-height: 1.4;

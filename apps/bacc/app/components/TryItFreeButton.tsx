@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
 
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-
 interface TryItFreeButtonProps {
     /** "primary": 红底白字 (默认); "inverse": 白底红字 (用于深色背景) */
     variant?: "primary" | "inverse";
@@ -11,6 +9,12 @@ interface TryItFreeButtonProps {
     href?: string;
     className?: string;
     label?: string;
+    backgroundImageUrl?: string;
+    gradient?: {
+        from: string;
+        to: string;
+    };
+    focusColor?: string;
 }
 
 export function TryItFreeButton({
@@ -19,6 +23,9 @@ export function TryItFreeButton({
     href = "/generate",
     className,
     label = "Try it free",
+    backgroundImageUrl,
+    gradient = { from: "#FF5C2E", to: "#E81500" },
+    focusColor = "#FFD322",
 }: TryItFreeButtonProps) {
     const isPrimary = variant === "primary";
     return (
@@ -33,17 +40,18 @@ export function TryItFreeButton({
             )}
             style={{
                 fontFamily: "Manrope, sans-serif",
+                outlineColor: focusColor,
                 background: isPrimary
-                    ? "linear-gradient(180deg, #FF5C2E 0%, #E81500 100%)"
+                    ? `linear-gradient(180deg, ${gradient.from} 0%, ${gradient.to} 100%)`
                     : undefined,
             }}
         >
-            {isPrimary && IMAGE_URL && (
+            {isPrimary && backgroundImageUrl && (
                 <span
                     aria-hidden="true"
                     className="absolute inset-0 bg-cover bg-center opacity-95"
                     style={{
-                        backgroundImage: `url(${IMAGE_URL}/new-home/bg-try-it-free-button.png)`,
+                        backgroundImage: `url(${backgroundImageUrl})`,
                     }}
                 />
             )}

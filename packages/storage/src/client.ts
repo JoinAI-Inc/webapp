@@ -53,14 +53,14 @@ export class MediaStorage {
      * 上传文件
      */
     async upload(options: UploadOptions): Promise<UploadResult> {
-        const { file, fileName, appId, tags, metadata, createdBy, userId, generationType, promptData, templateId } = options;
+        const { file, fileName, appId, tags, metadata, storagePrefix, createdBy, userId, generationType, promptData, templateId } = options;
 
         // 1. 验证文件
         const fileMetadata = await this.fileValidator.validate(file, fileName);
         const fileType = this.fileValidator.isImage(fileMetadata.mimeType) ? 'image' : 'video';
 
         // 2. 生成存储路径
-        const storageKey = generateStoragePath(appId, fileType, fileMetadata.extension);
+        const storageKey = generateStoragePath(storagePrefix || appId, fileType, fileMetadata.extension);
 
         // 3. 上传原文件到 R2
         const storageUrl = await this.r2Client.uploadFile(

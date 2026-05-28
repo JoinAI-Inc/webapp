@@ -1,25 +1,36 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
+import { DEFAULT_SITE_THEME, type SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
 
-const footerCollage = "/landing-footer/lucky-photo-footer-collage.png";
-const footerCtaIcon = "/landing-footer/lucky-photo-home-cta-icon-brand.svg";
+export function FooterSection({ material }: { material?: SiteThemeConfig }) {
+  const footer = material?.footer || DEFAULT_SITE_THEME.footer;
 
-export function FooterSection() {
   return (
-    <footer className="site-footer" aria-hidden="true" data-landing-section>
+    <footer
+      className="site-footer"
+      aria-hidden="true"
+      data-landing-section
+      style={{
+        "--site-footer-bg": footer.backgroundColor,
+        "--site-footer-bg-image": `url(${footer.backgroundImageUrl})`,
+        "--site-footer-title-color": footer.titleColor,
+        "--site-footer-cta-bg": footer.ctaBackgroundColor,
+        "--site-footer-cta-color": footer.ctaTextColor,
+        "--site-footer-meta-color": footer.metaColor,
+      } as CSSProperties}
+    >
       <div className="site-footer-inner">
-        <h2 className="site-footer-title">
-          Get your fortune Foto <span className="text-nowrap">right now</span>
-        </h2>
+        <h2 className="site-footer-title">{footer.title}</h2>
         <Link
           href="/generate"
           className="site-footer-cta"
-          aria-label="Try it free"
+          aria-label={footer.ctaLabel}
         >
-          <span className="site-footer-cta-label">Try it free</span>
+          <span className="site-footer-cta-label">{footer.ctaLabel}</span>
           <LandingImage
             className="site-footer-cta-icon"
-            src={footerCtaIcon}
+            src={footer.ctaIconUrl}
             alt=""
             width={20}
             height={20}
@@ -29,7 +40,7 @@ export function FooterSection() {
         <div className="site-footer-collage-wrap">
           <LandingImage
             className="site-footer-collage"
-            src={footerCollage}
+            src={footer.collageImageUrl}
             alt=""
             width={2560}
             height={311}
@@ -37,8 +48,8 @@ export function FooterSection() {
         </div>
 
         <div className="site-footer-meta">
-          <span>Copyright © 2026 JoinAI. All rights reserved.</span>
-          <span>浙ICP备2021040718号-2</span>
+          <span>{footer.copyrightText}</span>
+          <span>{footer.recordText}</span>
         </div>
       </div>
     </footer>

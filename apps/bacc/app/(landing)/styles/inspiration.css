@@ -13,7 +13,11 @@
   border-radius: 24px;
   background:
     var(--feature-gradient-card-pattern) center / cover no-repeat,
-    linear-gradient(180deg, #da2524 0%, #c00b0a 100%);
+    linear-gradient(
+      180deg,
+      var(--feature-gradient-card-start, #da2524) 0%,
+      var(--feature-gradient-card-end, #c00b0a) 100%
+    );
 }
 
 .feature-gradient-card-decor {
@@ -56,7 +60,7 @@
 
 .feature-gradient-card-title {
   margin: 40px 0 0;
-  color: #c51c1b;
+  color: var(--feature-gradient-card-title-color, #c51c1b);
   font-size: 24px;
   font-weight: 600;
   line-height: 1.4;
@@ -132,7 +136,7 @@
   min-height: 32px;
   align-items: center;
   gap: 8px;
-  color: #e29211;
+  color: var(--feature-gradient-card-entry-color, #e29211);
   font-size: 17px;
   font-weight: 400;
   line-height: 1.4;
@@ -165,7 +169,7 @@
 
 .feature-gradient-card-marquee-id {
   flex: 0 0 auto;
-  color: #e29211;
+  color: var(--feature-gradient-card-entry-color, #e29211);
   white-space: nowrap;
 }
 
@@ -180,12 +184,12 @@
 .feature-gradient-card-divider {
   width: 100%;
   height: 1px;
-  border-top: 1px dashed #e29211;
+  border-top: 1px dashed var(--feature-gradient-card-divider-color, #e29211);
 }
 
 .feature-gradient-card-note {
   margin: 24px 0 0;
-  color: #c51c1b;
+  color: var(--feature-gradient-card-note-color, #c51c1b);
   font-size: 14px;
   line-height: 1.4;
   letter-spacing: 0;
@@ -198,7 +202,7 @@
   justify-content: center;
   gap: 8px;
   margin-top: 8px;
-  color: #c51c1b;
+  color: var(--feature-gradient-card-note-color, #c51c1b);
   font-size: 14px;
   line-height: 1.4;
   letter-spacing: 0;

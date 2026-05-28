@@ -1,47 +1,13 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
+import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
 import { TryItFreeButton } from "./TryItFreeButton";
-
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-const BASE = `${IMAGE_URL}/new-home`;
-
-const ROW_IMAGES: string[][] = [
-  [
-    `${BASE}/img-home-hero-1-1.png`,
-    `${BASE}/img-home-hero-1-2.png`,
-    `${BASE}/img-home-hero-1-3.png`,
-    `${BASE}/img-home-hero-1-4.png`,
-    `${BASE}/img-home-hero-1-5.png`,
-    `${BASE}/img-home-hero-1-6.png`,
-    `${BASE}/img-home-hero-1-7.png`,
-    `${BASE}/img-home-hero-1-8.png`,
-  ],
-  [
-    `${BASE}/img-home-hero-2-1.png`,
-    `${BASE}/img-home-hero-2-2.png`,
-    `${BASE}/img-home-hero-2-3.png`,
-    `${BASE}/img-home-hero-2-4.png`,
-    `${BASE}/img-home-hero-2-5.png`,
-    `${BASE}/img-home-hero-2-6.png`,
-    `${BASE}/img-home-hero-2-7.png`,
-    `${BASE}/img-home-hero-2-8.png`,
-  ],
-  [
-    `${BASE}/img-home-hero-3-1.png`,
-    `${BASE}/img-home-hero-3-2.png`,
-    `${BASE}/img-home-hero-3-3.png`,
-    `${BASE}/img-home-hero-3-4.png`,
-    `${BASE}/img-home-hero-3-5.png`,
-    `${BASE}/img-home-hero-3-6.png`,
-    `${BASE}/img-home-hero-3-7.png`,
-    `${BASE}/img-home-hero-3-8.png`,
-  ],
-];
 
 const MARQUEE_DURATIONS = ["32s", "29s", "31s"];
 const DESKTOP_ITEMS_PER_GROUP = 8;
 const MOBILE_ITEMS_PER_GROUP = 5;
+const ENABLE_HERO_MARQUEE = true;
 
 function HeroMediaRow({
   images,
@@ -60,11 +26,13 @@ function HeroMediaRow({
     { length: itemCount },
     (_, index) => images[index % images.length],
   );
+  const groupCount = ENABLE_HERO_MARQUEE ? 2 : 1;
 
   return (
     <div
       className={`hero-media-row hero-media-row-${variant} w-full overflow-hidden`}
       data-row-index={rowIndex}
+      data-marquee-enabled={ENABLE_HERO_MARQUEE}
       style={
         {
           "--marquee-duration": MARQUEE_DURATIONS[rowIndex],
@@ -73,7 +41,7 @@ function HeroMediaRow({
       }
     >
       <div className="hero-media-track">
-        {[0, 1].map((groupIndex) => (
+        {Array.from({ length: groupCount }, (_, groupIndex) => (
           <div className="hero-media-group" key={groupIndex}>
             {repeatedImages.map((src, imageIndex) => (
               <figure
@@ -101,91 +69,129 @@ function HeroMediaRow({
   );
 }
 
-export function HeroSection() {
+export function HeroSection({
+  material,
+}: {
+  material: SiteThemeConfig;
+}) {
+  const { theme, hero } = material;
+
   return (
     <section
-      className="relative isolate flex w-full flex-col items-center overflow-hidden bg-white text-center text-[#0A0708]"
+      className="relative isolate flex w-full flex-col items-center overflow-hidden text-center"
       aria-labelledby="home-hero-title"
       data-landing-section
       data-landing-eager
+      style={{
+        backgroundColor: theme.heroBackgroundColor,
+        color: theme.textColor,
+      }}
     >
-      <div
-        className="pointer-events-none absolute top-0 left-1/2 z-[-1] w-screen -translate-x-1/2 bg-no-repeat opacity-30"
-        style={{
-          backgroundImage: `url(${BASE}/bg-hero.png)`,
-          backgroundPosition: "top center",
-          backgroundSize: "100% auto",
-          aspectRatio: "1920 / 680",
-        }}
-        aria-hidden="true"
-      />
+      {hero.backgroundImageUrl && (
+        <div
+          className="pointer-events-none absolute top-0 left-1/2 z-[-1] w-screen -translate-x-1/2 bg-no-repeat opacity-30"
+          style={{
+            backgroundImage: `url(${hero.backgroundImageUrl})`,
+            backgroundPosition: "top center",
+            backgroundSize: "100% auto",
+            aspectRatio: "1920 / 680",
+          }}
+          aria-hidden="true"
+        />
+      )}
 
       <div className="relative z-[1] flex w-[87.5vw] max-w-[1440px] flex-col items-center pt-8 md:pt-12 xl:pt-[70px]">
-        <Image
-          className="hero-reveal block h-auto w-[clamp(80px,calc(46.1px+10.6vw),120px)] object-contain xl:w-[clamp(120px,calc(73.11px+4.39vw),158px)]"
-          src={`${BASE}/icon-house.png`}
-          alt=""
-          width={158}
-          height={89}
-          priority
-        />
+        {hero.brandIconUrl && (
+          <Image
+            className="hero-reveal block h-auto w-[clamp(80px,calc(46.1px+10.6vw),120px)] object-contain xl:w-[clamp(120px,calc(73.11px+4.39vw),158px)]"
+            src={hero.brandIconUrl}
+            alt=""
+            width={158}
+            height={89}
+            priority
+          />
+        )}
 
         <div
           className="hero-reveal flex flex-col items-center"
           style={{ "--reveal-delay": "80ms" } as CSSProperties}
         >
           <h1
-            className="m-0 text-[clamp(24px,calc(12px+3.75vw),32px)] leading-[1.3] font-semibold tracking-[0] text-[#0A0708] md:text-[clamp(40px,calc(14.85px+3.43vw),52px)] xl:text-[clamp(52px,calc(36.96px+1.41vw),64px)]"
+            className="m-0 text-[clamp(24px,calc(12px+3.75vw),32px)] leading-[1.3] font-semibold tracking-[0] md:text-[clamp(40px,calc(14.85px+3.43vw),52px)] xl:text-[clamp(52px,calc(36.96px+1.41vw),64px)]"
             id="home-hero-title"
+            style={{ color: theme.textColor }}
           >
-            <span>The most </span>
-            <span className="whitespace-nowrap text-[#EC2E2E]">
-              popular fortune
+            <span>{hero.titlePrefix}</span>
+            <span
+              className="whitespace-nowrap"
+              style={{ color: theme.primaryColor }}
+            >
+              {hero.titleHighlight}
             </span>
+            <span>{hero.titleSuffix}</span>
           </h1>
           <div
             className="inline-flex items-center justify-center gap-2 md:gap-[14px]"
-            aria-label="foto in Xiaohongshu"
+            aria-label={hero.logoPrefix}
           >
-            <span>foto in</span>
-            <Image
-              className="block h-auto w-[clamp(88px,calc(74.06px+4.36vw),100px)] object-contain min-[481px]:w-[clamp(100px,calc(42.58px+11.96vw),130px)] md:w-[clamp(130px,calc(117.17px+1.71vw),150px)]"
-              src={`${BASE}/icon-xiaohongshu.png`}
-              alt=""
-              width={150}
-              height={69}
-              priority
-            />
+            <span>{hero.logoPrefix}</span>
+            {hero.logoImageUrl && (
+              <Image
+                className="block h-auto w-[clamp(88px,calc(74.06px+4.36vw),100px)] object-contain min-[481px]:w-[clamp(100px,calc(42.58px+11.96vw),130px)] md:w-[clamp(130px,calc(117.17px+1.71vw),150px)]"
+                src={hero.logoImageUrl}
+                alt=""
+                width={150}
+                height={69}
+                priority
+              />
+            )}
           </div>
         </div>
 
         <p
-          className="hero-reveal mt-1 text-center text-base leading-[1.4] font-normal text-[#39383B] md:mt-2 md:text-[19px]"
-          style={{ "--reveal-delay": "160ms" } as CSSProperties}
+          className="hero-reveal mt-1 text-center text-base leading-[1.4] font-normal md:mt-2 md:text-[19px]"
+          style={
+            {
+              "--reveal-delay": "160ms",
+              color: theme.mutedTextColor,
+            } as CSSProperties
+          }
         >
-          <span className="inline">how to make a foto</span>
-          <span className="hidden md:inline">
-            {" "}
-            that real Chinese would jealous
-          </span>
-          <span className="block md:hidden">
-            that real Chinese would jealous
-          </span>
+          <span className="inline">{hero.subtitlePrefix}</span>
+          <span className="hidden md:inline"> {hero.subtitleSuffix}</span>
+          <span className="block md:hidden">{hero.subtitleSuffix}</span>
         </p>
 
         <div
           className="hero-reveal mt-6 flex justify-center md:mt-8 xl:mt-10"
           style={{ "--reveal-delay": "240ms" } as CSSProperties}
         >
-          <TryItFreeButton className="h-10 px-6 text-[15px] md:h-12 md:px-8 md:text-[16px]" />
+          <TryItFreeButton
+            className="h-10 px-6 text-[15px] md:h-12 md:px-8 md:text-[16px]"
+            label={hero.ctaLabel}
+            backgroundImageUrl={hero.ctaBackgroundImageUrl}
+            gradient={{
+              from: theme.ctaGradientStart,
+              to: theme.ctaGradientEnd,
+            }}
+            focusColor={theme.ctaFocusColor}
+          />
         </div>
       </div>
 
       <div
         className="hero-media-shell relative mt-12 mb-[60px] h-[600px] w-[87.5vw] max-w-[1600px] overflow-hidden rounded-2xl md:mt-14 md:mb-20 xl:mt-16 xl:mb-[100px] xl:h-[clamp(600px,calc(486.29px+10.65vw),700px)] xl:rounded-[clamp(24px,calc(14.9px+0.85vw),32px)]"
+        style={
+          {
+            "--hero-media-shell-from": theme.mediaShellStart,
+            "--hero-media-shell-to": theme.mediaShellEnd,
+            "--hero-media-card-from": theme.cardBackgroundStart,
+            "--hero-media-card-to": theme.cardBackgroundEnd,
+          } as CSSProperties
+        }
       >
         <div className="hero-media-stack">
-          {ROW_IMAGES.map((images, rowIndex) => (
+          {hero.rows.map((images, rowIndex) => (
             <HeroMediaRow
               images={images}
               rowIndex={rowIndex}
@@ -195,7 +201,7 @@ export function HeroSection() {
               key={`desktop-${rowIndex}`}
             />
           ))}
-          {ROW_IMAGES.map((images, rowIndex) => (
+          {hero.rows.map((images, rowIndex) => (
             <HeroMediaRow
               images={images}
               rowIndex={rowIndex}

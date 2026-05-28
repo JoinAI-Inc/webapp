@@ -31,6 +31,7 @@ export interface UploadOptions {
     appId: string;                    // 业务应用标识
     tags?: string[];                  // 标签
     metadata?: Record<string, any>;   // 扩展元数据
+    storagePrefix?: string;           // 可选 R2 路径前缀，如 bacc/site-theme/home/hero
     createdBy?: string;               // 创建用户
     userId?: string;                  // BACC 用户ID
     generationType?: string;          // BACC 生成类型

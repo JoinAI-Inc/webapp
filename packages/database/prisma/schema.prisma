@@ -646,3 +646,19 @@ model TemplateSlotAsset {
   @@id([slotId, assetId])
   @@map("template_slot_assets")
 }
+
+// ============================================
+// 官网首页活动素材配置
+// ============================================
+
+model SiteTheme {
+  id        String   @id @default(cuid())
+  name      String
+  status    String   @default("draft") // draft | active | archived
+  config    Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, updatedAt])
+  @@map("site_themes")
+}

@@ -1,25 +1,25 @@
+import type { CSSProperties } from "react";
+import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
 
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-const BASE = `${IMAGE_URL}/new-home`;
+export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
+  const redBrand = material.redBrand;
+  const supportLines = redBrand.support.split("\n");
 
-const imgBgPattern = `${BASE}/bg-pattern.svg`;
-const imgLeftMountain = `${BASE}/bg-petal-landscape.png`;
-const imgLeftFestival = `${BASE}/bg-mid-autumn.png`;
-const imgRightMountain = `${BASE}/bg-feng-jing.png`;
-const imgRightFestival = `${BASE}/bg-dragon-boat.png`;
-const imgFuIcon = `${BASE}/icon-fu.png`;
-
-export function RedBrandSection() {
   return (
     <section
       className="year-feature-section"
       aria-labelledby="year-feature-title"
       data-landing-section
+      style={{
+        "--year-feature-bg": redBrand.backgroundColor,
+        "--year-feature-title-color": redBrand.titleColor,
+        "--year-feature-support-color": redBrand.supportColor,
+      } as CSSProperties}
     >
       <div
         className="year-feature-pattern"
-        style={{ backgroundImage: `url(${imgBgPattern})` }}
+        style={{ backgroundImage: `url(${redBrand.patternImageUrl})` }}
         aria-hidden="true"
       />
 
@@ -29,11 +29,11 @@ export function RedBrandSection() {
       >
         <LandingImage
           className="year-feature-decor year-feature-decor-left year-feature-decor-base"
-          src={imgLeftMountain}
+          src={redBrand.leftBaseImageUrl}
         />
         <LandingImage
           className="year-feature-decor year-feature-decor-left year-feature-decor-overlay"
-          src={imgLeftFestival}
+          src={redBrand.leftOverlayImageUrl}
         />
       </div>
 
@@ -43,30 +43,28 @@ export function RedBrandSection() {
       >
         <LandingImage
           className="year-feature-decor year-feature-decor-right year-feature-decor-base"
-          src={imgRightMountain}
+          src={redBrand.rightBaseImageUrl}
         />
         <LandingImage
           className="year-feature-decor year-feature-decor-right year-feature-decor-overlay year-feature-decor-overlay-right"
-          src={imgRightFestival}
+          src={redBrand.rightOverlayImageUrl}
         />
       </div>
 
       <div className="year-feature-inner">
-        <LandingImage className="year-feature-icon" src={imgFuIcon} />
+        <LandingImage className="year-feature-icon" src={redBrand.iconUrl} />
 
         <div className="year-feature-copy">
           <h2 className="year-feature-title" id="year-feature-title">
-            furtune Foto of the year now
+            {redBrand.title}
           </h2>
           <p className="year-feature-support">
-            <span>Capture the moments</span>
-            <span className="year-feature-support-line-break-safe">
-              {" "}
-              in the new year,
-            </span>
-            <br />
-            Let every click of the shutter preserve the essence of time. May the
-            coming year be as splendid as a brocade, with all wishes fulfilled.
+            {supportLines.map((line, index) => (
+              <span key={line || index}>
+                {index > 0 ? <br /> : null}
+                {line}
+              </span>
+            ))}
           </p>
         </div>
       </div>

@@ -1,56 +1,22 @@
+import type { CSSProperties } from "react";
+import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
 import { OotdCarouselDots } from "./OotdCarouselDots";
 import { TryItFreeButton } from "./TryItFreeButton";
 
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-const BASE = `${IMAGE_URL}/new-home`;
-
-const galleryImages = [
-  `${BASE}/img-also-1.png`,
-  `${BASE}/img-also-2.png`,
-  `${BASE}/img-also-3.png`,
-  `${BASE}/img-also-4.png`,
-];
-
-const petImages = {
-  cloud: `${BASE}/bg-also-3.png`,
-  topLeft: `${BASE}/img-also-pet-tl.png`,
-  topRight: `${BASE}/img-also-pet-tr.png`,
-  bottomLeft: `${BASE}/img-also-pet-bl.png`,
-  bottomRight: `${BASE}/img-also-pet-br.png`,
-};
-
-const ootdCards = [
-  {
-    before: `${BASE}/img-also-gen-1-1.jpg`,
-    outfit: `${BASE}/img-also-gen-1-2.png`,
-    after: `${BASE}/img-also-gen-1-3.jpg`,
-  },
-  {
-    before: `${BASE}/img-also-gen-2-1.jpg`,
-    outfit: `${BASE}/img-also-gen-2-2.png`,
-    after: `${BASE}/img-also-gen-2-3.jpg`,
-  },
-  {
-    before: `${BASE}/img-also-gen-3-1.jpg`,
-    outfit: `${BASE}/img-also-gen-3-2.png`,
-    after: `${BASE}/img-also-gen-3-3.jpg`,
-  },
-];
-
-const CAPTION =
-  "Capture the moments in the new year,Let every click of the shutter preserve the essence of time.May the coming year be as splendid as a brocade, with all wishes fulfilled.";
 const OOTD_CAROUSEL_ID = "ootd-feature-carousel";
 
 function GalleryFeatureCopy({
   title,
   highlight,
   suffix,
+  support,
   id,
 }: {
   title: string;
   highlight: string;
   suffix?: string;
+  support: string;
   id: string;
 }) {
   return (
@@ -62,37 +28,57 @@ function GalleryFeatureCopy({
           <span className="gallery-feature-title-base"> {suffix}</span>
         ) : null}
       </h2>
-      <p className="gallery-feature-support">{CAPTION}</p>
+      <p className="gallery-feature-support">{support}</p>
     </div>
   );
 }
 
-function GalleryImageCard({ src }: { src: string }) {
+function GalleryImageCard({
+  src,
+  backgroundColor,
+}: {
+  src: string;
+  backgroundColor: string;
+}) {
   return (
-    <figure className="gallery-feature-card">
+    <figure className="gallery-feature-card" style={{ backgroundColor }}>
       <LandingImage src={src} />
     </figure>
   );
 }
 
-function AlsoSubSection() {
+function AlsoSubSection({ material }: { material: SiteThemeConfig }) {
+  const gallery = material.gallery;
+
   return (
     <section
       className="gallery-feature-section"
       aria-labelledby="gallery-feature-title"
       data-floating-cta-start
       data-landing-section
+      style={{
+        "--gallery-feature-bg": gallery.backgroundColor,
+        "--gallery-feature-title-color": gallery.titleColor,
+        "--gallery-feature-highlight-color": gallery.highlightColor,
+        "--gallery-feature-support-color": gallery.supportColor,
+      } as CSSProperties}
     >
       <div className="gallery-feature-inner">
         <GalleryFeatureCopy
-          title="Also, can"
-          highlight="not just you..."
+          title={gallery.title}
+          highlight={gallery.highlight}
+          suffix={gallery.suffix}
+          support={gallery.support}
           id="gallery-feature-title"
         />
 
         <div className="gallery-feature-grid">
-          {galleryImages.map((src) => (
-            <GalleryImageCard key={src} src={src} />
+          {gallery.images.map((src, index) => (
+            <GalleryImageCard
+              key={`${src}-${index}`}
+              src={src}
+              backgroundColor={gallery.cardBackgroundColor}
+            />
           ))}
         </div>
       </div>
@@ -100,12 +86,13 @@ function AlsoSubSection() {
   );
 }
 
-function PetSection() {
+function PetSection({ material }: { material: SiteThemeConfig }) {
+  const pet = material.pet;
   const mobileImages = [
-    petImages.topLeft,
-    petImages.topRight,
-    petImages.bottomLeft,
-    petImages.bottomRight,
+    pet.topLeftImageUrl,
+    pet.topRightImageUrl,
+    pet.bottomLeftImageUrl,
+    pet.bottomRightImageUrl,
   ];
 
   return (
@@ -113,10 +100,16 @@ function PetSection() {
       className="pet-feature-section"
       aria-labelledby="pet-feature-title"
       data-landing-section
+      style={{
+        "--pet-feature-bg": pet.backgroundColor,
+        "--pet-feature-title-color": pet.titleColor,
+        "--pet-feature-highlight-color": pet.highlightColor,
+        "--pet-feature-text-color": pet.textColor,
+      } as CSSProperties}
     >
       <LandingImage
         className="page-pet-cloud"
-        src={petImages.cloud}
+        src={pet.cloudImageUrl}
         media="(min-width: 735px)"
       />
 
@@ -124,25 +117,25 @@ function PetSection() {
         <div className="pet-feature-story">
           <LandingImage
             className="pet-feature-collage pet-feature-collage-bottom-left"
-            src={petImages.bottomLeft}
+            src={pet.bottomLeftImageUrl}
             media="(min-width: 735px)"
           />
-          <p className="pet-feature-story-copy">{CAPTION}</p>
+          <p className="pet-feature-story-copy">{pet.text}</p>
         </div>
 
         <LandingImage
           className="pet-feature-collage pet-feature-collage-left"
-          src={petImages.topLeft}
+          src={pet.topLeftImageUrl}
           media="(min-width: 735px)"
         />
         <LandingImage
           className="pet-feature-collage"
-          src={petImages.topRight}
+          src={pet.topRightImageUrl}
           media="(min-width: 735px)"
         />
         <LandingImage
           className="pet-feature-collage pet-feature-collage-bottom-right"
-          src={petImages.bottomRight}
+          src={pet.bottomRightImageUrl}
           media="(min-width: 735px)"
         />
 
@@ -150,14 +143,14 @@ function PetSection() {
           className="pet-feature-title pet-feature-title-fluid"
           id="pet-feature-title"
         >
-          <span className="pet-feature-title-highlight">OR, </span>
-          <span className="pet-feature-title-base">Even for </span>
-          <span className="pet-feature-title-highlight">your pet</span>
+          <span className="pet-feature-title-highlight">{pet.titlePrefix} </span>
+          <span className="pet-feature-title-base">{pet.titleMiddle} </span>
+          <span className="pet-feature-title-highlight">{pet.titleHighlight}</span>
         </h2>
 
         <div className="pet-feature-mobile-grid" aria-hidden="true">
-          {mobileImages.map((src) => (
-            <figure className="pet-feature-mobile-card" key={src}>
+          {mobileImages.map((src, index) => (
+            <figure className="pet-feature-mobile-card" key={`${src}-${index}`}>
               <LandingImage src={src} media="(max-width: 734px)" />
             </figure>
           ))}
@@ -167,46 +160,52 @@ function PetSection() {
   );
 }
 
-function SmallPhoto({ src }: { src: string }) {
+function OotdFeatureCard({
+  item,
+  backgroundColor,
+}: {
+  item: SiteThemeConfig["ootd"]["items"][number];
+  backgroundColor: string;
+}) {
   return (
-    <div className="ootd-small-photo">
-      <LandingImage src={src} />
-    </div>
-  );
-}
-
-function OotdCompositeCard({ card }: { card: (typeof ootdCards)[number] }) {
-  return (
-    <figure className="gallery-feature-card gallery-feature-card-natural ootd-feature-card">
-      <div className="ootd-card-pair">
-        <SmallPhoto src={card.before} />
-        <SmallPhoto src={card.outfit} />
-      </div>
-
-      <LandingImage
-        className="ootd-card-arrow"
-        src={`${BASE}/icon-arrow-g.png`}
-      />
-
-      <div className="ootd-card-result">
-        <LandingImage src={card.after} />
-      </div>
+    <figure
+      className="gallery-feature-card ootd-feature-card"
+      style={{ backgroundColor }}
+    >
+      {item.imageUrl ? (
+        <LandingImage src={item.imageUrl} />
+      ) : (
+        <div
+          className="ootd-feature-placeholder"
+          style={{ backgroundColor: item.placeholderColor }}
+          aria-label={item.label}
+        />
+      )}
     </figure>
   );
 }
 
-function OotdSection() {
+function OotdSection({ material }: { material: SiteThemeConfig }) {
+  const ootd = material.ootd;
+
   return (
     <section
       className="gallery-feature-section gallery-feature-section-secondary"
       aria-labelledby="ootd-feature-title"
       data-landing-section
+      style={{
+        "--gallery-feature-bg": ootd.backgroundColor,
+        "--gallery-feature-title-color": ootd.titleColor,
+        "--gallery-feature-highlight-color": ootd.highlightColor,
+        "--gallery-feature-support-color": ootd.supportColor,
+      } as CSSProperties}
     >
       <div className="gallery-feature-inner">
         <GalleryFeatureCopy
-          title="IN Every"
-          highlight="OOTD"
-          suffix="You LIKE"
+          title={ootd.title}
+          highlight={ootd.highlight}
+          suffix={ootd.suffix}
+          support={ootd.support}
           id="ootd-feature-title"
         />
 
@@ -214,14 +213,18 @@ function OotdSection() {
           className="gallery-feature-grid gallery-feature-grid-three gallery-feature-grid-carousel"
           id={OOTD_CAROUSEL_ID}
         >
-          {ootdCards.map((card, index) => (
-            <OotdCompositeCard card={card} key={index} />
+          {ootd.items.map((item, index) => (
+            <OotdFeatureCard
+              item={item}
+              backgroundColor={ootd.cardBackgroundColor}
+              key={`${item.imageUrl || item.placeholderColor}-${index}`}
+            />
           ))}
         </div>
 
         <OotdCarouselDots
           carouselId={OOTD_CAROUSEL_ID}
-          slideCount={ootdCards.length}
+          slideCount={ootd.items.length}
         />
 
         <div
@@ -234,15 +237,23 @@ function OotdSection() {
   );
 }
 
-export function AlsoSection() {
+export function AlsoSection({ material }: { material: SiteThemeConfig }) {
   return (
     <>
-      <AlsoSubSection />
-      <PetSection />
-      <OotdSection />
+      <AlsoSubSection material={material} />
+      <PetSection material={material} />
+      <OotdSection material={material} />
 
       <div className="also-section-cta">
-        <TryItFreeButton />
+        <TryItFreeButton
+          label={material.hero.ctaLabel}
+          backgroundImageUrl={material.hero.ctaBackgroundImageUrl}
+          gradient={{
+            from: material.theme.ctaGradientStart,
+            to: material.theme.ctaGradientEnd,
+          }}
+          focusColor={material.theme.ctaFocusColor}
+        />
       </div>
     </>
   );
