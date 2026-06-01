@@ -171,7 +171,9 @@ function OotdFeatureCard({
 }) {
   return (
     <figure
-      className="gallery-feature-card ootd-feature-card"
+      className={`gallery-feature-card ootd-feature-card ${
+        item.imageUrl ? "ootd-feature-card-image" : "ootd-feature-card-placeholder"
+      }`}
       style={{ backgroundColor }}
     >
       {item.imageUrl ? (

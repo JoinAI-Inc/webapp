@@ -1,0 +1,156 @@
+/* ─── About Skeleton ────────────────────────────────────────── */
+
+.about-sk-root {
+  background: #fdf5ea;
+}
+
+.about-sk-root .home-sk-block {
+  background: #eedfc8;
+}
+
+/* ─── Hero ─────────────────────────────────────────────────── */
+
+.about-sk-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 60%) minmax(280px, calc(40% - 80px));
+  column-gap: 80px;
+  align-items: stretch;
+  width: 87.5vw;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding-top: 120px;
+}
+
+.about-sk-copy {
+  display: flex;
+  flex-direction: column;
+  padding-top: 40px;
+}
+
+.about-sk-line {
+  border-radius: 8px;
+}
+
+.about-sk-line-title {
+  width: 100%;
+  height: 28px;
+  margin-bottom: 8px;
+}
+
+.about-sk-line-title-short {
+  width: 80%;
+}
+
+.about-sk-line-sm {
+  width: 200px;
+  height: 16px;
+  margin-top: 16px;
+}
+
+.about-sk-input {
+  width: 100%;
+  height: 200px;
+  margin-top: 24px;
+  border-radius: 16px;
+}
+
+.about-sk-button {
+  width: 96px;
+  height: 40px;
+  margin-top: 24px;
+  border-radius: 999px;
+}
+
+/* ─── Illustration ─────────────────────────────────────────── */
+
+.about-sk-media {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.about-sk-illustration {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 550 / 723;
+  border-radius: 24px;
+}
+
+/* ─── Footer ───────────────────────────────────────────────── */
+
+.about-sk-footer {
+  width: 100vw;
+  margin-top: 100px;
+  padding: 60px 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  background: #ebebec;
+}
+
+.about-sk-footer-collage {
+  width: min(87.5vw, 1440px);
+  height: 200px;
+  border-radius: 16px;
+  margin-top: 8px;
+}
+
+/* ─── Tablet ───────────────────────────────────────────────── */
+
+@media (max-width: 1068px) {
+  .about-sk-hero {
+    grid-template-columns: minmax(0, 50%) minmax(260px, calc(50% - 60px));
+    column-gap: 60px;
+    padding-top: 100px;
+  }
+
+  .about-sk-copy {
+    padding-top: 24px;
+  }
+
+  .about-sk-footer {
+    margin-top: 80px;
+  }
+}
+
+/* ─── Mobile ───────────────────────────────────────────────── */
+
+@media (max-width: 734px) {
+  .about-sk-hero {
+    grid-template-columns: 100%;
+    column-gap: 0;
+    padding-top: 80px;
+  }
+
+  .about-sk-copy {
+    padding-top: 0;
+  }
+
+  .about-sk-line-title {
+    height: 22px;
+  }
+
+  .about-sk-input {
+    height: 160px;
+    border-radius: 8px;
+  }
+
+  .about-sk-button {
+    width: 100%;
+  }
+
+  .about-sk-media {
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .about-sk-illustration {
+    width: clamp(280px, calc(218px + 19.32vw), 360px);
+    max-width: 100%;
+  }
+
+  .about-sk-footer {
+    margin-top: 60px;
+  }
+}

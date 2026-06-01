@@ -1,10 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import type { CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SiteThemeConfig } from "../../lib/site-theme";
 import { FooterSection } from "../../components/FooterSection";
+import { LandingScrollOptimizer } from "../../components/LandingScrollOptimizer";
 
 type Status = "idle" | "submitting" | "done" | "limitReached";
+
+const ABOUT_BACKGROUND_FALLBACK =
+    "/landing-about/lucky-photo-poke-top-pattern.png";
+const ABOUT_ILLUSTRATION_FALLBACK =
+    "/landing-about/lucky-photo-poke-horses.png";
+
+function resolveAboutAsset(src: string, fallback: string) {
+    if (!src || src.startsWith("/new-home/")) {
+        return fallback;
+    }
+
+    return src;
+}
 
 export function AboutPageClient({
     material,
@@ -12,22 +27,114 @@ export function AboutPageClient({
     material: SiteThemeConfig;
 }) {
     const about = material.about;
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+    const copyRef = useRef<HTMLDivElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const sendRef = useRef<HTMLButtonElement>(null);
+    const emailRef = useRef<HTMLParagraphElement>(null);
+    const mediaImageRef = useRef<HTMLImageElement>(null);
     const [message, setMessage] = useState("");
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState("");
 
+    const backgroundImageUrl = resolveAboutAsset(
+        about.backgroundImageUrl,
+        ABOUT_BACKGROUND_FALLBACK,
+    );
+    const illustrationUrl = resolveAboutAsset(
+        about.illustrationUrl,
+        ABOUT_ILLUSTRATION_FALLBACK,
+    );
     const canSend = message.trim().length > 0 && status === "idle";
+    const isLocked =
+        status === "submitting" ||
+        status === "done" ||
+        status === "limitReached";
+
+    const resizeInput = useCallback(() => {
+        const input = inputRef.current;
+        if (!input) return;
+        const inputElement = input;
+
+        function getDefaultInputHeight() {
+            const copy = copyRef.current;
+            const title = titleRef.current;
+            const sendButton = sendRef.current;
+            const email = emailRef.current;
+
+            if (
+                window.innerWidth <= 734 ||
+                !copy ||
+                !title ||
+                !sendButton ||
+                !email
+            ) {
+                return 160;
+            }
+
+            const copyStyles = window.getComputedStyle(copy);
+            const copyPaddingTop = Number.parseFloat(copyStyles.paddingTop) || 0;
+            const copyPaddingBottom = Number.parseFloat(copyStyles.paddingBottom) || 0;
+            const titleHeight = title.getBoundingClientRect().height;
+            const inputMarginTop =
+                Number.parseFloat(window.getComputedStyle(inputElement).marginTop) || 0;
+            const sendHeight = sendButton.getBoundingClientRect().height;
+            const sendMarginTop =
+                Number.parseFloat(window.getComputedStyle(sendButton).marginTop) || 0;
+            const emailHeight = email.getBoundingClientRect().height;
+            const emailMarginTop =
+                Number.parseFloat(window.getComputedStyle(email).marginTop) || 0;
+            const mediaHeight =
+                mediaImageRef.current?.getBoundingClientRect().height || 0;
+            const layoutHeight = mediaHeight || copy.getBoundingClientRect().height;
+            const availableHeight =
+                layoutHeight -
+                copyPaddingTop -
+                copyPaddingBottom -
+                titleHeight -
+                inputMarginTop -
+                sendHeight -
+                sendMarginTop -
+                emailHeight -
+                emailMarginTop;
+
+            return Math.max(availableHeight, 160);
+        }
+
+        const defaultHeight = getDefaultInputHeight();
+        inputElement.style.height = "auto";
+        inputElement.style.height = `${Math.max(inputElement.scrollHeight, defaultHeight)}px`;
+    }, []);
+
+    useEffect(() => {
+        resizeInput();
+    }, [message, status, resizeInput]);
+
+    useEffect(() => {
+        const image = mediaImageRef.current;
+
+        resizeInput();
+        window.addEventListener("resize", resizeInput);
+        image?.addEventListener("load", resizeInput);
+
+        return () => {
+            window.removeEventListener("resize", resizeInput);
+            image?.removeEventListener("load", resizeInput);
+        };
+    }, [resizeInput]);
 
     async function handleSend() {
         if (!canSend) return;
         setStatus("submitting");
         setError("");
+
         try {
             const res = await fetch("/api/message", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ content: message.trim() }),
             });
+
             if (res.status === 429) {
                 setStatus("limitReached");
             } else if (res.ok) {
@@ -46,219 +153,121 @@ export function AboutPageClient({
         status === "submitting"
             ? "Sending..."
             : status === "done"
-                ? "Sent ✓"
+                ? "Sent"
                 : status === "limitReached"
-                    ? "Already sent ✓"
+                    ? "Already sent"
                     : "Send";
 
     return (
         <div
+            className="landing-page-shell about-page"
             style={{
-                background: about.backgroundColor,
-                width: "100%",
-                position: "relative",
-                overflowX: "hidden",
-            }}
+                "--about-bg": about.backgroundColor,
+                "--about-bg-image": `url(${backgroundImageUrl})`,
+                "--about-accent": about.accentColor,
+                "--about-text": about.textColor,
+                "--about-muted": about.mutedTextColor,
+                "--about-input-bg": about.inputBackgroundColor,
+                "--about-input-border": about.inputBorderColor,
+                "--about-disabled": about.disabledButtonColor,
+            } as CSSProperties}
         >
-            <section
-                style={{
-                    position: "relative",
-                    width: "100%",
-                    minHeight: 900,
-                    overflow: "hidden",
-                }}
-            >
-                {about.backgroundImageUrl && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            width: 1920,
-                            height: 680,
-                            pointerEvents: "none",
-                        }}
-                    >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={about.backgroundImageUrl}
-                            alt=""
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                    </div>
-                )}
-
-                <div
-                    style={{
-                        zIndex: 2,
-                        maxWidth: 1488,
-                        margin: "0 auto",
-                        padding: "0 0",
-                    }}
-                >
-                    <div
-                        className="flex flex-row justify-between w-full pb-[120px]"
-                        style={{
-                            paddingTop: 194,
-                            paddingLeft: 50,
-                            paddingRight: 50,
-                        }}
-                    >
-                        <div className="w-[60%] relative pt-[30px] ">
-                            {about.decorationImageUrl && (
-                                <div className="absolute top-[0px] right-[0px]">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={about.decorationImageUrl} alt="" height={175.66} width={186.48} />
-                                </div>
-                            )}
-                            <div className="flex flex-row items-center gap-[8px]">
-                                <p
-                                    style={{
-                                        fontFamily: "Manrope, sans-serif",
-                                        fontWeight: 600,
-                                        fontSize: 40,
-                                        lineHeight: 1.3,
-                                        color: about.accentColor,
-                                        letterSpacing: 0.4,
-                                        margin: 0,
-                                    }}
-                                >
+            <LandingScrollOptimizer />
+            <main className="about-main" aria-label="About page content">
+                <section className="about-hero" data-landing-section>
+                    <div className="about-hero-inner">
+                        <div ref={copyRef} className="about-hero-copy">
+                            <h1
+                                ref={titleRef}
+                                className="about-hero-title"
+                                data-scroll-reveal
+                            >
+                                <span className="about-hero-title-line about-hero-title-highlight">
                                     {about.title}
-                                </p>
-                                {about.heartIconUrl && (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={about.heartIconUrl} alt="" height={45} width={45} />
-                                )}
-                            </div>
-
-                            <div className="flex flex-row gap-[16px]" style={{
-                                fontFamily: "Manrope, sans-serif",
-                                fontWeight: 600,
-                                fontSize: 40,
-                                lineHeight: 1.3,
-                                color: about.textColor,
-                                letterSpacing: 0.4,
-                            }}>
-                                <span>{about.headlinePrefix}</span>
-                                <span style={{ color: about.accentColor }}>{about.headlineHighlight}</span>
-                                {about.headlineSuffix && <span>{about.headlineSuffix}</span>}
-                            </div>
-
-                            <div className="flex flex-row gap-[16px] pb-[40px]" style={{
-                                fontFamily: "Manrope, sans-serif",
-                                fontWeight: 600,
-                                fontSize: 40,
-                                lineHeight: 1.3,
-                                color: about.textColor,
-                                letterSpacing: 0.4,
-                            }}>
-                                {about.subheadline}
-                            </div>
+                                </span>
+                                <span className="about-hero-title-line">
+                                    {about.headlinePrefix}{" "}
+                                    <span className="about-hero-title-highlight about-hero-title-nowrap">
+                                        {about.headlineHighlight}
+                                    </span>
+                                    {about.headlineSuffix ? ` ${about.headlineSuffix}` : ""}
+                                </span>
+                                <span className="about-hero-title-line">
+                                    {about.subheadline}
+                                </span>
+                            </h1>
 
                             <textarea
+                                ref={inputRef}
                                 value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                placeholder={about.placeholder}
-                                disabled={status === "done" || status === "limitReached"}
-                                style={{
-                                    width: "100%",
-                                    height: 327,
-                                    background: about.inputBackgroundColor,
-                                    border: `1px solid ${about.inputBorderColor}`,
-                                    borderRadius: 16,
-                                    padding: "16px",
-                                    fontFamily: "Manrope, sans-serif",
-                                    fontSize: 17,
-                                    color: "#333",
-                                    letterSpacing: 0.17,
-                                    lineHeight: 1.4,
-                                    resize: "none",
-                                    outline: "none",
-                                    boxSizing: "border-box",
+                                onChange={(event) => {
+                                    setMessage(event.target.value);
+                                    if (error) setError("");
                                 }}
+                                placeholder={about.placeholder}
+                                disabled={isLocked}
+                                className="about-hero-input"
+                                data-filled={message.trim() ? "true" : undefined}
+                                rows={5}
+                                aria-label={about.placeholder}
+                                data-scroll-reveal
+                                style={{ "--reveal-delay": "80ms" } as CSSProperties}
                             />
 
-                            <div style={{ marginTop: 16 }}>
-                                <button
-                                    onClick={handleSend}
-                                    disabled={!canSend}
-                                    style={{
-                                        background: canSend ? about.accentColor : about.disabledButtonColor,
-                                        border: "none",
-                                        borderRadius: 81,
-                                        padding: "10px 28px",
-                                        fontFamily: "Inter, sans-serif",
-                                        fontSize: 17,
-                                        color: "#fff",
-                                        letterSpacing: 0.17,
-                                        cursor: canSend ? "pointer" : "default",
-                                        transition: "background 0.2s",
-                                        lineHeight: 1.4,
-                                        minWidth: 106,
-                                    }}
-                                >
-                                    {btnLabel}
-                                </button>
-                            </div>
-
-                            {error && (
-                                <p
-                                    style={{
-                                        marginTop: 8,
-                                        fontSize: 13,
-                                        color: "#e53e3e",
-                                        fontFamily: "Manrope, sans-serif",
-                                    }}
-                                >
-                                    {error}
-                                </p>
-                            )}
+                            <button
+                                ref={sendRef}
+                                type="button"
+                                onClick={handleSend}
+                                disabled={!canSend}
+                                className="about-hero-send"
+                                aria-disabled={!canSend}
+                                aria-label="Send message"
+                                data-scroll-reveal
+                                style={{ "--reveal-delay": "160ms" } as CSSProperties}
+                            >
+                                <span className="about-hero-send-label">{btnLabel}</span>
+                            </button>
 
                             <p
-                                style={{
-                                    marginTop: 12,
-                                    fontFamily:
-                                        "Manrope, 'Noto Sans JP', 'Noto Sans SC', sans-serif",
-                                    fontSize: 14,
-                                    color: about.mutedTextColor,
-                                    letterSpacing: 0.14,
-                                    lineHeight: 1.4,
-                                }}
+                                ref={emailRef}
+                                className="about-hero-email"
+                                data-scroll-reveal
+                                style={{ "--reveal-delay": "240ms" } as CSSProperties}
                             >
-                                {about.emailLabel}{" "}
-                                <a
-                                    href={`mailto:${about.email}`}
-                                    style={{ color: about.mutedTextColor, textDecoration: "underline" }}
-                                >
-                                    {about.email}
-                                </a>
+                                <span>{about.emailLabel}</span>{" "}
+                                <a href={`mailto:${about.email}`}>{about.email}</a>
+                            </p>
+
+                            <p className="about-hero-status" aria-live="polite">
+                                {status === "done"
+                                    ? "Thank you! Your message has been sent."
+                                    : error}
                             </p>
                         </div>
 
                         <div
-                            className="w-[40%]"
-                            style={{
-                                width: 550,
-                                height: 723,
-                                overflow: "hidden",
-                                pointerEvents: "none",
-                            }}
+                            className="about-hero-media"
+                            aria-hidden="true"
+                            data-scroll-reveal
+                            style={{ "--reveal-delay": "320ms" } as CSSProperties}
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src={about.illustrationUrl}
-                                alt="Lucky horses illustration"
-                                style={{
-                                    width: 550,
-                                    height: 723,
-                                    objectFit: "cover",
-                                }}
+                                ref={mediaImageRef}
+                                src={illustrationUrl}
+                                alt=""
+                                width={550}
+                                height={723}
+                                fetchPriority="high"
+                                loading="eager"
+                                decoding="async"
+                                draggable={false}
+                                data-landing-predecode="true"
                             />
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </main>
 
             <FooterSection material={material} />
         </div>

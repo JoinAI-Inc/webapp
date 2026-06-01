@@ -80,7 +80,7 @@ export function HeroSection({
 
   return (
     <section
-      className="relative isolate flex w-full flex-col items-center overflow-hidden text-center"
+      className="home-hero-section relative isolate flex w-full flex-col items-center overflow-hidden text-center"
       aria-labelledby="home-hero-title"
       data-landing-section
       data-landing-eager
@@ -102,10 +102,10 @@ export function HeroSection({
         />
       )}
 
-      <div className="relative z-[1] flex w-[87.5vw] max-w-[1440px] flex-col items-center pt-8 md:pt-12 xl:pt-[70px]">
+      <div className="hero-copy relative z-[1] flex flex-col items-center">
         {hero.brandIconUrl && (
           <Image
-            className="hero-reveal block h-auto w-[clamp(80px,calc(46.1px+10.6vw),120px)] object-contain xl:w-[clamp(120px,calc(73.11px+4.39vw),158px)]"
+            className="hero-brand-icon hero-reveal block h-auto object-contain"
             src={hero.brandIconUrl}
             alt=""
             width={158}
@@ -119,7 +119,7 @@ export function HeroSection({
           style={{ "--reveal-delay": "80ms" } as CSSProperties}
         >
           <h1
-            className="m-0 text-[clamp(24px,calc(12px+3.75vw),32px)] leading-[1.3] font-semibold tracking-[0] md:text-[clamp(40px,calc(14.85px+3.43vw),52px)] xl:text-[clamp(52px,calc(36.96px+1.41vw),64px)]"
+            className="hero-title m-0 font-semibold tracking-[0]"
             id="home-hero-title"
             style={{ color: theme.textColor }}
           >
@@ -134,12 +134,11 @@ export function HeroSection({
           </h1>
           <div
             className="inline-flex items-center justify-center gap-2 md:gap-[14px]"
-            aria-label={hero.logoPrefix}
           >
-            <span>{hero.logoPrefix}</span>
+            <span className="hero-title font-semibold">{hero.logoPrefix}</span>
             {hero.logoImageUrl && (
               <Image
-                className="block h-auto w-[clamp(88px,calc(74.06px+4.36vw),100px)] object-contain min-[481px]:w-[clamp(100px,calc(42.58px+11.96vw),130px)] md:w-[clamp(130px,calc(117.17px+1.71vw),150px)]"
+                className="hero-title-mark block h-auto object-contain"
                 src={hero.logoImageUrl}
                 alt=""
                 width={150}
@@ -151,7 +150,7 @@ export function HeroSection({
         </div>
 
         <p
-          className="hero-reveal mt-1 text-center text-base leading-[1.4] font-normal md:mt-2 md:text-[19px]"
+          className="hero-support hero-reveal text-center font-normal"
           style={
             {
               "--reveal-delay": "160ms",
@@ -159,18 +158,19 @@ export function HeroSection({
             } as CSSProperties
           }
         >
-          <span className="inline">{hero.subtitlePrefix}</span>
-          <span className="hidden md:inline"> {hero.subtitleSuffix}</span>
-          <span className="block md:hidden">{hero.subtitleSuffix}</span>
+          <span>{hero.subtitlePrefix}</span>{" "}
+          <span className="hero-support-line-break">
+            {hero.subtitleSuffix}
+          </span>
         </p>
 
         <div
-          className="hero-reveal mt-6 flex justify-center md:mt-8 xl:mt-10"
+          className="hero-cta-wrap hero-reveal flex justify-center"
           style={{ "--reveal-delay": "240ms" } as CSSProperties}
           data-hero-cta
         >
           <TryItFreeButton
-            className="h-10 px-6 text-[15px] md:h-12 md:px-8 md:text-[16px]"
+            className="hero-cta-button"
             label={hero.ctaLabel}
             backgroundImageUrl={hero.ctaBackgroundImageUrl}
             gradient={{
@@ -183,7 +183,7 @@ export function HeroSection({
       </div>
 
       <div
-        className="hero-media-shell relative mt-12 mb-[60px] w-[87.5vw] max-w-[1600px] overflow-hidden rounded-2xl md:mt-14 md:mb-20 xl:mt-16 xl:mb-[100px] xl:rounded-[clamp(24px,calc(14.9px+0.85vw),32px)]"
+        className="hero-media-shell relative"
         style={
           {
             "--hero-media-shell-from": theme.mediaShellStart,

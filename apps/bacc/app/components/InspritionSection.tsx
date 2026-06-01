@@ -65,12 +65,8 @@ export function InspritionSection({ material }: { material: SiteThemeConfig }) {
       >
         <div className="feature-gradient-card-decor" aria-hidden="true">
           <LandingImage
-            className="feature-gradient-card-decor-left"
-            src={inspiration.leftDecorImageUrl}
-          />
-          <LandingImage
-            className="feature-gradient-card-decor-right"
-            src={inspiration.rightDecorImageUrl}
+            className="feature-gradient-card-decor-img"
+            src={inspiration.decorImageUrl}
           />
         </div>
 

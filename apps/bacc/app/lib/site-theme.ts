@@ -7,6 +7,12 @@ type InspirationItem = {
   name: string;
 };
 
+type PokeParticipant = {
+  name: string;
+  id: string;
+  followers: string;
+};
+
 type OotdItem = {
   imageUrl: string;
   placeholderColor: string;
@@ -97,8 +103,7 @@ export type SiteThemeConfig = {
     backgroundStartColor: string;
     backgroundEndColor: string;
     patternImageUrl: string;
-    leftDecorImageUrl: string;
-    rightDecorImageUrl: string;
+    decorImageUrl: string;
     title: string;
     titleColor: string;
     entryColor: string;
@@ -169,6 +174,7 @@ export type SiteThemeConfig = {
     thanksText: string;
     specialThanksText: string;
     xhsIconUrl: string;
+    participants: PokeParticipant[];
   };
 };
 
@@ -220,6 +226,58 @@ const DEFAULT_INSPIRATION_ITEMS = [
   { id: "959628182", name: "Mici" },
 ];
 
+const DEFAULT_POKE_PARTICIPANTS = [
+  { name: "哈尼桃桃酱", id: "Yetkitty951004", followers: "878" },
+  { name: "李开心的亲子时光", id: "207305504", followers: "27k" },
+  { name: "绵绵岛", id: "375785978", followers: "537" },
+  { name: "Nico匠", id: "Hyl95234", followers: "33k" },
+  { name: "-是溪溪呀-", id: "944605407", followers: "525k" },
+  { name: "米米🌸🌸🌸", id: "95555262084", followers: "1.6k" },
+  { name: "是安宁呀！！！", id: "6574283932", followers: "4.5k" },
+  { name: "叔系少年老三", id: "R44444444", followers: "2.2k" },
+  { name: "贝贝万事屋", id: "bei185448278", followers: "3.9k" },
+  { name: "鹿儿Tata", id: "109627123", followers: "173k" },
+  { name: "数码侦探小何", id: "94118559427", followers: "4.8k" },
+  { name: "Mici", id: "959628182", followers: "11k" },
+  { name: "小番薯她爹", id: "1052328063", followers: "250k" },
+  { name: "快乐猴子", id: "6224741086", followers: "152" },
+  { name: "梵麦麦", id: "969961790", followers: "4.7k" },
+  { name: "讨厌香菇", id: "776560427", followers: "13k" },
+  { name: "西夏📷", id: "xixia326", followers: "9k" },
+  { name: "昆明小好全家福", id: "Xiaohaofamily", followers: "1.8k" },
+  { name: "西瓜约拍", id: "CHAN981010", followers: "5.9k" },
+  { name: "露小那那🌙", id: "yuanlj0316", followers: "40k" },
+  { name: "哈士奇奇", id: "632698469", followers: "2.5k" },
+  { name: "喝可乐加七喜", id: "110976416", followers: "14k" },
+  { name: "Enjoy", id: "jiuliyyds1314fs", followers: "18k" },
+  { name: "毛友友的宠物写真", id: "95630780883", followers: "1k" },
+  { name: "会笑的阿柴", id: "157471040", followers: "951" },
+  { name: "除七", id: "389535422", followers: "7.1k" },
+  { name: "NICEPETS厦门宠物摄影", id: "tjxpic", followers: "1.7k" },
+  { name: "草莓味的阿乐啊🍓", id: "XX999998", followers: "102" },
+  { name: "汪汪雪饼大礼包", id: "4287858287", followers: "100" },
+  { name: "豆包是只萨摩耶", id: "502292937", followers: "10k" },
+  { name: "大羊宠物摄影", id: "Goat_Studio", followers: "686" },
+  { name: "卡卡大事记", id: "108957722", followers: "4" },
+  { name: "米奇妙妙屋", id: "809410004", followers: "2.4k" },
+  { name: "卷卷不卷 🌀", id: "951854764", followers: "376" },
+  { name: "红雨树边", id: "5858670701", followers: "6" },
+  { name: "是蜡笔小嘉呀～", id: "94311523574", followers: "22" },
+  { name: "妲己的日常", id: "11504145349", followers: "58" },
+  { name: "霸道宠裁Haby", id: "Habe_bibi", followers: "468" },
+  { name: "范老师的猫", id: "6102688434", followers: "2.7k" },
+  { name: "超级安", id: "542408004", followers: "238" },
+  { name: "腮腮胡噜噜", id: "Htaotaoo", followers: "58k" },
+  { name: "天庭流放猪八戒🐷", id: "279703851", followers: "1.7k" },
+  { name: "玩具小茉莉", id: "Mollytoy", followers: "21k" },
+  { name: "蒋默默", id: "295393179", followers: "316k" },
+  { name: "拍照的小西", id: "afan_cc", followers: "1.7k" },
+  { name: "鑫子摄影", id: "XINZISY", followers: "24k" },
+  { name: "YQ-STUDIO云栖置景", id: "YZ19012879853", followers: "715" },
+  { name: "哎呀我的胳膊肘儿啊！（造景我贴贴贴！）", id: "863524422", followers: "2.8k" },
+  { name: "Kerry Dowdle", id: "717150236", followers: "206k" },
+];
+
 export const DEFAULT_SITE_THEME: SiteThemeConfig = {
   theme: {
     primaryColor: "#EC2E2E",
@@ -250,10 +308,10 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
   },
   redBrand: {
     backgroundColor: "#DD1E1B",
-    patternImageUrl: `${BASE}/bg-pattern.svg`,
-    leftBaseImageUrl: `${BASE}/bg-petal-landscape.png`,
+    patternImageUrl: `${BASE}/lucky-photo-year-pattern.png`,
+    leftBaseImageUrl: `${BASE}/lucky-photo-year-left-mountain.png`,
     leftOverlayImageUrl: `${BASE}/bg-mid-autumn.png`,
-    rightBaseImageUrl: `${BASE}/bg-feng-jing.png`,
+    rightBaseImageUrl: `${BASE}/lucky-photo-year-right-mountain.png`,
     rightOverlayImageUrl: `${BASE}/bg-dragon-boat.png`,
     iconUrl: `${BASE}/icon-fu.png`,
     title: "furtune Foto of the year now",
@@ -282,7 +340,7 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
   },
   pet: {
     backgroundColor: "#FFFFFF",
-    cloudImageUrl: `${BASE}/bg-also-3.png`,
+    cloudImageUrl: `${BASE}/lucky-photo-pet-cloud.png`,
     topLeftImageUrl: `${BASE}/img-also-pet-tl.png`,
     topRightImageUrl: `${BASE}/img-also-pet-tr.png`,
     bottomLeftImageUrl: `${BASE}/img-also-pet-bl.png`,
@@ -308,17 +366,16 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
     supportColor: "#39383B",
     cardBackgroundColor: "#F5F5F5",
     items: [
-      { imageUrl: "", placeholderColor: "#F6C46A", label: "OOTD 1" },
-      { imageUrl: "", placeholderColor: "#E96255", label: "OOTD 2" },
-      { imageUrl: "", placeholderColor: "#73B69B", label: "OOTD 3" },
+      { imageUrl: `${BASE}/lucky-photo-ootd-1.png`, placeholderColor: "#F6C46A", label: "OOTD 1" },
+      { imageUrl: `${BASE}/lucky-photo-ootd-2.png`, placeholderColor: "#E96255", label: "OOTD 2" },
+      { imageUrl: `${BASE}/lucky-photo-ootd-3.png`, placeholderColor: "#73B69B", label: "OOTD 3" },
     ],
   },
   inspiration: {
     backgroundStartColor: "#DA2524",
     backgroundEndColor: "#C00B0A",
     patternImageUrl: "/bg-insprition.svg",
-    leftDecorImageUrl: `${BASE}/bg-insprition-left.png`,
-    rightDecorImageUrl: `${BASE}/bg-insprition-right.png`,
+    decorImageUrl: `${BASE}/lucky-photo-gradient-card-decor.png`,
     title: "Insprition from",
     titleColor: "#C51C1B",
     entryColor: "#E29211",
@@ -356,17 +413,17 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
     recordText: "浙ICP备2021040718号-2",
   },
   about: {
-    backgroundColor: "#FFF8ED",
+    backgroundColor: "#FDF5EA",
     backgroundImageUrl: `${BASE}/bg-home-1.png`,
     illustrationUrl: `${BASE}/img-about-horses.png`,
     decorationImageUrl: "/bg-about-1.svg",
     heartIconUrl: "/icon-heart.png",
-    accentColor: "#FF3F2A",
-    textColor: "#000000",
-    mutedTextColor: "#716B62",
-    inputBackgroundColor: "#FFFBF5",
-    inputBorderColor: "#E2D6C5",
-    disabledButtonColor: "#BEBEBE",
+    accentColor: "#EC2E2E",
+    textColor: "#0A0708",
+    mutedTextColor: "#9B9A9D",
+    inputBackgroundColor: "#FDF5EA",
+    inputBorderColor: "#E4D7C5",
+    disabledButtonColor: "#E8E8E8",
     title: "Leave us a message",
     headlinePrefix: "just that your option is",
     headlineHighlight: "precious to us",
@@ -394,6 +451,7 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
     thanksText: "鼓励大家去follow他们的话和感谢的话",
     specialThanksText: "Special Thanks to",
     xhsIconUrl: "/icon-xhs.svg",
+    participants: DEFAULT_POKE_PARTICIPANTS,
   },
 };
 
@@ -471,6 +529,25 @@ function normalizeInspirationItems(value: unknown): InspirationItem[] {
     .filter((item) => item.id && item.name);
 
   return items.length > 0 ? items : DEFAULT_SITE_THEME.inspiration.items;
+}
+
+function normalizePokeParticipants(value: unknown): PokeParticipant[] {
+  if (!Array.isArray(value)) {
+    return DEFAULT_SITE_THEME.poke.participants;
+  }
+
+  const items = value
+    .map((item) => {
+      const data = asObject(item);
+      return {
+        name: asString(data.name, ""),
+        id: asString(data.id, ""),
+        followers: typeof data.followers === "string" ? data.followers : "",
+      };
+    })
+    .filter((item) => item.name && item.id);
+
+  return items.length > 0 ? items : DEFAULT_SITE_THEME.poke.participants;
 }
 
 export function normalizeSiteThemeConfig(
@@ -573,8 +650,7 @@ export function normalizeSiteThemeConfig(
       backgroundStartColor: asString(inspiration.backgroundStartColor, DEFAULT_SITE_THEME.inspiration.backgroundStartColor),
       backgroundEndColor: asString(inspiration.backgroundEndColor, DEFAULT_SITE_THEME.inspiration.backgroundEndColor),
       patternImageUrl: asString(inspiration.patternImageUrl, DEFAULT_SITE_THEME.inspiration.patternImageUrl),
-      leftDecorImageUrl: asString(inspiration.leftDecorImageUrl, DEFAULT_SITE_THEME.inspiration.leftDecorImageUrl),
-      rightDecorImageUrl: asString(inspiration.rightDecorImageUrl, DEFAULT_SITE_THEME.inspiration.rightDecorImageUrl),
+      decorImageUrl: asString(inspiration.decorImageUrl, DEFAULT_SITE_THEME.inspiration.decorImageUrl),
       title: asString(inspiration.title, DEFAULT_SITE_THEME.inspiration.title),
       titleColor: asString(inspiration.titleColor, DEFAULT_SITE_THEME.inspiration.titleColor),
       entryColor: asString(inspiration.entryColor, DEFAULT_SITE_THEME.inspiration.entryColor),
@@ -645,6 +721,7 @@ export function normalizeSiteThemeConfig(
       thanksText: asString(poke.thanksText, DEFAULT_SITE_THEME.poke.thanksText),
       specialThanksText: asString(poke.specialThanksText, DEFAULT_SITE_THEME.poke.specialThanksText),
       xhsIconUrl: asString(poke.xhsIconUrl, DEFAULT_SITE_THEME.poke.xhsIconUrl),
+      participants: normalizePokeParticipants(poke.participants),
     },
   };
 }

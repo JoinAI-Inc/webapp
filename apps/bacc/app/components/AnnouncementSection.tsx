@@ -33,11 +33,6 @@ export function AnnouncementSection({ material }: { material: SiteThemeConfig })
         </div>
 
         <div className="split-feature-media" data-scroll-reveal style={{ "--reveal-delay": "80ms" } as CSSProperties}>
-          <div
-            className="split-feature-media-bg"
-            style={{ backgroundImage: `url(${announcement.mediaBackgroundImageUrl})` }}
-            aria-hidden="true"
-          />
           <LandingImage className="split-feature-image" src={announcement.imageUrl} />
         </div>
       </div>

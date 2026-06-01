@@ -12,23 +12,36 @@ const navItems = [
   { label: "Poke", href: "/poke" },
 ];
 
+const navConfigs = {
+  default: {
+    transparentTone: "dark",
+  },
+  "/poke": {
+    transparentTone: "light",
+  },
+} as const;
+
 export default function LandingNavBar() {
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const navConfig = navConfigs[pathname as keyof typeof navConfigs] ?? navConfigs.default;
+  const isTransparentLight = navConfig.transparentTone === "light";
 
   useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-
     const handleScroll = () => {
-      header.classList.toggle("site-header-scrolled", window.scrollY > 10);
+      setIsScrolled(window.scrollY > 8);
     };
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [pathname]);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -102,6 +115,26 @@ export default function LandingNavBar() {
           -webkit-user-drag: none;
         }
 
+        .site-logo img.site-logo-image-light {
+          display: none;
+        }
+
+        .site-header-transparent-light:not(.site-header-scrolled) .site-logo img.site-logo-image-default {
+          display: none;
+        }
+
+        .site-header-transparent-light:not(.site-header-scrolled) .site-logo img.site-logo-image-light {
+          display: block;
+        }
+
+        .site-header-transparent-light.site-header-scrolled .site-logo img.site-logo-image-default {
+          display: block;
+        }
+
+        .site-header-transparent-light.site-header-scrolled .site-logo img.site-logo-image-light {
+          display: none;
+        }
+
         .site-nav {
           display: inline-flex;
           align-items: stretch;
@@ -137,6 +170,17 @@ export default function LandingNavBar() {
 
         .site-nav-link-active:hover {
           color: #d42424;
+          font-weight: 500;
+        }
+
+        .site-header-transparent-light:not(.site-header-scrolled) .site-nav-link {
+          color: rgba(255, 255, 255, 0.78);
+        }
+
+        .site-header-transparent-light:not(.site-header-scrolled) .site-nav-link:hover,
+        .site-header-transparent-light:not(.site-header-scrolled) .site-nav-link-active,
+        .site-header-transparent-light:not(.site-header-scrolled) .site-nav-link-active:hover {
+          color: #fff;
         }
 
         .site-nav-link[data-hidden=true],
@@ -173,6 +217,18 @@ export default function LandingNavBar() {
           background: #d42424;
         }
 
+        .site-header-transparent-light:not(.site-header-scrolled) .site-cta {
+          border-color: rgba(255, 255, 255, 0.42);
+          background: #fff;
+          color: #ec2e2e;
+        }
+
+        .site-header-transparent-light:not(.site-header-scrolled) .site-cta:hover {
+          border-color: #fff;
+          background: #fff7f7;
+          color: #d42424;
+        }
+
         .site-menu-button {
           display: none;
           align-items: center;
@@ -192,14 +248,21 @@ export default function LandingNavBar() {
           background-color: rgba(10, 7, 8, 0.04);
         }
 
+        .site-header-transparent-light:not(.site-header-scrolled) .site-menu-button {
+          background-image: url(/landing-nav/lucky-photo-menu-icon-light.svg);
+        }
+
+        .site-header-transparent-light:not(.site-header-scrolled) .site-menu-button.is-open {
+          background-color: rgba(255, 255, 255, 0.14);
+        }
+
         .site-mobile-menu {
           display: none;
         }
 
         @media (min-width: 1068px) {
           .site-nav-link {
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 14px;
           }
         }
 
@@ -275,7 +338,7 @@ export default function LandingNavBar() {
             border-radius: 8px;
             color: #39383b;
             font-family: Manrope, sans-serif;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 400;
             line-height: 1.4;
             text-decoration: none;
@@ -296,7 +359,14 @@ export default function LandingNavBar() {
       `}</style>
       <header
         ref={headerRef}
-        className={`site-header${isMenuOpen ? " is-mobile-menu-open" : ""}`}
+        className={[
+          "site-header",
+          isTransparentLight ? "site-header-transparent-light" : "",
+          isScrolled ? "site-header-scrolled" : "",
+          isMenuOpen ? "is-mobile-menu-open" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <div className="site-header-inner">
           <button
@@ -320,11 +390,20 @@ export default function LandingNavBar() {
             onClick={() => setIsMenuOpen(false)}
           >
             <Image
+              className="site-logo-image site-logo-image-default"
               src="/landing-nav/lucky-photo-logo.svg"
               alt="Lucky Photo"
               width={144}
               height={32}
               priority
+            />
+            <Image
+              className="site-logo-image site-logo-image-light"
+              src="/landing-nav/lucky-photo-logo-light.svg"
+              alt=""
+              width={144}
+              height={32}
+              aria-hidden="true"
             />
           </Link>
 

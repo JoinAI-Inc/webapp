@@ -1,0 +1,409 @@
+.poke-landing-page {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  --poke-landing-bg-width: 2560px;
+  background:
+    var(--poke-landing-bg-image) center top / var(--poke-landing-bg-width) auto no-repeat,
+    var(--poke-landing-bg, #fdf5ea);
+  color: #0a0708;
+  font-family: Manrope, "Noto Sans SC", "Noto Sans JP", sans-serif;
+}
+
+.poke-landing-main {
+  position: relative;
+  z-index: 1;
+}
+
+.poke-landing-hero {
+  width: 87.5vw;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-top: 100px;
+}
+
+.poke-landing-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 48px;
+  color: var(--poke-heading-color, #fff);
+  font-size: clamp(28px, calc(25.88px + 0.2vw), 32px);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.poke-landing-title span {
+  display: block;
+}
+
+.poke-thanks-panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  width: min(87.5vw, 760px);
+  min-height: 360px;
+  margin: 0 auto 100px;
+}
+
+.poke-thanks-panel-slice {
+  display: block;
+  max-width: none;
+  -webkit-user-drag: none;
+}
+
+.poke-thanks-panel-top-left,
+.poke-thanks-panel-top-right,
+.poke-thanks-panel-bottom-left,
+.poke-thanks-panel-bottom-right {
+  width: 48px;
+  height: 48px;
+}
+
+.poke-thanks-panel-top,
+.poke-thanks-panel-bottom {
+  width: 100%;
+  height: 48px;
+  object-fit: fill;
+}
+
+.poke-thanks-panel-left,
+.poke-thanks-panel-right {
+  width: 48px;
+  height: 100%;
+  object-fit: fill;
+}
+
+.poke-thanks-panel-content {
+  min-width: 0;
+  min-height: 264px;
+  padding: 0 24px;
+  background: url("/landing-poke/lucky-photo-poke-panel-center.png") center / 100% 100% no-repeat;
+}
+
+.poke-thanks-table-frame {
+  position: relative;
+  width: 100%;
+}
+
+.poke-thanks-table-frame::before,
+.poke-thanks-table-frame::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 10px;
+  z-index: 2;
+  width: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.poke-thanks-table-frame::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(255, 243, 224, 1) 0%, rgba(255, 243, 224, 0) 100%);
+}
+
+.poke-thanks-table-frame::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(255, 243, 224, 1) 0%, rgba(255, 243, 224, 0) 100%);
+}
+
+.poke-thanks-table-frame.has-left-overflow::before,
+.poke-thanks-table-frame.has-right-overflow::after {
+  opacity: 1;
+}
+
+.poke-thanks-table-wrap {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-color: rgba(161, 102, 16, 0.52) rgba(195, 158, 103, 0.12);
+  scrollbar-width: thin;
+}
+
+.poke-thanks-bottom-mask {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(255, 243, 224, 0) 0%, rgba(255, 243, 224, 1) 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.poke-thanks-table-frame.has-collapsed-rows .poke-thanks-bottom-mask {
+  opacity: 1;
+}
+
+.poke-thanks-table-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+
+.poke-thanks-table-wrap::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(195, 158, 103, 0.12);
+}
+
+.poke-thanks-table-wrap::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(161, 102, 16, 0.52);
+}
+
+.poke-thanks-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 102, 16, 0.72);
+}
+
+.poke-thanks-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px;
+  column-gap: 32px;
+  align-items: center;
+  min-width: 520px;
+}
+
+.poke-thanks-table-head {
+  position: relative;
+  margin-bottom: 0;
+  padding-bottom: 8px;
+  color: var(--poke-table-header-color, #c39e67);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.poke-thanks-table-head::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0.5px;
+  background: color-mix(in srgb, var(--poke-table-border-color, #c39e67) 56%, transparent);
+}
+
+.poke-thanks-table-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.poke-thanks-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px;
+  column-gap: 32px;
+  align-items: center;
+  min-width: 520px;
+  color: var(--poke-table-text-color, #a16610);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.poke-thanks-table-body:not(.is-expanded) .poke-thanks-table-row.is-extra-row {
+  display: none;
+}
+
+.poke-thanks-col {
+  min-width: 0;
+  text-align: left;
+}
+
+.poke-thanks-col-name {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.poke-thanks-col-id,
+.poke-thanks-col-followers {
+  white-space: nowrap;
+}
+
+.poke-thanks-col-followers {
+  width: 100px;
+}
+
+.poke-thanks-more-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin: 16px auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--poke-thanks-color, #c51c1b);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.poke-thanks-more-button:hover {
+  color: #ec2e2e;
+  transform: translateY(-1px);
+}
+
+.poke-thanks-more-button:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid rgba(236, 46, 46, 0.36);
+  outline-offset: 4px;
+}
+
+.poke-thanks-more-button[hidden] {
+  display: none;
+}
+
+.poke-thanks-meta {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.poke-thanks-divider {
+  width: 100%;
+  height: 1px;
+  border-top: 1px dashed var(--poke-table-border-color, #e29211);
+}
+
+.poke-thanks-note {
+  margin: 24px 0 0;
+  color: var(--poke-thanks-color, #c51c1b);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.poke-thanks-special {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--poke-thanks-color, #c51c1b);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.poke-thanks-special-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+@media (max-width: 1068px) {
+  .poke-landing-page {
+    --poke-landing-bg-width: 2000px;
+  }
+
+  .poke-landing-hero {
+    padding-top: 80px;
+  }
+
+  .poke-landing-title {
+    gap: 6px;
+    margin-bottom: 32px;
+    font-size: clamp(21px, calc(5.92px + 2.05vw), 28px);
+  }
+
+  .poke-thanks-panel {
+    margin-bottom: 80px;
+  }
+}
+
+@media (max-width: 734px) {
+  .poke-landing-page {
+    --poke-landing-bg-width: 1500px;
+  }
+
+  .poke-landing-hero {
+    padding-top: 60px;
+  }
+
+  .poke-landing-title {
+    gap: 4px;
+    margin-bottom: 24px;
+    font-size: 19px;
+  }
+
+  .poke-thanks-panel {
+    margin-bottom: 60px;
+  }
+
+  .poke-thanks-panel-top-left,
+  .poke-thanks-panel-top-right,
+  .poke-thanks-panel-bottom-left,
+  .poke-thanks-panel-bottom-right {
+    width: 40px;
+    height: 40px;
+  }
+
+  .poke-thanks-panel-top,
+  .poke-thanks-panel-bottom {
+    height: 40px;
+  }
+
+  .poke-thanks-panel-left,
+  .poke-thanks-panel-right {
+    width: 40px;
+  }
+
+  .poke-thanks-panel-content {
+    padding: 0;
+  }
+
+  .poke-thanks-table,
+  .poke-thanks-table-row {
+    grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) 68px;
+    column-gap: 24px;
+    min-width: 376px;
+  }
+
+  .poke-thanks-col-followers {
+    width: 68px;
+  }
+
+  .poke-thanks-table-head {
+    font-size: 12px;
+  }
+
+  .poke-thanks-table-row,
+  .poke-thanks-more-button,
+  .poke-thanks-note,
+  .poke-thanks-special {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .poke-thanks-more-button,
+  .poke-thanks-bottom-mask,
+  .poke-thanks-table-frame::before,
+  .poke-thanks-table-frame::after {
+    transition: none;
+  }
+}

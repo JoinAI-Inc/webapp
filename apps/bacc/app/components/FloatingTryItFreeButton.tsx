@@ -123,7 +123,7 @@ export function FloatingTryItFreeButton({
 
         const viewportHeight = window.innerHeight;
         const isMobile = window.innerWidth < 735;
-        const dockLift = isMobile ? 16 : 40;
+        const dockLift = isMobile ? 16 : 20;
         const buttonHeight = el.offsetHeight || 48;
 
         const fixedTop = viewportHeight - cachedBottom - buttonHeight;
@@ -189,6 +189,7 @@ export function FloatingTryItFreeButton({
         backgroundImageUrl={backgroundImageUrl}
         gradient={gradient}
         focusColor={focusColor}
+        className="hover:shadow-none hover:translate-y-0"
       />
     </div>
   );

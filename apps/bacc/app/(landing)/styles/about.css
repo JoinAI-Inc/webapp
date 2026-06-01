@@ -1,0 +1,327 @@
+.about-page {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--about-bg, #fdf5ea);
+  color: var(--about-text, #0a0708);
+  font-family: Manrope, "Noto Sans JP", "Noto Sans SC", sans-serif;
+}
+
+.about-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 0;
+  width: 1920px;
+  height: 744px;
+  background: var(--about-bg-image) center top / 100% auto no-repeat;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.about-main {
+  position: relative;
+  z-index: 1;
+}
+
+.about-hero {
+  position: relative;
+  width: 100%;
+  padding: 80px 0 0;
+  margin-bottom: 100px;
+  overflow: hidden;
+}
+
+.about-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 60%) minmax(280px, calc(40% - 80px));
+  column-gap: 80px;
+  align-items: stretch;
+  width: 87.5vw;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.about-hero-copy {
+  display: flex;
+  min-height: 1px;
+  flex-direction: column;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.about-hero-title {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  color: var(--about-text, #0a0708);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.about-hero-title-line {
+  display: block;
+}
+
+.about-hero-title-highlight {
+  color: var(--about-accent, #ec2e2e);
+}
+
+.about-hero-title-nowrap {
+  white-space: nowrap;
+}
+
+.about-hero-input {
+  display: block;
+  width: 100%;
+  min-height: 160px;
+  flex: 1 1 auto;
+  margin-top: 24px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--about-input-border, #e4d7c5);
+  border-radius: 16px;
+  outline: none;
+  background: var(--about-input-bg, #fdf5ea);
+  color: #39383b;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0;
+  resize: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    background-color 180ms ease;
+}
+
+.about-hero-input::placeholder {
+  color: #cdbfae;
+}
+
+.about-hero-input:hover {
+  border-color: #d2bfa6;
+  box-shadow: 0 0 0 4px rgba(228, 215, 197, 0.22);
+}
+
+.about-hero-input:focus,
+.about-hero-input:focus-visible {
+  border-color: var(--about-accent, #ec2e2e);
+  box-shadow: 0 0 0 4px rgba(236, 46, 46, 0.08);
+  color: var(--about-text, #0a0708);
+}
+
+.about-hero-input[data-filled="true"] {
+  color: var(--about-text, #0a0708);
+}
+
+.about-hero-input:disabled {
+  border-color: #e8dccb;
+  background: #f8eedf;
+  color: #b8aa98;
+  cursor: not-allowed;
+}
+
+.about-hero-input:disabled::placeholder {
+  color: #c7b9a8;
+}
+
+.about-hero-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-width: fit-content;
+  height: 40px;
+  margin-top: 24px;
+  padding: 0 32px;
+  border: none;
+  border-radius: 999px;
+  background: var(--about-accent, #ec2e2e);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.about-hero-send:hover {
+  background: #d42424;
+  box-shadow: 0 10px 24px rgba(212, 36, 36, 0.12);
+}
+
+.about-hero-send:focus,
+.about-hero-send:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(236, 46, 46, 0.12),
+    0 10px 24px rgba(212, 36, 36, 0.18);
+}
+
+.about-hero-send:active {
+  background: #bf1f1f;
+  box-shadow: 0 4px 10px rgba(212, 36, 36, 0.16);
+  transform: translateY(1px);
+}
+
+.about-hero-send:disabled,
+.about-hero-send[aria-disabled="true"] {
+  background: var(--about-disabled, #e8e8e8);
+  color: #9b9a9d;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.about-hero-email {
+  margin: 16px 0 0;
+  color: var(--about-muted, #9b9a9d);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.about-hero-email a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.about-hero-email a:hover {
+  color: #39383b;
+}
+
+.about-hero-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: var(--about-muted, #9b9a9d);
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.about-hero-status:empty {
+  margin-top: 0;
+}
+
+.about-hero-media {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.about-hero-media img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  -webkit-user-drag: none;
+}
+
+@media (min-width: 735px) {
+  .about-hero-title {
+    font-size: clamp(21px, calc(8.06px + 1.76vw), 32px);
+  }
+}
+
+@media (min-width: 1360px) {
+  .about-hero-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 1068px) {
+  .about-hero {
+    padding-top: 60px;
+    margin-bottom: 80px;
+  }
+
+  .about-hero::before {
+    width: 1360px;
+  }
+
+  .about-hero-inner {
+    grid-template-columns: minmax(0, 50%) minmax(260px, calc(50% - 60px));
+    column-gap: 60px;
+  }
+
+  .about-hero-copy {
+    padding-top: 24px;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 734px) {
+  .about-hero {
+    padding-top: 40px;
+    margin-bottom: 60px;
+  }
+
+  .about-hero::before {
+    width: 960px;
+    height: 480px;
+    background-size: auto 100%;
+  }
+
+  .about-hero-inner {
+    grid-template-columns: 100%;
+    column-gap: 0;
+  }
+
+  .about-hero-copy,
+  .about-hero-media {
+    width: 100%;
+  }
+
+  .about-hero-copy {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .about-hero-title {
+    font-size: 19px;
+    text-align: center;
+  }
+
+  .about-hero-input {
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  .about-hero-send {
+    width: min(87.5vw, 100%);
+    height: 40px;
+    margin-top: 16px;
+  }
+
+  .about-hero-email,
+  .about-hero-status {
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .about-hero-media {
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .about-hero-media img {
+    width: clamp(280px, calc(218.16px + 19.32vw), 360px);
+    max-width: 100%;
+    height: auto;
+  }
+}

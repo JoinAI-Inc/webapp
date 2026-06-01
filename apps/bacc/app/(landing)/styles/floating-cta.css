@@ -2,20 +2,17 @@
 
 .floating-cta-root {
   --floating-cta-size: 48px;
-  --floating-cta-half: 24px; /* 初始圆的半径 = 按钮高度的一半 */
+  --floating-cta-half: 24px;
+  /* 初始圆的半径 = 按钮高度的一半 */
 
   position: fixed;
   left: 50%;
-  bottom: 48px;
+  bottom: 80px;
   z-index: 950;
   opacity: 0;
   pointer-events: none;
   transform: translateX(-50%) translateY(18px) scale(0.985);
-  clip-path: inset(
-    0 calc(50% - var(--floating-cta-half))
-    0 calc(50% - var(--floating-cta-half))
-    round 999px
-  );
+  clip-path: inset(0 calc(50% - var(--floating-cta-half)) 0 calc(50% - var(--floating-cta-half)) round 999px);
   box-shadow:
     0 24px 56px rgba(212, 36, 36, 0.3),
     0 10px 22px rgba(10, 7, 8, 0.12);
@@ -82,21 +79,15 @@
   0% {
     opacity: 0;
     transform: translateX(-50%) translateY(24px) scale(0.96);
-    clip-path: inset(
-      0 calc(50% - var(--floating-cta-half))
-      0 calc(50% - var(--floating-cta-half))
-      round 999px
-    );
+    clip-path: inset(0 calc(50% - var(--floating-cta-half)) 0 calc(50% - var(--floating-cta-half)) round 999px);
   }
+
   58% {
     opacity: 1;
     transform: translateX(-50%) translateY(-3px) scale(1.02);
-    clip-path: inset(
-      0 calc(50% - var(--floating-cta-half))
-      0 calc(50% - var(--floating-cta-half))
-      round 999px
-    );
+    clip-path: inset(0 calc(50% - var(--floating-cta-half)) 0 calc(50% - var(--floating-cta-half)) round 999px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
@@ -110,19 +101,17 @@
     transform: translateX(-50%) translateY(0) scale(1);
     clip-path: inset(0 0 0 0 round 999px);
   }
+
   42% {
     opacity: 1;
     transform: translateX(-50%) translateY(-2px) scale(1.01);
     clip-path: inset(0 0 0 0 round 999px);
   }
+
   100% {
     opacity: 0;
     transform: translateX(-50%) translateY(20px) scale(0.965);
-    clip-path: inset(
-      0 calc(50% - var(--floating-cta-half))
-      0 calc(50% - var(--floating-cta-half))
-      round 999px
-    );
+    clip-path: inset(0 calc(50% - var(--floating-cta-half)) 0 calc(50% - var(--floating-cta-half)) round 999px);
   }
 }
 
@@ -147,12 +136,12 @@
   .floating-cta-root {
     --floating-cta-size: 40px;
     --floating-cta-half: 20px;
-    bottom: 24px;
+    bottom: 40px;
   }
 }
 
 @media (min-width: 735px) and (max-width: 1068px) {
   .floating-cta-root {
-    bottom: 40px;
+    bottom: 60px;
   }
 }

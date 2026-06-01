@@ -27,20 +27,15 @@
   pointer-events: none;
 }
 
-.feature-gradient-card-decor-left {
+.feature-gradient-card-decor-img {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 352px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1260px;
+  height: auto;
   max-width: none;
-}
-
-.feature-gradient-card-decor-right {
-  position: absolute;
-  top: 80px;
-  right: 0;
-  width: 329px;
-  max-width: none;
+  pointer-events: none;
 }
 
 .feature-gradient-card-frame {
@@ -239,14 +234,6 @@
     height: 480px;
     margin: 60px calc(50% - 50vw) 40px;
     border-radius: 0;
-  }
-
-  .feature-gradient-card-decor-left {
-    width: 240px;
-  }
-
-  .feature-gradient-card-decor-right {
-    display: none;
   }
 
   .feature-gradient-card-frame {

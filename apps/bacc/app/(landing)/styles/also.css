@@ -208,20 +208,38 @@
 
 .pet-feature-mobile-card {
   margin: 0;
+  overflow: hidden;
+  aspect-ratio: 342 / 512;
 }
 
 .pet-feature-mobile-card img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
 }
 
 .ootd-feature-card {
   position: relative;
+  align-self: start;
   min-height: 0;
   overflow: hidden;
   border-radius: 16px;
   background: #f5f5f5;
+}
+
+.ootd-feature-card-image {
+  aspect-ratio: auto;
+}
+
+.ootd-feature-card-image img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.ootd-feature-card-placeholder {
+  aspect-ratio: 342 / 512;
 }
 
 .ootd-feature-placeholder {
@@ -231,7 +249,7 @@
 
 .floating-cta-dock-anchor {
   height: 0;
-  margin-top: 240px;
+  margin-top: 80px;
 }
 
 .also-section-cta {
@@ -424,7 +442,6 @@
     width: 100%;
     max-width: none;
     margin: 0 0 80px;
-    align-items: start;
   }
 
   .pet-feature-mobile-card img {

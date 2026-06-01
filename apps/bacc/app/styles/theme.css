@@ -10,12 +10,12 @@
     --font-primary: "Inter", -apple-system, "Microsoft YaHei", "Source Han Sans SC", sans-serif;
 
     /* 英文字体 */
-    --font-en-primary: "Inter", -apple-system, sans-serif;
-    --font-en-inter: "Inter", -apple-system, sans-serif;
+    --font-en-primary: "PingFang SC", Inter, "Source Han Sans", sans-serif;
+    --font-en-inter: "PingFang SC", Inter, "Source Han Sans", sans-serif;
 
     /* 中文字体 */
-    --font-zh-primary: "Inter", -apple-system, "Microsoft YaHei", "Source Han Sans SC", sans-serif;
-    --font-zh-inter: "Inter", -apple-system, "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+    --font-zh-primary: "PingFang SC", Inter, "Source Han Sans", sans-serif;
+    --font-zh-inter: "PingFang SC", Inter, "Source Han Sans", sans-serif;
 
     --font-display: "Oswald", sans-serif;
     --font-libre-bodoni: var(--next-font-libre-bodoni);
