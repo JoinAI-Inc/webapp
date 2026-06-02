@@ -34,7 +34,7 @@ router.post('/submit', async (req: Request, res: Response) => {
         }
 
         // 验证任务类型
-        const validTypes: TaskType[] = ['portrait', 'magic', 'template'];
+        const validTypes: TaskType[] = ['template'];
         if (!validTypes.includes(type)) {
             return res.status(400).json({
                 error: `Invalid task type. Must be one of: ${validTypes.join(', ')}`

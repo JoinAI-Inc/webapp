@@ -16,7 +16,6 @@ export const AUTH_REQUIRED_ROUTES = [
 
 // 需要订阅的路由 - 需要用户已登录且已订阅
 export const SUBSCRIPTION_REQUIRED_ROUTES = [
-    '/studio',
 ];
 
 export const PROTECTED_API_ROUTES = {
@@ -39,7 +38,7 @@ export function matchesRoute(path: string, routes: string[]): boolean {
         // 精确匹配
         if (path === route) return true;
 
-        // 前缀匹配 (例如 /studio 匹配 /studio/magic)
+        // 前缀匹配 (例如 /payment 匹配 /payment/success)
         if (path.startsWith(route + '/')) return true;
 
         return false;

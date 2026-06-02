@@ -3,7 +3,7 @@ import { storage } from '../../lib/storage.js';
 
 const router = express.Router();
 
-const VALID_CONTEXTS = new Set(['site-theme']);
+const VALID_CONTEXTS = new Set(['site-theme', 'template']);
 const VALID_PAGES = new Set(['home', 'about', 'poke', 'footer', 'global']);
 const VALID_SECTIONS = new Set([
     'hero',
@@ -17,6 +17,7 @@ const VALID_SECTIONS = new Set([
     'poke',
     'footer',
     'theme',
+    'template',
 ]);
 
 function slugify(value: unknown, fallback: string) {

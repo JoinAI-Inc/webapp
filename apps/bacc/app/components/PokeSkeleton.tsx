@@ -6,6 +6,8 @@ function SkeletonBlock({ className }: { className?: string }) {
   return <span className={`home-sk-block${className ? ` ${className}` : ""}`} />;
 }
 
+const NAV_LINK_SKELETON_COUNT = 3;
+
 function PokeHeroSkeleton() {
   return (
     <div className="poke-sk-hero">
@@ -86,10 +88,9 @@ export function PokeSkeleton() {
       <div className="home-sk-nav">
         <SkeletonBlock className="home-sk-logo" />
         <div className="home-sk-nav-links">
-          <SkeletonBlock className="home-sk-navlink" />
-          <SkeletonBlock className="home-sk-navlink" />
-          <SkeletonBlock className="home-sk-navlink" />
-          <SkeletonBlock className="home-sk-navlink" />
+          {Array.from({ length: NAV_LINK_SKELETON_COUNT }).map((_, i) => (
+            <SkeletonBlock key={i} className="home-sk-navlink" />
+          ))}
         </div>
         <SkeletonBlock className="home-sk-cta" />
       </div>

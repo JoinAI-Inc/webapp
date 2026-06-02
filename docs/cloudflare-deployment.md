@@ -139,8 +139,7 @@ npx wrangler@latest secret put ADMIN_ORIGIN
 | `NODE_ENV` | `production` |
 | `PORT` | `3001` |
 | `NANO_BANANA_BASE_URL` | AI 接口地址 |
-| `NANO_BANANA_PORTRAIT_SINGLE_MODELS` | 单图模型名 |
-| `NANO_BANANA_PORTRAIT_MULTI_MODELS` | 多图模型名 |
+| `NANO_BANANA_TEMPLATE_MODELS` | 模板图片生成模型名 |
 | `R2_BUCKET_NAME` | R2 桶名（非敏感，可放 vars） |
 | `R2_PUBLIC_DOMAIN` | R2 公开访问域名（非敏感）|
 | `QUEUE_MAX_RETRIES` | 队列最大重试次数，默认 3 |

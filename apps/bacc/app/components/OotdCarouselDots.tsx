@@ -1,92 +1,97 @@
 "use client";
 
-import { startTransition, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { Children, useCallback, useEffect, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 
-interface OotdCarouselDotsProps {
+interface OotdCarouselProps {
   carouselId: string;
   slideCount: number;
+  children: ReactNode;
 }
 
-export function OotdCarouselDots({
+export function OotdCarousel({
   carouselId,
   slideCount,
-}: OotdCarouselDotsProps) {
+  children,
+}: OotdCarouselProps) {
   const [activeSlide, setActiveSlide] = useState(0);
-  const activeSlideRef = useRef(0);
-  const frameRef = useRef(0);
+  const slides = Children.toArray(children);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    active: false,
+    align: "start",
+    containScroll: false,
+    loop: slideCount > 1,
+    skipSnaps: false,
+    breakpoints: {
+      "(max-width: 734px)": {
+        active: true,
+      },
+    },
+  });
+
+  const syncActiveSlide = useCallback(() => {
+    if (!emblaApi) {
+      return;
+    }
+
+    setActiveSlide(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
 
   useEffect(() => {
-    const carousel = document.getElementById(
-      carouselId,
-    ) as HTMLDivElement | null;
-    if (!carousel) {
+    if (!emblaApi) {
       return;
     }
 
-    const syncNow = () => {
-      frameRef.current = 0;
-
-      const width = carousel.clientWidth || 1;
-      const nextSlide = Math.min(
-        slideCount - 1,
-        Math.max(0, Math.round(carousel.scrollLeft / width)),
-      );
-
-      if (nextSlide !== activeSlideRef.current) {
-        activeSlideRef.current = nextSlide;
-        startTransition(() => setActiveSlide(nextSlide));
-      }
-    };
-
-    const sync = () => {
-      if (frameRef.current) {
-        return;
-      }
-
-      frameRef.current = window.requestAnimationFrame(syncNow);
-    };
-
-    sync();
-    carousel.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", sync);
+    syncActiveSlide();
+    emblaApi.on("select", syncActiveSlide);
+    emblaApi.on("reInit", syncActiveSlide);
 
     return () => {
-      if (frameRef.current) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
-      carousel.removeEventListener("scroll", sync);
-      window.removeEventListener("resize", sync);
+      emblaApi.off("select", syncActiveSlide);
+      emblaApi.off("reInit", syncActiveSlide);
     };
-  }, [carouselId, slideCount]);
+  }, [emblaApi, syncActiveSlide]);
 
-  const scrollToSlide = (index: number) => {
-    const carousel = document.getElementById(
-      carouselId,
-    ) as HTMLDivElement | null;
-    if (!carousel) {
-      return;
-    }
-
-    carousel.scrollTo({
-      left: (carousel.clientWidth || 0) * index,
-      behavior: "smooth",
-    });
-  };
+  const scrollToSlide = useCallback(
+    (index: number) => {
+      emblaApi?.scrollTo(index);
+    },
+    [emblaApi],
+  );
 
   return (
-    <div
-      className="gallery-feature-carousel-dots"
-      aria-label="OOTD gallery pagination"
-    >
-      {Array.from({ length: slideCount }, (_, index) => (
-        <button
-          type="button"
-          className={`gallery-feature-carousel-dot${activeSlide === index ? " is-active" : ""}`}
-          aria-label={`Go to slide ${index + 1}`}
-          key={index}
-          onClick={() => scrollToSlide(index)}
-        />
-      ))}
-    </div>
+    <>
+      <div
+        className="gallery-feature-grid gallery-feature-grid-three gallery-feature-grid-carousel"
+        id={carouselId}
+        ref={emblaRef}
+      >
+        <div className="gallery-feature-carousel-track">
+          {slides.map((slide, index) => (
+            <div className="gallery-feature-carousel-slide" key={index}>
+              {slide}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className="gallery-feature-carousel-dots"
+        aria-label="OOTD gallery pagination"
+      >
+        {Array.from({ length: slideCount }, (_, index) => (
+          <button
+            type="button"
+            className={`gallery-feature-carousel-dot${
+              activeSlide === index ? " is-active" : ""
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+            key={index}
+            onClick={() => scrollToSlide(index)}
+          />
+        ))}
+      </div>
+    </>
   );
 }

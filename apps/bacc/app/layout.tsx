@@ -10,8 +10,8 @@ import { NavigationProgress } from "@/components/NavigationProgress";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "新年快乐 - AI Magic Studio for Lunar New Year",
-    description: "Create stunning personalized Lunar New Year greetings with AI-powered Hanfu styling, festive backgrounds, and cinematic motion.",
+    title: "Lucky Photo - Lunar New Year Template Generator",
+    description: "Create personalized Lunar New Year images with AI-powered templates.",
 };
 
 export default function RootLayout({
@@ -36,4 +36,3 @@ export default function RootLayout({
         </html>
     );
 }
-

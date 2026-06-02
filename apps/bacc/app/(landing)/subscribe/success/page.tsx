@@ -36,7 +36,6 @@ function SuccessContent() {
     return (
         <main
             className="min-h-screen bg-[#f8f8f8] flex flex-col items-center justify-center px-[24px]"
-            style={{ fontFamily: "Manrope, sans-serif" }}
         >
             <div className="bg-white rounded-3xl shadow-xl p-[40px] flex flex-col items-center text-center max-w-md w-full">
                 {status === "syncing" && (

@@ -15,10 +15,10 @@ export default function Navbar() {
                 </Link>
                 <div className="flex items-center gap-[24px]">
                     <Link
-                        href="/studio/magic"
+                        href="/generate"
                         className="text-cny-ivory/60 hover:text-cny-gold transition-colors font-bold text-sm uppercase tracking-widest"
                     >
-                        Magic Studio
+                        Templates
                     </Link>
 
                     {user && (
@@ -57,4 +57,3 @@ export default function Navbar() {
         </nav>
     );
 }
-

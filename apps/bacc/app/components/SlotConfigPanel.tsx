@@ -10,28 +10,17 @@ import { NoCreditsModal } from "./slot-config/NoCreditsModal";
 import { PremiumFeatureSubscribeBanner } from "./slot-config/PremiumBanner";
 import { UploadWidget } from "./slot-config/UploadWidget";
 import { AssetSelectionWidget } from "./slot-config/AssetSelectionWidget";
-import type { UserBalance } from "@/types/usage";
-
-const CONFIGURED_GENERATION_FEATURE_KEY = process.env.NEXT_PUBLIC_GENERATION_FEATURE_KEY || "";
-
-function resolveGenerationFeatureKey(balances: UserBalance[]) {
-    if (CONFIGURED_GENERATION_FEATURE_KEY) return CONFIGURED_GENERATION_FEATURE_KEY;
-
-    const countBalance =
-        balances.find(b => b.feature.isActive && b.feature.chargingType === 'COUNT' && b.remainingCount > 0) ||
-        balances.find(b => b.feature.isActive && b.feature.chargingType === 'COUNT');
-
-    return countBalance?.feature.featureKey || "";
-}
 
 export function SlotConfigPanel({
     templateId,
+    generationFeatureKey: configuredTemplateFeatureKey,
     slots,
     onTaskSubmitted,
     onGeneratingChange,
     onGenerationComplete,
 }: {
     templateId: string;
+    generationFeatureKey?: string | null;
     slots: Slot[];
     onTaskSubmitted?: (taskId: string) => void;
     onGeneratingChange?: (isGenerating: boolean) => void;
@@ -65,7 +54,7 @@ export function SlotConfigPanel({
     const personSlots = slots.filter(s => s.slotType === 'PERSON');
     const isReadyToGenerate = personSlots.length === 0 || personSlots.every(s => uploads[s.id] != null);
 
-    const generationFeatureKey = resolveGenerationFeatureKey(balances);
+    const generationFeatureKey = configuredTemplateFeatureKey || "";
     const generationBalance = generationFeatureKey
         ? balances.find(b => b.feature.featureKey === generationFeatureKey)
         : null;
@@ -146,7 +135,7 @@ export function SlotConfigPanel({
     const lockedPremiumFeatures = selectedPremiumFeatures.filter(feature => premiumAssetAccess[feature.featureKey] === false);
     const firstLockedPremiumFeatureKey = unauthenticatedPremiumFeatureKey ?? lockedPremiumFeatures[0]?.featureKey;
     const hasLockedPremiumAsset = !!firstLockedPremiumFeatureKey;
-    const canGenerate = isReadyToGenerate && !loading && !checkingPremiumAssetAccess && !hasLockedPremiumAsset;
+    const canGenerate = !!generationFeatureKey && isReadyToGenerate && !loading && !checkingPremiumAssetAccess && !hasLockedPremiumAsset;
 
     const handleAssetSelect = (slotId: string, assetId: string, requiredFeatureKey: string | null) => {
         // Selection stays responsive; access is checked immediately after state updates.
@@ -188,13 +177,18 @@ export function SlotConfigPanel({
         setSubmittedTaskId('pending');
 
         try {
-            let featureKeyForRequest = generationFeatureKey;
-
             // 已登录 → 检查当前生成功能点余额
             if (session) {
+                if (!generationFeatureKey) {
+                    setError('This template is missing generation billing configuration.');
+                    setSubmittedTaskId(null);
+                    setUploads(uploadsSnapshot);
+                    setLoading(false);
+                    return;
+                }
                 const latestBalances = await refreshBalances();
-                const featureKey = resolveGenerationFeatureKey(latestBalances);
-                if (!featureKey) {
+                const latestBalance = latestBalances.find(b => b.feature.featureKey === generationFeatureKey);
+                if (!latestBalance) {
                     setShowNoCredits(true);
                     setSubmittedTaskId(null);
                     setUploads(uploadsSnapshot);
@@ -202,8 +196,7 @@ export function SlotConfigPanel({
                     return;
                 }
 
-                featureKeyForRequest = featureKey;
-                const access = await checkAccess(featureKey);
+                const access = await checkAccess(generationFeatureKey);
                 if (!access.hasAccess) {
                     setShowNoCredits(true);
                     setSubmittedTaskId(null);
@@ -241,7 +234,7 @@ export function SlotConfigPanel({
             const submitRes = await fetch('/api/generate/template', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ templateId, slots: configuredSlots, featureKey: featureKeyForRequest }),
+                body: JSON.stringify({ templateId, slots: configuredSlots }),
             });
 
             if (!submitRes.ok) {
@@ -521,7 +514,7 @@ export function SlotConfigPanel({
                                 ) : checkingPremiumAssetAccess ? (
                                     "Checking access..."
                                 ) : (
-                                    "Start to show Magic"
+                                    "Generate"
                                 )}
                             </button>
                         </div>

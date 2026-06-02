@@ -520,6 +520,11 @@ model Template {
   resolution    String?                           // 如 "2:3"，从 descriptor 提取
   theme         String?                           // 从 descriptor.global_config.theme 提取
 
+  // 生成配置。模板只保存业务可配置项；模型、图片预处理等技术运行参数由服务配置控制。
+  generationFeatureKey String? @map("generation_feature_key")
+  promptPolicyKey      String? @default("template-default") @map("prompt_policy_key")
+  promptPolicyVersion  Int?    @default(1) @map("prompt_policy_version")
+
   // 统计（冗余存储避免聚合查询）
   favoriteCount Int            @default(0) @map("favorite_count")
 
@@ -534,7 +539,24 @@ model Template {
 
   @@index([status])
   @@index([createdAt])
+  @@index([generationFeatureKey])
+  @@index([promptPolicyKey, promptPolicyVersion])
   @@map("templates")
+}
+
+model PromptPolicy {
+  id        String   @id @default(cuid())
+  key       String
+  version   Int
+  name      String
+  config    Json
+  status    String   @default("draft")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([key, version])
+  @@index([key, status, version])
+  @@map("prompt_policies")
 }
 
 // 标签

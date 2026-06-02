@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
+import { RedBrandSafeArea } from "./RedBrandSafeArea";
 
 export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
   const redBrand = material.redBrand;
@@ -22,6 +23,7 @@ export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
         style={{ backgroundImage: `url(${redBrand.patternImageUrl})` }}
         aria-hidden="true"
       />
+      <RedBrandSafeArea />
 
       <div
         className="year-feature-decor-slot year-feature-decor-slot-left"
@@ -31,10 +33,6 @@ export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
         <LandingImage
           className="year-feature-decor year-feature-decor-left year-feature-decor-base"
           src={redBrand.leftBaseImageUrl}
-        />
-        <LandingImage
-          className="year-feature-decor year-feature-decor-left year-feature-decor-overlay"
-          src={redBrand.leftOverlayImageUrl}
         />
       </div>
 
@@ -47,10 +45,6 @@ export function RedBrandSection({ material }: { material: SiteThemeConfig }) {
         <LandingImage
           className="year-feature-decor year-feature-decor-right year-feature-decor-base"
           src={redBrand.rightBaseImageUrl}
-        />
-        <LandingImage
-          className="year-feature-decor year-feature-decor-right year-feature-decor-overlay year-feature-decor-overlay-right"
-          src={redBrand.rightOverlayImageUrl}
         />
       </div>
 

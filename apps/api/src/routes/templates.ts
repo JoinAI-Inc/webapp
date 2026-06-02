@@ -55,6 +55,34 @@ function isSupportedImageSource(value: unknown): value is string {
         );
 }
 
+async function resolveTemplateGenerationConfig(template: any): Promise<Record<string, any>> {
+    const promptPolicy = template.promptPolicyKey
+        ? (
+            template.promptPolicyVersion
+                ? await (prisma as any).promptPolicy.findUnique({
+                    where: {
+                        key_version: {
+                            key: template.promptPolicyKey,
+                            version: template.promptPolicyVersion,
+                        },
+                    },
+                })
+                : await (prisma as any).promptPolicy.findFirst({
+                    where: { key: template.promptPolicyKey, status: 'active' },
+                    orderBy: { version: 'desc' },
+                })
+        )
+        : null;
+
+    return {
+        ...(promptPolicy?.config ? { promptPolicy: promptPolicy.config } : {}),
+        presetKeys: {
+            promptPolicyKey: template.promptPolicyKey ?? null,
+            promptPolicyVersion: promptPolicy?.version ?? template.promptPolicyVersion ?? null,
+        },
+    };
+}
+
 async function refundDeductedCount(userId: string, featureId: bigint): Promise<void> {
     await prisma.$executeRaw`
         UPDATE "user_feature_balances"
@@ -206,6 +234,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         res.json({
             id: template.id, name: template.name, imageUrl: template.imageUrl,
             resolution: template.resolution, theme: template.theme,
+            generationFeatureKey: (template as any).generationFeatureKey ?? null,
             descriptor: template.descriptor, favoriteCount: template.favoriteCount,
             isFavorited: userId ? (template.favorites?.length ?? 0) > 0 : false,
             tags: template.tags.map((tt: any) => ({ id: tt.tag.id, name: tt.tag.name })),
@@ -299,16 +328,12 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         const userId = await getUserIdFromRequest(req);
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const { slots, featureKey } = req.body as {
+        const { slots } = req.body as {
             slots: Array<{ refId: string; slotType?: string; imageSource?: string; assetId?: string }>;
-            featureKey?: string;
         };
 
         if (!slots || !Array.isArray(slots) || slots.length === 0) {
             return res.status(400).json({ error: 'slots is required and must be a non-empty array' });
-        }
-        if (!featureKey || typeof featureKey !== 'string') {
-            return res.status(400).json({ error: 'featureKey is required', code: 'FEATURE_KEY_REQUIRED' });
         }
 
         const template = await prisma.template.findUnique({
@@ -317,6 +342,15 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         });
         if (!template || template.status === 'ARCHIVED') {
             return res.status(404).json({ error: 'Template not found' });
+        }
+
+        const templateConfig = template as any;
+        const generationFeatureKey = templateConfig.generationFeatureKey;
+        if (!generationFeatureKey || typeof generationFeatureKey !== 'string') {
+            return res.status(400).json({
+                error: 'Template generation featureKey is not configured',
+                code: 'FEATURE_KEY_REQUIRED'
+            });
         }
 
         // 校验必填 slot（PERSON 槽位必填）
@@ -440,14 +474,14 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
 
         // ── 入队前原子扣减（核心并发防线）─────────────────────────────────────
         const feature = await prisma.feature.findUnique({
-            where: { featureKey }
+            where: { featureKey: generationFeatureKey }
         });
 
         let deductedFeatureKey: string | null = null;
 
         if (!feature || !feature.isActive || feature.chargingType !== 'COUNT') {
             return res.status(400).json({
-                error: `Generation feature (${featureKey}) is not configured for count usage.`,
+                error: `Generation feature (${generationFeatureKey}) is not configured for count usage.`,
                 code: 'FEATURE_NOT_FOUND'
             });
         }
@@ -484,6 +518,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
             templateImageUrl: template.imageUrl ?? undefined,
             descriptor: template.descriptor,
             slots: normalizedSlots.map(({ assetId, ...slot }) => slot),
+            generationConfig: await resolveTemplateGenerationConfig(template),
             _deductedFeatureKey: deductedFeatureKey,
         };
 

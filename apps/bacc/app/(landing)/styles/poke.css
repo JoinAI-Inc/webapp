@@ -7,7 +7,7 @@
     var(--poke-landing-bg-image) center top / var(--poke-landing-bg-width) auto no-repeat,
     var(--poke-landing-bg, #fdf5ea);
   color: #0a0708;
-  font-family: Manrope, "Noto Sans SC", "Noto Sans JP", sans-serif;
+  font-family: var(--font-en-primary);
 }
 
 .poke-landing-main {

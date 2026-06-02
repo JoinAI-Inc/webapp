@@ -56,7 +56,6 @@ function BalanceModal({ onClose }: { onClose: () => void; userId?: string }) {
             {/* Modal */}
             <div
                 className="relative bg-white rounded-3xl shadow-2xl w-[520px] max-h-[80vh] overflow-hidden flex flex-col"
-                style={{ fontFamily: "Manrope, sans-serif" }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}

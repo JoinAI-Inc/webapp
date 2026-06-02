@@ -10,6 +10,7 @@ import tagsRouter from './admin/tags.js';
 import assetsRouter from './admin/assets.js';
 import siteThemesRouter from './admin/site-themes.js';
 import uploadsRouter from './admin/uploads.js';
+import generationConfigRouter from './admin/generation-config.js';
 
 const router = express.Router();
 
@@ -36,5 +37,6 @@ router.use('/tags', tagsRouter);
 router.use('/assets', assetsRouter);
 router.use('/site-themes', siteThemesRouter);
 router.use('/uploads', uploadsRouter);
+router.use('/generation-config', generationConfigRouter);
 
 export default router;

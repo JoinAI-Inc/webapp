@@ -55,8 +55,21 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/admin/templates
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { name, imageId, imageUrl, descriptor, tagIds = [], slots = [], status } = req.body;
-        if (!name || !imageUrl || !descriptor) return res.status(400).json({ error: 'name, imageUrl, descriptor are required' });
+        const {
+            name,
+            imageId,
+            imageUrl,
+            descriptor,
+            tagIds = [],
+            slots = [],
+            status,
+            generationFeatureKey,
+            promptPolicyKey,
+            promptPolicyVersion,
+        } = req.body;
+        if (!name || !imageUrl || !descriptor || !generationFeatureKey) {
+            return res.status(400).json({ error: 'name, imageUrl, descriptor, generationFeatureKey are required' });
+        }
 
         const resolution = descriptor.resolution ?? null;
         const theme = descriptor.global_config?.theme ?? null;
@@ -65,6 +78,9 @@ router.post('/', async (req: Request, res: Response) => {
             data: {
                 id: crypto.randomUUID(), name, imageId: imageId ?? null, imageUrl,
                 descriptor, resolution, theme, status: status ?? 'DRAFT',
+                generationFeatureKey: generationFeatureKey || null,
+                promptPolicyKey: promptPolicyKey || 'template-default',
+                promptPolicyVersion: promptPolicyVersion === undefined ? 1 : (promptPolicyVersion ? Number(promptPolicyVersion) : null),
                 tags: { create: (tagIds as string[]).map((tagId: string) => ({ tagId })) },
                 slots: {
                     create: (slots as any[]).map((s: any, i: number) => {
@@ -82,7 +98,7 @@ router.post('/', async (req: Request, res: Response) => {
                         return slotData;
                     })
                 }
-            },
+            } as any,
             include: templateInclude
         });
         res.status(201).json(template);
@@ -93,13 +109,27 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, imageId, imageUrl, descriptor, tagIds, slots, status } = req.body;
+        const {
+            name,
+            imageId,
+            imageUrl,
+            descriptor,
+            tagIds,
+            slots,
+            status,
+            generationFeatureKey,
+            promptPolicyKey,
+            promptPolicyVersion,
+        } = req.body;
 
-        const updateData: Prisma.TemplateUpdateInput = {};
+        const updateData: any = {};
         if (name !== undefined) updateData.name = name;
         if (imageId !== undefined) updateData.imageId = imageId;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
         if (status !== undefined) updateData.status = status;
+        if (generationFeatureKey !== undefined) updateData.generationFeatureKey = generationFeatureKey || null;
+        if (promptPolicyKey !== undefined) updateData.promptPolicyKey = promptPolicyKey || null;
+        if (promptPolicyVersion !== undefined) updateData.promptPolicyVersion = promptPolicyVersion ? Number(promptPolicyVersion) : null;
         if (descriptor !== undefined) {
             updateData.descriptor = descriptor;
             updateData.resolution = descriptor.resolution ?? null;

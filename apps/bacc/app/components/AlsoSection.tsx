@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
-import { OotdCarouselDots } from "./OotdCarouselDots";
+import { OotdCarousel } from "./OotdCarouselDots";
 
 const OOTD_CAROUSEL_ID = "ootd-feature-carousel";
 
@@ -172,7 +172,9 @@ function OotdFeatureCard({
   return (
     <figure
       className={`gallery-feature-card ootd-feature-card ${
-        item.imageUrl ? "ootd-feature-card-image" : "ootd-feature-card-placeholder"
+        item.imageUrl
+          ? "ootd-feature-card-image"
+          : "ootd-feature-card-placeholder"
       }`}
       style={{ backgroundColor }}
     >
@@ -214,9 +216,9 @@ function OotdSection({ material }: { material: SiteThemeConfig }) {
           id="ootd-feature-title"
         />
 
-        <div
-          className="gallery-feature-grid gallery-feature-grid-three gallery-feature-grid-carousel"
-          id={OOTD_CAROUSEL_ID}
+        <OotdCarousel
+          carouselId={OOTD_CAROUSEL_ID}
+          slideCount={ootd.items.length}
         >
           {ootd.items.map((item, index) => (
             <OotdFeatureCard
@@ -225,12 +227,7 @@ function OotdSection({ material }: { material: SiteThemeConfig }) {
               key={`${item.imageUrl || item.placeholderColor}-${index}`}
             />
           ))}
-        </div>
-
-        <OotdCarouselDots
-          carouselId={OOTD_CAROUSEL_ID}
-          slideCount={ootd.items.length}
-        />
+        </OotdCarousel>
 
         <div
           data-floating-cta-end

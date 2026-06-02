@@ -78,7 +78,7 @@ function LoginContent() {
     }
 
     return (
-        <div className="h-screen max-h-screen min-h-screen h-[100svh] max-h-[100svh] min-h-[100svh] overflow-hidden bg-white text-[#0a0708] [font-family:'PingFang_SC',Inter,'Source_Han_Sans',sans-serif]">
+        <div className="h-screen max-h-screen min-h-screen h-[100svh] max-h-[100svh] min-h-[100svh] overflow-hidden bg-white text-[#0a0708]">
             <main className="relative flex h-full min-h-full flex-col overflow-hidden desktop:flex-row desktop:justify-between">
                 <section className="relative z-[1] flex min-h-full min-w-[0px] flex-1 flex-col px-[20px] py-[28px] tablet:px-[36px] tablet:py-[40px] desktop:px-[48px] desktop:py-[44px]">
                     <Image

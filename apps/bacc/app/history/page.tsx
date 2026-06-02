@@ -96,6 +96,7 @@ export default function HistoryPage() {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
+            template: "模板生成",
             portrait: "肖像工作室",
             magic: "肖像工作室",    // 兼容旧数据
             hanfu: "肖像工作室",    // 兼容旧数据
@@ -124,7 +125,7 @@ export default function HistoryPage() {
 
                 {/* 筛选器 */}
                 <div className="flex gap-[16px] mb-[32px]">
-                    {["", "portrait", "decor", "video"].map((type) => (
+                    {["", "template"].map((type) => (
                         <button
                             key={type}
                             onClick={() => {

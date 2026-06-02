@@ -117,15 +117,21 @@ export abstract class BaseGenerator {
      */
     protected async callGeminiAPI(
         models: string[],
-        payloadFn: (modelId: string) => any
+        payloadFn: (modelId: string) => any,
+        options: { baseUrl?: string; timeoutMs?: number } = {}
     ): Promise<{ base64Image: string; mimeType: string }> {
         let lastError: any = null;
+        const baseUrl = (options.baseUrl || this.baseUrl).replace(/\/$/, '');
 
-        console.log(`[Generator] baseUrl: ${this.baseUrl}`);
+        if (models.length === 0) {
+            throw new Error('No image generation models configured');
+        }
+
+        console.log(`[Generator] baseUrl: ${baseUrl}`);
         console.log(`[Generator] Models to try (${models.length}): ${models.join(', ')}`);
 
         for (const modelId of models) {
-            const endpoint = `${this.baseUrl}/models/${modelId}:generateContent`;
+            const endpoint = `${baseUrl}/models/${modelId}:generateContent`;
             console.log(`[Generator] Trying model: ${modelId} → ${endpoint}`);
 
             try {
@@ -141,7 +147,7 @@ export abstract class BaseGenerator {
                         'Content-Length': String(payloadBytes),
                         'Authorization': `Bearer ${this.apiKey}`,
                     },
-                    timeout: 1_200_000,  // 20 分钟
+                    timeout: options.timeoutMs ?? 1_200_000,  // 默认 20 分钟
                     maxContentLength: Infinity,
                     maxBodyLength: Infinity,
                     validateStatus: () => true,  // 不抛 HTTP 错误，手动判断

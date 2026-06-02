@@ -99,7 +99,7 @@
 - [ ] 登录功能正常
 - [ ] 数据库连接正常（能看到订阅信息）
 - [ ] AI 图像生成功能测试
-- [ ] API routes 响应正常（检查 `/api/generate/magic/image`）
+- [ ] API routes 响应正常（检查 `/api/generate/template`）
 
 ---
 

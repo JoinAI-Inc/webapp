@@ -6,6 +6,8 @@
   padding: 104px 0 124px;
   overflow: hidden;
   background-color: var(--year-feature-bg, #dd1e1b);
+  --year-feature-left-offset: 0px;
+  --year-feature-right-offset: 0px;
 }
 
 .year-feature-pattern {
@@ -71,10 +73,12 @@
 
 .year-feature-decor-left {
   left: 0;
+  transform: translate3d(var(--year-feature-left-offset, 0px), 0, 0);
 }
 
 .year-feature-decor-right {
   right: 0;
+  transform: translate3d(var(--year-feature-right-offset, 0px), 0, 0);
 }
 
 .year-feature-decor-overlay-right {

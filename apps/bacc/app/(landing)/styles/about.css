@@ -4,7 +4,7 @@
   overflow-x: hidden;
   background: var(--about-bg, #fdf5ea);
   color: var(--about-text, #0a0708);
-  font-family: Manrope, "Noto Sans JP", "Noto Sans SC", sans-serif;
+  font-family: var(--font-en-primary);
 }
 
 .about-page::before {

@@ -20,7 +20,7 @@ export interface TaskStatus {
  * 提交生成任务到队列
  */
 export async function submitGenerationTask(
-    type: 'hanfu' | 'magic' | 'video' | 'decor',
+    type: 'template',
     payload: any
 ): Promise<string> {
     const response = await fetch('/api/queue/submit', {
@@ -98,7 +98,7 @@ export async function pollTaskStatus(
  * 一键提交并等待结果（便捷方法）
  */
 export async function submitAndWait(
-    type: 'hanfu' | 'magic' | 'video' | 'decor',
+    type: 'template',
     payload: any,
     options?: {
         onProgress?: (status: TaskStatus) => void;

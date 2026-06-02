@@ -55,6 +55,17 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.gallery-feature-grid-carousel {
+  display: block;
+  gap: 0;
+}
+
+.gallery-feature-carousel-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
 .gallery-feature-card {
   margin: 0;
   overflow: hidden;
@@ -290,6 +301,10 @@
     margin-bottom: 100px;
   }
 
+  .gallery-feature-carousel-track {
+    gap: 16px;
+  }
+
   .gallery-feature-grid-three {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -353,26 +368,29 @@
   }
 
   .gallery-feature-grid-three {
-    display: flex;
-    gap: 0;
+    display: block;
     width: 100%;
     max-width: none;
     margin-bottom: 0;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
-    scroll-behavior: smooth;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
+    touch-action: pan-y pinch-zoom;
   }
 
-  .gallery-feature-grid-three::-webkit-scrollbar {
-    display: none;
+  .gallery-feature-carousel-track {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+  }
+
+  .gallery-feature-carousel-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    padding-right: 8px;
   }
 
   .gallery-feature-grid-three .gallery-feature-card {
     width: 100%;
-    flex: 0 0 100%;
-    scroll-snap-align: start;
   }
 
   .gallery-feature-carousel-dots {
@@ -381,7 +399,7 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    margin: 16px 0 60px;
+    margin: 16px 0 0;
   }
 
   .pet-feature-section {
@@ -449,7 +467,7 @@
   }
 
   .floating-cta-dock-anchor {
-    margin-top: 48px;
+    margin-top: 80px;
   }
 
   .also-section-cta {

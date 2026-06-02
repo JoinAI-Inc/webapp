@@ -1,6 +1,15 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { SiteThemeConfig } from "../lib/site-theme";
 import { LandingImage } from "./LandingImage";
+
+function renderHighlightedText(text: string, highlightColor: string): ReactNode[] {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) =>
+    i % 2 === 1
+      ? <span key={i} style={{ color: highlightColor }}>{part}</span>
+      : part
+  );
+}
 
 export function AnnouncementSection({ material }: { material: SiteThemeConfig }) {
   const announcement = material.announcement;
@@ -27,7 +36,7 @@ export function AnnouncementSection({ material }: { material: SiteThemeConfig })
               </span>
             </h2>
             <p className="split-feature-support">
-              {announcement.support}
+              {renderHighlightedText(announcement.support, announcement.supportHighlightColor)}
             </p>
           </div>
         </div>

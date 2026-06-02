@@ -13,11 +13,9 @@
   border-radius: 24px;
   background:
     var(--feature-gradient-card-pattern) center / cover no-repeat,
-    linear-gradient(
-      180deg,
+    linear-gradient(180deg,
       var(--feature-gradient-card-start, #da2524) 0%,
-      var(--feature-gradient-card-end, #c00b0a) 100%
-    );
+      var(--feature-gradient-card-end, #c00b0a) 100%);
 }
 
 .feature-gradient-card-decor {
@@ -54,7 +52,6 @@
 }
 
 .feature-gradient-card-title {
-  margin: 40px 0 0;
   color: var(--feature-gradient-card-title-color, #c51c1b);
   font-size: 24px;
   font-weight: 600;
@@ -69,20 +66,16 @@
   height: 200px;
   margin-top: 16px;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 16%,
-    #000 84%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 16%,
-    #000 84%,
-    transparent 100%
-  );
+  -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%,
+      #000 16%,
+      #000 84%,
+      transparent 100%);
+  mask-image: linear-gradient(to bottom,
+      transparent 0%,
+      #000 16%,
+      #000 84%,
+      transparent 100%);
 }
 
 .feature-gradient-card-marquee::before,
@@ -142,14 +135,12 @@
   visibility: hidden;
 }
 
-.feature-gradient-card-marquee-row
-  .feature-gradient-card-marquee-entry:first-child {
+.feature-gradient-card-marquee-row .feature-gradient-card-marquee-entry:first-child {
   justify-content: flex-end;
   text-align: right;
 }
 
-.feature-gradient-card-marquee-row
-  .feature-gradient-card-marquee-entry:last-child {
+.feature-gradient-card-marquee-row .feature-gradient-card-marquee-entry:last-child {
   justify-content: flex-start;
   text-align: left;
 }
@@ -221,10 +212,6 @@
     margin: 80px auto 60px;
     border-radius: 16px;
   }
-
-  .feature-gradient-card-title {
-    margin-top: 32px;
-  }
 }
 
 @media (max-width: 734px) {
@@ -250,10 +237,6 @@
     border-width: 36px !important;
   }
 
-  .feature-gradient-card-title {
-    margin-top: 24px;
-  }
-
   .feature-gradient-card-marquee {
     height: 152px;
   }
@@ -275,10 +258,8 @@
     font-size: 14px;
   }
 
-  .feature-gradient-card-marquee-row
-    .feature-gradient-card-marquee-entry:first-child,
-  .feature-gradient-card-marquee-row
-    .feature-gradient-card-marquee-entry:last-child {
+  .feature-gradient-card-marquee-row .feature-gradient-card-marquee-entry:first-child,
+  .feature-gradient-card-marquee-row .feature-gradient-card-marquee-entry:last-child {
     justify-content: normal;
     text-align: initial;
   }

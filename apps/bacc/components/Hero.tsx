@@ -18,14 +18,13 @@ export default function Hero() {
                             Bridge Across Chinese Culture
                         </h2>
                         <h1 className="text-5xl desktop:text-7xl font-bold leading-tight mb-[32px]">
-                            Experience the <span className="text-shimmer italic">Magic</span> of Chinese New Year
+                            Generate Lunar New Year Images From Templates
                         </h1>
                         <p className="text-cny-ivory/60 text-lg mb-[40px] max-w-2xl mx-auto desktop:mx-[0px]">
-                            Transform your photos into traditional Hanfu masterpieces and create personalized
-                            Lunar New Year greetings with our state-of-the-art AI.
+                            Pick a template, upload your references, and generate a personalized Lunar New Year image.
                         </p>
                         <div className="flex flex-wrap items-center justify-center desktop:justify-start gap-[16px]">
-                            <Link href="/studio/hanfu" className="cny-button-primary flex items-center gap-[8px]">
+                            <Link href="/generate" className="cny-button-primary flex items-center gap-[8px]">
                                 Start Transformation <ArrowRight className="w-[20px] h-[20px]" />
                             </Link>
                             <button className="cny-button-outline">
@@ -59,7 +58,7 @@ export default function Hero() {
                             <div className="absolute inset-[0px] bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-[32px] text-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                                 <Wand2 className="w-[48px] h-[48px] text-cny-gold mx-auto mb-[16px] animate-pulse" />
                                 <p className="text-cny-gold font-bold italic text-xl">Western Elegance & Hanfu Tradition</p>
-                                <p className="text-white/60 text-sm mt-[8px]">AI-Generated Portrait (Preview)</p>
+                                <p className="text-white/60 text-sm mt-[8px]">AI-Generated Template Preview</p>
                             </div>
                         </div>
 

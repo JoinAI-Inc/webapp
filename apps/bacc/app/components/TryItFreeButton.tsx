@@ -52,7 +52,6 @@ export function TryItFreeButton({
                 className
             )}
             style={{
-                fontFamily: "Manrope, sans-serif",
                 outlineColor: focusColor,
                 background: isPrimary
                     ? `linear-gradient(180deg, ${gradient.from} 0%, ${gradient.to} 100%)`

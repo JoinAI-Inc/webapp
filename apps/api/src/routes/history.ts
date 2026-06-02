@@ -12,7 +12,7 @@ function getUserId(req: Request): string | null {
     );
 }
 
-// GET /api/history?page=1&type=magic&pageSize=20
+// GET /api/history?page=1&type=template&pageSize=20
 router.get('/', async (req: Request, res: Response) => {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });

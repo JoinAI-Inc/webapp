@@ -1,14 +1,10 @@
 import { prisma } from '@repo/database';
 import { taskManager } from './task-manager.js';
-import { PortraitGenerator } from '../generators/portrait-generator.js';
 import { TemplateGenerator } from '../generators/template-generator.js';
 
-const portraitGenerator = new PortraitGenerator();
 const templateGenerator = new TemplateGenerator();
 
 const generators = {
-    portrait: portraitGenerator,
-    magic: portraitGenerator,
     template: templateGenerator,
 };
 
@@ -70,9 +66,6 @@ export class QueueWorker {
             if (!generator) throw new Error(`Unknown task type: ${task.type}`);
 
             const generatorPayload: any = { ...task.payload, userId: task.userId };
-            if (task.type !== 'template') {
-                generatorPayload.mode = 'multi';
-            }
 
             const result = await generator.generate(generatorPayload);
 

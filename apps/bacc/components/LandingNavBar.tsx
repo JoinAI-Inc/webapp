@@ -149,7 +149,7 @@ export default function LandingNavBar() {
           height: 100%;
           padding: 0 20px;
           color: #39383b;
-          font-family: Manrope, sans-serif;
+          font-family: var(--font-en-primary);
           font-size: 14px;
           font-weight: 400;
           line-height: 1.4;
@@ -201,7 +201,7 @@ export default function LandingNavBar() {
           border-radius: 999px;
           background: #ec2e2e;
           color: #fff;
-          font-family: Manrope, sans-serif;
+          font-family: var(--font-en-primary);
           font-size: 14px;
           font-weight: 400;
           line-height: 1.4;
@@ -337,7 +337,7 @@ export default function LandingNavBar() {
             padding: 0 12px;
             border-radius: 8px;
             color: #39383b;
-            font-family: Manrope, sans-serif;
+            font-family: var(--font-en-primary);
             font-size: 14px;
             font-weight: 400;
             line-height: 1.4;

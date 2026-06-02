@@ -124,6 +124,7 @@ export type SiteThemeConfig = {
     titleColor: string;
     highlightColor: string;
     supportColor: string;
+    supportHighlightColor: string;
   };
   footer: {
     backgroundColor: string;
@@ -393,10 +394,11 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
     titlePrefix: "Special",
     titleHighlight: "Announcement",
     support:
-      "As part of our commitment to respecting your privacy, we do not store any photos you upload. Furthermore, since our service does not require creating a unique Avatar of you, there is no need to upload multiple photos - just one is sufficient.",
+      "As part of our commitment to respecting your privacy, **we do not store any photos you upload.** Furthermore, since our service does not require creating a unique Avatar of you, **there is no need to upload multiple photos** —just one is sufficient.",
     titleColor: "#0A0708",
     highlightColor: "#EC2E2E",
     supportColor: "#39383B",
+    supportHighlightColor: "rgb(236, 46, 46)",
   },
   footer: {
     backgroundColor: "#EC2E2E",
@@ -671,6 +673,7 @@ export function normalizeSiteThemeConfig(
       titleColor: asString(announcement.titleColor, DEFAULT_SITE_THEME.announcement.titleColor),
       highlightColor: asString(announcement.highlightColor, DEFAULT_SITE_THEME.announcement.highlightColor),
       supportColor: asString(announcement.supportColor, DEFAULT_SITE_THEME.announcement.supportColor),
+      supportHighlightColor: asString(announcement.supportHighlightColor, DEFAULT_SITE_THEME.announcement.supportHighlightColor),
     },
     footer: {
       backgroundColor: asString(footer.backgroundColor, DEFAULT_SITE_THEME.footer.backgroundColor),

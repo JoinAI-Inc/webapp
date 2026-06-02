@@ -20,6 +20,7 @@ interface TemplateDetail {
     name: string;
     imageUrl: string;
     favoriteCount: number;
+    generationFeatureKey?: string | null;
     slots: Slot[];
 }
 
@@ -193,6 +194,7 @@ export function TemplateDetailPanel({
                 <div className="w-full">
                     <SlotConfigPanel
                         templateId={template.id}
+                        generationFeatureKey={template.generationFeatureKey}
                         slots={template.slots}
                         onTaskSubmitted={handleTaskSubmitted}
                         onGeneratingChange={setIsGenerating}
