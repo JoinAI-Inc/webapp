@@ -16,6 +16,11 @@ COPY packages/database/prisma packages/database/prisma
 COPY packages/storage/package.json packages/storage/package.json
 COPY packages/queue/package.json packages/queue/package.json
 RUN npm install
+RUN npm install --include=optional --os=linux --cpu=x64 --libc=glibc --no-save \
+    sharp@0.33.5 \
+    @img/sharp-linux-x64@0.33.5 \
+    @img/sharp-libvips-linux-x64@1.0.4 \
+    && node -e "require('sharp')"
 
 FROM deps AS source
 COPY . .
