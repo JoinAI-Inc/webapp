@@ -1,17 +1,171 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
     container_name: webapp-postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-webapp}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-webapp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-# volumes:
-#   postgres_data:
+  migrate:
+    build:
+      context: .
+      target: api
+    image: webapp-api:local
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+    command: ["npx", "prisma", "migrate", "deploy", "--schema", "packages/database/prisma/schema.prisma"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      target: api
+    image: webapp-api:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      UPSTASH_REDIS_REST_URL: ${UPSTASH_REDIS_REST_URL}
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN}
+      QUEUE_MAX_RETRIES: ${QUEUE_MAX_RETRIES:-3}
+      TASK_REDIS_TTL: ${TASK_REDIS_TTL:-86400}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      APP_URL: ${APP_URL:-http://localhost:3003}
+      BACC_ORIGIN: ${BACC_ORIGIN:-http://localhost:3003}
+      JWT_SECRET: ${JWT_SECRET}
+      WORKER_SECRET: ${WORKER_SECRET}
+      OAUTH_CALLBACK_BASE: ${OAUTH_CALLBACK_BASE:-http://localhost:3003/api/auth/callback}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID}
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID}
+      APPLE_KEY_ID: ${APPLE_KEY_ID}
+      APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY}
+      TWITTER_CLIENT_ID: ${TWITTER_CLIENT_ID}
+      TWITTER_CLIENT_SECRET: ${TWITTER_CLIENT_SECRET}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build:
+      context: .
+      target: worker
+    image: webapp-worker:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      UPSTASH_REDIS_REST_URL: ${UPSTASH_REDIS_REST_URL}
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN}
+      QUEUE_MAX_RETRIES: ${QUEUE_MAX_RETRIES:-3}
+      TASK_REDIS_TTL: ${TASK_REDIS_TTL:-86400}
+      QUEUE_WORKER_INTERVAL_MS: ${QUEUE_WORKER_INTERVAL_MS:-30000}
+      QUEUE_WORKER_BATCH_SIZE: ${QUEUE_WORKER_BATCH_SIZE:-5}
+      QUEUE_WORKER_LOCK_TTL: ${QUEUE_WORKER_LOCK_TTL:-120}
+      QUEUE_WORKER_LOCK_RENEW_MS: ${QUEUE_WORKER_LOCK_RENEW_MS:-30000}
+      NANO_BANANA_API_KEY: ${NANO_BANANA_API_KEY}
+      NANO_BANANA_BASE_URL: ${NANO_BANANA_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      NANO_BANANA_TEMPLATE_MODELS: ${NANO_BANANA_TEMPLATE_MODELS}
+      TEMPLATE_INPUT_IMAGE_MAX_DIMENSION: ${TEMPLATE_INPUT_IMAGE_MAX_DIMENSION:-1536}
+      TEMPLATE_INPUT_IMAGE_JPEG_QUALITY: ${TEMPLATE_INPUT_IMAGE_JPEG_QUALITY:-82}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-webapp}
+      R2_PUBLIC_DOMAIN: ${R2_PUBLIC_DOMAIN}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  bacc:
+    build:
+      context: .
+      target: bacc
+      args:
+        API_BACKEND_URL: ${API_BACKEND_URL:-http://api:3001}
+        NEXT_PUBLIC_IMAGE_URL: ${NEXT_PUBLIC_IMAGE_URL:-}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NEXT_PUBLIC_APP_ID: ${NEXT_PUBLIC_APP_ID:-bacc}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+    image: webapp-bacc:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      HOSTNAME: 0.0.0.0
+      API_BACKEND_URL: http://api:3001
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3003}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      WORKER_SECRET: ${WORKER_SECRET}
+      NEXT_PUBLIC_IMAGE_URL: ${NEXT_PUBLIC_IMAGE_URL:-}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      NEXT_PUBLIC_APP_ID: ${NEXT_PUBLIC_APP_ID:-bacc}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+      NEXT_PUBLIC_ENABLE_DEBUG_LOGS: ${NEXT_PUBLIC_ENABLE_DEBUG_LOGS:-false}
+    ports:
+      - "${BACC_PORT:-3003}:3003"
+    depends_on:
+      api:
+        condition: service_started
+
+  admin:
+    build:
+      context: .
+      target: admin
+      args:
+        NEXT_PUBLIC_ADMIN_API_TOKEN: ${NEXT_PUBLIC_ADMIN_API_TOKEN:-admin_secret_123}
+    image: webapp-admin:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      HOSTNAME: 0.0.0.0
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/webapp}
+      ADMIN_SECRET: ${ADMIN_SECRET:-admin_secret_123}
+      NEXT_PUBLIC_ADMIN_API_TOKEN: ${NEXT_PUBLIC_ADMIN_API_TOKEN:-admin_secret_123}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      APP_URL: ${APP_URL:-http://localhost:3003}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-webapp}
+      R2_PUBLIC_DOMAIN: ${R2_PUBLIC_DOMAIN}
+    ports:
+      - "${ADMIN_PORT:-3004}:3004"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-data:

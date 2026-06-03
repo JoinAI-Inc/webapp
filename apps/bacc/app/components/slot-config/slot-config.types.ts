@@ -26,12 +26,28 @@ export function fileToBase64(file: File): Promise<string> {
     });
 }
 
-// 轮询任务状态（用 taskId 精准查询，最多等待 10 分钟）
-export async function pollTaskStatus(taskId: string, maxAttempts = 120, intervalMs = 5000): Promise<{
+type PollTaskResult = {
     status: string;
     result?: { imageUrl?: string; fileId?: string };
     error?: string;
-}> {
+};
+
+const activePolls = new Map<string, Promise<PollTaskResult>>();
+
+// 轮询任务状态（用 taskId 精准查询，最多等待 10 分钟）
+export function pollTaskStatus(taskId: string, maxAttempts = 120, intervalMs = 5000): Promise<PollTaskResult> {
+    const existingPoll = activePolls.get(taskId);
+    if (existingPoll) return existingPoll;
+
+    const pollPromise = pollTaskStatusOnce(taskId, maxAttempts, intervalMs).finally(() => {
+        activePolls.delete(taskId);
+    });
+
+    activePolls.set(taskId, pollPromise);
+    return pollPromise;
+}
+
+async function pollTaskStatusOnce(taskId: string, maxAttempts: number, intervalMs: number): Promise<PollTaskResult> {
     for (let i = 0; i < maxAttempts; i++) {
         await new Promise(r => setTimeout(r, intervalMs));
         const res = await fetch(`/api/queue/status?taskId=${taskId}`);

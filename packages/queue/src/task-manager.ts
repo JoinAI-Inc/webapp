@@ -173,12 +173,27 @@ export class TaskManager {
     }
 
     async acquireWorkerLock(token: string): Promise<boolean> {
-        const ttl = parseInt(process.env.QUEUE_WORKER_LOCK_TTL || '7200');
+        const ttl = parseInt(process.env.QUEUE_WORKER_LOCK_TTL || '120');
         const result = await this.redis.set(KEYS.workerLock, token, {
             nx: true,
             ex: ttl,
         });
         return result === 'OK';
+    }
+
+    async extendWorkerLock(token: string): Promise<boolean> {
+        const ttl = parseInt(process.env.QUEUE_WORKER_LOCK_TTL || '120');
+        const result = await this.redis.eval(
+            `
+            if redis.call("GET", KEYS[1]) == ARGV[1] then
+                return redis.call("EXPIRE", KEYS[1], ARGV[2])
+            end
+            return 0
+            `,
+            [KEYS.workerLock],
+            [token, String(ttl)]
+        );
+        return result === 1;
     }
 
     async releaseWorkerLock(token: string): Promise<void> {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { UserBalance, AccessCheckResult } from '@/types/usage';
 
@@ -20,6 +20,7 @@ export function UsageProvider({ children }: { children: ReactNode }) {
     const [balances, setBalances] = useState<UserBalance[]>([]);
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
+    const loadBalancesPromiseRef = useRef<Promise<UserBalance[]> | null>(null);
 
     // 用户登出时清空余额，不在登录时自动加载（按需调用 refreshBalances）
     useEffect(() => {
@@ -30,9 +31,10 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
     const loadBalances = async (): Promise<UserBalance[]> => {
         if (!user?.id) return [];
+        if (loadBalancesPromiseRef.current) return loadBalancesPromiseRef.current;
 
-        setLoading(true);
-        try {
+        loadBalancesPromiseRef.current = (async () => {
+            setLoading(true);
             const res = await fetch('/api/usage/balance', {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include'
@@ -46,13 +48,18 @@ export function UsageProvider({ children }: { children: ReactNode }) {
                 setBalances([]);
                 return [];
             }
-        } catch (error) {
-            console.error('[UsageContext] Error loading balances:', error);
-            setBalances([]);
-            return [];
-        } finally {
-            setLoading(false);
-        }
+        })()
+            .catch((error) => {
+                console.error('[UsageContext] Error loading balances:', error);
+                setBalances([]);
+                return [];
+            })
+            .finally(() => {
+                setLoading(false);
+                loadBalancesPromiseRef.current = null;
+            });
+
+        return loadBalancesPromiseRef.current;
     };
 
     const getBalance = (featureKey: string): UserBalance | null => {

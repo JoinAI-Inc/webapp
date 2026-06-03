@@ -73,16 +73,13 @@ API_SECRET_KEYS=(
   DISCORD_CLIENT_ID
   DISCORD_CLIENT_SECRET
   OAUTH_CALLBACK_BASE
-  NANO_BANANA_API_KEY
   UPSTASH_REDIS_REST_URL
   UPSTASH_REDIS_REST_TOKEN
   STRIPE_SECRET_KEY
   STRIPE_WEBHOOK_SECRET
-  R2_ACCOUNT_ID
-  R2_ACCESS_KEY_ID
-  R2_SECRET_ACCESS_KEY
   BACC_ORIGIN
   ADMIN_ORIGIN
+  APP_URL
 )
 
 # bacc Pages 侧的 secrets（通过 wrangler pages secret put 写入）
@@ -171,7 +168,7 @@ deploy_api() {
   mkdir -p \
     "$STAGE/apps/api" \
     "$STAGE/packages/database/prisma" \
-    "$STAGE/packages/storage"
+    "$STAGE/packages/queue"
 
   # monorepo 根文件
   cp "$ROOT_DIR/package.json"  "$STAGE/"
@@ -180,7 +177,7 @@ deploy_api() {
   # package.json（供 yarn install --production 用）
   cp "$ROOT_DIR/apps/api/package.json"         "$STAGE/apps/api/"
   cp "$ROOT_DIR/packages/database/package.json" "$STAGE/packages/database/"
-  cp "$ROOT_DIR/packages/storage/package.json"  "$STAGE/packages/storage/"
+  cp "$ROOT_DIR/packages/queue/package.json"    "$STAGE/packages/queue/"
 
   # Prisma schema
   cp -r "$ROOT_DIR/packages/database/prisma/"  "$STAGE/packages/database/prisma/"
@@ -190,7 +187,7 @@ deploy_api() {
 
   # 构建产物
   cp -r "$ROOT_DIR/apps/api/dist"              "$STAGE/apps/api/dist"
-  cp -r "$ROOT_DIR/packages/storage/dist"      "$STAGE/packages/storage/dist"
+  cp -r "$ROOT_DIR/packages/queue/dist"        "$STAGE/packages/queue/dist"
 
   # ── Step 3: wrangler deploy（带重试）────────────────────────
   cd "$ROOT_DIR/apps/api"

@@ -26,7 +26,6 @@ import queueRoutes from './routes/queue.js';
 import historyRoutes from './routes/history.js';
 import templateRoutes from './routes/templates.js';
 import siteThemeRoutes from './routes/site-theme.js';
-import { prisma } from '@repo/database';
 
 // Configure global proxy if needed
 // Proxy removed by request
@@ -76,41 +75,4 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     console.log('✅  Stripe payment integration enabled');
-
-    // DB 心跳：每 4 分钟 ping 一次，防止 Aiven 免费版因空闲触发冷启动
-    const DB_HEARTBEAT_INTERVAL = 4 * 60 * 1000;
-    const dbHeartbeat = async () => {
-        try {
-            await prisma.$queryRaw`SELECT 1`;
-        } catch (e) {
-            console.warn('[DB Heartbeat] ping failed, will retry on next request:', (e as any)?.message);
-        }
-    };
-    setInterval(dbHeartbeat, DB_HEARTBEAT_INTERVAL);
-    console.log('💓  DB heartbeat started (interval: 4min)');
-
-    // 启动队列 worker（每 30 秒处理一次）
-    import('./lib/queue/worker.js').then(({ queueWorker }) => {
-        console.log('🔄  Starting queue worker...');
-
-        const processQueue = async () => {
-            try {
-                await queueWorker.processBatchSafe(5);
-            } catch (error) {
-                console.error('[Worker] Error:', error);
-            }
-        };
-
-        // 先执行孤儿任务恢复，再启动 worker
-        import('./lib/queue/recovery.js').then(({ recoverOrphanTasks }) => {
-            recoverOrphanTasks()
-                .catch(e => console.error('[Recovery] Startup recovery failed:', e))
-                .finally(() => {
-                    // 立即处理一次（含刚恢复的任务）
-                    processQueue();
-                    // 每30秒处理一次
-                    setInterval(processQueue, 30000);
-                });
-        });
-    });
 });

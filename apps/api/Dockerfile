@@ -14,7 +14,7 @@ COPY .docker-stage/package.json ./
 COPY .docker-stage/yarn.lock ./
 COPY .docker-stage/apps/api/package.json ./apps/api/
 COPY .docker-stage/packages/database/package.json ./packages/database/
-COPY .docker-stage/packages/storage/package.json ./packages/storage/
+COPY .docker-stage/packages/queue/package.json ./packages/queue/
 
 # Prisma schema（postinstall 钩子需要）
 COPY .docker-stage/packages/database/prisma ./packages/database/prisma/
@@ -27,7 +27,7 @@ RUN yarn install --frozen-lockfile
 
 # 复制预构建产物
 COPY .docker-stage/apps/api/dist ./apps/api/dist/
-COPY .docker-stage/packages/storage/dist ./packages/storage/dist/
+COPY .docker-stage/packages/queue/dist ./packages/queue/dist/
 
 EXPOSE 3001
 WORKDIR /app/apps/api

@@ -9,22 +9,19 @@
     "start": "node dist/index.js",
     "lint": "eslint src/**/*.ts"
   },
-  "dependencies": {
-    "@cloudflare/containers": "^0.1.1",
-    "@media/storage": "*",
-    "@repo/database": "*",
-    "@upstash/redis": "^1.36.2",
-    "axios": "^1.13.2",
-    "body-parser": "^2.2.1",
+    "dependencies": {
+        "@cloudflare/containers": "^0.1.1",
+        "@repo/database": "*",
+        "@repo/queue": "*",
+        "axios": "^1.13.2",
+        "body-parser": "^2.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "https-proxy-agent": "^7.0.6",
     "jsonwebtoken": "^9.0.3",
-    "nanoid": "^5.1.6",
-    "sharp": "^0.33.4",
-    "stripe": "^20.1.2"
-  },
+        "stripe": "^20.1.2"
+    },
   "devDependencies": {
     "@types/body-parser": "^1.19.5",
     "@types/cors": "^2.8.17",

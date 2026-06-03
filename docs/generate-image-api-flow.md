@@ -7,9 +7,10 @@
 图片生成链路分为两层服务：
 
 - `apps/bacc`：Next.js 前端和 BFF API。负责登录态校验、拼接前端请求、通过内部签名代理到后端。
-- `apps/api`：Express API。负责模板校验、资产鉴权、次数扣减、队列任务、调用图片模型、上传 R2、返回任务状态。
+- `apps/api`：Express API。负责模板校验、资产鉴权、次数扣减、队列入队和任务状态查询。
+- `apps/worker`：独立队列消费进程。负责从 Redis 队列取任务、调用图片模型、上传 R2、更新任务状态。
 
-大模型 API 不在前端直接调用，统一由 `apps/api/src/lib/generators/base-generator.ts` 发起。
+大模型 API 不在前端或 HTTP API 进程中直接调用，统一由 `apps/worker/src/lib/generators/base-generator.ts` 发起。
 
 ## 2. 前端提交
 
@@ -119,10 +120,10 @@ POST /api/templates/:id/generate
 
 相关文件：
 
-- `apps/api/src/lib/queue/task-manager.ts`
-- `apps/api/src/lib/queue/worker.ts`
+- `packages/queue/src/task-manager.ts`
+- `apps/worker/src/lib/queue/worker.ts`
 - `apps/api/src/routes/queue.ts`
-- `apps/api/src/lib/queue/types.ts`
+- `packages/queue/src/types.ts`
 
 当前队列任务类型只有：
 
@@ -138,6 +139,20 @@ type TaskType = 'template';
 4. 把任务 id 加到用户任务集合。
 5. 把任务 id 推入 `queue:pending`。
 
+API 进程不消费队列。队列消费需要单独启动 worker：
+
+```bash
+npm run dev:worker
+```
+
+worker 从 `apps/worker/.env` 读取运行配置。可从 `apps/worker/.env.example` 创建本地配置文件；不要让 worker 读取 `apps/api/.env` 或 `apps/api/wrangler.jsonc`。
+
+生产环境启动入口：
+
+```bash
+npm run start:worker
+```
+
 `QueueWorker.processNext` 会：
 
 1. 从 `queue:pending` 移动一个任务到 `queue:processing:list`。
@@ -150,7 +165,7 @@ type TaskType = 'template';
 
 入口文件：
 
-- `apps/api/src/lib/generators/template-generator.ts`
+- `apps/worker/src/lib/generators/template-generator.ts`
 
 `TemplateGenerator.generate` 的职责：
 
@@ -216,7 +231,7 @@ Admin 预览：
 
 入口文件：
 
-- `apps/api/src/lib/generators/base-generator.ts`
+- `apps/worker/src/lib/generators/base-generator.ts`
 
 必填环境变量：
 
@@ -264,7 +279,7 @@ data.candidates[].parts[].inlineData
 
 ## 9. 结果上传和历史
 
-模板生成成功后，`TemplateGenerator` 调 `apps/api/src/lib/storage.ts` 上传 R2。
+模板生成成功后，`TemplateGenerator` 调 `apps/worker/src/lib/storage.ts` 上传 R2。
 
 上传参数包含：
 
@@ -336,10 +351,10 @@ Admin 配置入口：
 | 前端点击 Generate | `apps/bacc/app/components/SlotConfigPanel.tsx` |
 | 模板生成 BFF | `apps/bacc/app/api/generate/template/route.ts` |
 | 模板生成 Express 接口 | `apps/api/src/routes/templates.ts` |
-| 生成配置 Admin API | `apps/api/src/routes/admin/generation-config.ts` |
+| 生成配置 Admin API | `apps/admin/src/routes/admin/generation-config.ts` |
 | 队列接口 | `apps/api/src/routes/queue.ts` |
-| Redis 任务管理 | `apps/api/src/lib/queue/task-manager.ts` |
-| Worker 消费 | `apps/api/src/lib/queue/worker.ts` |
-| 模板 prompt 和图片准备 | `apps/api/src/lib/generators/template-generator.ts` |
-| 大模型 API 统一调用 | `apps/api/src/lib/generators/base-generator.ts` |
-| R2 上传封装 | `apps/api/src/lib/storage.ts` |
+| Redis 任务管理 | `packages/queue/src/task-manager.ts` |
+| Worker 消费 | `apps/worker/src/lib/queue/worker.ts` |
+| 模板 prompt 和图片准备 | `apps/worker/src/lib/generators/template-generator.ts` |
+| 大模型 API 统一调用 | `apps/worker/src/lib/generators/base-generator.ts` |
+| R2 上传封装 | `apps/worker/src/lib/storage.ts` |

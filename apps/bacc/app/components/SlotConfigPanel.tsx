@@ -36,6 +36,7 @@ export function SlotConfigPanel({
     const [genders, setGenders] = useState<Record<string, string>>({});
     const [makeups, setMakeups] = useState<Record<string, string>>({});
     const activeTaskIdRef = useRef<string | null>(null);
+    const submitInFlightRef = useRef(false);
 
     const pathname = usePathname();
     const { data: session, status: sessionStatus } = useSession();
@@ -161,12 +162,14 @@ export function SlotConfigPanel({
     };
 
     const handleGenerate = async () => {
+        if (submitInFlightRef.current) return;
         if (!isReadyToGenerate || loading || checkingPremiumAssetAccess) return;
         if (hasLockedPremiumAsset) {
             setError('This premium feature requires top up before generating.');
             return;
         }
 
+        submitInFlightRef.current = true;
         setLoading(true);
         setError(null);
 
@@ -252,8 +255,9 @@ export function SlotConfigPanel({
 
             setSubmittedTaskId(taskId);
             activeTaskIdRef.current = taskId;
+            submitInFlightRef.current = false;
             onTaskSubmitted?.(taskId);
-            refreshBalances();
+            void refreshBalances();
 
             // 后台轮询，完成后显示结果图
             pollTaskStatus(taskId).then(async pollResult => {
@@ -280,6 +284,7 @@ export function SlotConfigPanel({
         } catch (err: any) {
             setSubmittedTaskId(null);
             activeTaskIdRef.current = null;
+            submitInFlightRef.current = false;
             setError(err.message || 'Unknown error');
         } finally {
             setLoading(false);

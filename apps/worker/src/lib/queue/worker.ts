@@ -1,5 +1,5 @@
 import { prisma } from '@repo/database';
-import { taskManager } from './task-manager.js';
+import { taskManager } from '@repo/queue';
 import { TemplateGenerator } from '../generators/template-generator.js';
 
 const templateGenerator = new TemplateGenerator();
@@ -118,10 +118,18 @@ export class QueueWorker {
             return 0;
         }
 
+        const renewIntervalMs = Math.max(1000, parseInt(process.env.QUEUE_WORKER_LOCK_RENEW_MS || '30000', 10));
+        const lockRenewTimer = setInterval(() => {
+            taskManager.extendWorkerLock(lockToken).catch((error: any) => {
+                console.warn('[Worker] Failed to renew queue lock:', error?.message || error);
+            });
+        }, renewIntervalMs);
+
         this.isProcessing = true;
         try {
             return await this.processBatch(maxTasks);
         } finally {
+            clearInterval(lockRenewTimer);
             this.isProcessing = false;
             await taskManager.releaseWorkerLock(lockToken);
         }

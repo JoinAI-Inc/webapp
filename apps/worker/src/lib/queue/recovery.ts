@@ -1,12 +1,12 @@
 /**
  * 启动恢复模块
  *
- * API 重启时执行：
+ * Worker 重启时执行：
  * 1. 将 Redis processingSet 中的孤儿任务（之前在处理中，但服务崩溃未完成）迁回 pendingQueue 重试
  * 2. 恢复计数：超过 maxRetries 的任务标记为 failed 并退还次数，而不是无限重试
  */
 
-import { taskManager } from './task-manager.js';
+import { taskManager } from '@repo/queue';
 import { prisma } from '@repo/database';
 
 /**

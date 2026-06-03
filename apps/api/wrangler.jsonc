@@ -37,12 +37,7 @@
     "vars": {
         "NODE_ENV": "production",
         "PORT": "3001",
-        "NANO_BANANA_BASE_URL": "http://43.134.55.109:3000/v1beta",
-        "NANO_BANANA_TEMPLATE_MODELS": "gemini-3-pro-image-preview-2k",
         "QUEUE_MAX_RETRIES": "3",
-        "QUEUE_RETRY_DELAY": "5000",
-        "QUEUE_WORKER_INTERVAL": "10000",
-        "R2_BUCKET_NAME": "webapp",
-        "R2_PUBLIC_DOMAIN": "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev"
+        "TASK_REDIS_TTL": "86400"
     }
 }

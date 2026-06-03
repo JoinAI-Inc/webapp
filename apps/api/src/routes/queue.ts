@@ -1,13 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { taskManager } from '../lib/queue/task-manager.js';
-import { queueWorker } from '../lib/queue/worker.js';
-import { TaskType } from '../lib/queue/types.js';
+import { taskManager, userTaskTracker } from '@repo/queue';
+import type { TaskType } from '@repo/queue';
 import { verifyInternalRequest } from '../lib/internal-auth.js';
 
 const router = Router();
-
-// 简单的 API key 保护
-const WORKER_SECRET = process.env.WORKER_SECRET || 'change-me-in-production';
 
 /**
  * POST /api/queue/submit
@@ -47,7 +43,6 @@ router.post('/submit', async (req: Request, res: Response) => {
             payload,
         });
 
-        const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
         try {
             await userTaskTracker.setCurrentTask(userId, taskId, {
                 type,
@@ -117,40 +112,8 @@ router.get('/status', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/queue/process
- * Worker 处理任务（批量）
- */
-router.post('/process', async (req: Request, res: Response) => {
-    try {
-        // 验证调用来源（用于定时任务保护）
-        const authHeader = req.headers.authorization;
-        if (authHeader !== `Bearer ${WORKER_SECRET}`) {
-            return res.status(401).json({ error: 'Invalid authorization' });
-        }
-
-        console.log('[Queue API] Starting batch processing...');
-
-        const stats = await taskManager.getQueueStats();
-        console.log(`[Queue API] Queue stats - Pending: ${stats.pending}, Processing: ${stats.processing}`);
-
-        const processed = await queueWorker.processBatchSafe(5);
-
-        res.json({
-            success: true,
-            processed,
-            queueStats: stats,
-        });
-    } catch (error: any) {
-        console.error('[Queue API] Worker error:', error);
-        res.status(500).json({
-            error: error.message || 'Worker failed'
-        });
-    }
-});
-
-/**
  * GET /api/queue/process
- * 健康检查
+ * 队列健康检查。实际消费由 apps/worker 独立进程负责。
  */
 router.get('/process', async (req: Request, res: Response) => {
     try {
@@ -184,7 +147,6 @@ router.get('/current-task', async (req: Request, res: Response) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
         const currentTasks = await userTaskTracker.getCurrentTasks(userId.toString());
 
         if (currentTasks.length === 0) {

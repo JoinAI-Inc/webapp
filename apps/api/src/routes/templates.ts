@@ -522,11 +522,9 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
             _deductedFeatureKey: deductedFeatureKey,
         };
 
-        const { taskManager } = await import('../lib/queue/task-manager.js');
-        const { userTaskTracker } = await import('../lib/queue/user-task-tracker.js');
-
         let taskId: string;
         try {
+            const { taskManager } = await import('@repo/queue');
             taskId = await taskManager.submitTask({ userId, type: 'template', payload });
         } catch (queueErr: any) {
             await refundDeductedCount(userId, feature.id);
@@ -538,6 +536,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         }
 
         try {
+            const { userTaskTracker } = await import('@repo/queue');
             await userTaskTracker.setCurrentTask(userId, taskId, {
                 type: 'template', payload,
                 submittedAt: new Date().toISOString(),
