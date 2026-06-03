@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@repo/database';
-import { serializeBigInt } from './utils.js';
+import { serializeBigInt } from './utils';
 
 const router = express.Router();
 

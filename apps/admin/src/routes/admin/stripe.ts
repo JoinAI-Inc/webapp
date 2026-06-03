@@ -5,7 +5,7 @@ const router = express.Router();
 // POST /api/admin/stripe/sync-products
 router.post('/sync-products', async (req: Request, res: Response) => {
     try {
-        const { syncProductsFromStripe } = await import('../../services/stripe/sync.js');
+        const { syncProductsFromStripe } = await import('../../services/stripe/sync');
         res.json(await syncProductsFromStripe());
     } catch (error: any) { res.status(500).json({ error: error.message }); }
 });
@@ -14,7 +14,7 @@ router.post('/sync-products', async (req: Request, res: Response) => {
 router.get('/reconcile', async (req: Request, res: Response) => {
     try {
         const days = parseInt(req.query.days as string) || 30;
-        const { reconcileOrders } = await import('../../services/stripe/sync.js');
+        const { reconcileOrders } = await import('../../services/stripe/sync');
         res.json(await reconcileOrders(days));
     } catch (error: any) { res.status(500).json({ error: error.message }); }
 });
@@ -24,7 +24,7 @@ router.post('/fix-mismatch', async (req: Request, res: Response) => {
     try {
         const { sessionId } = req.body;
         if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
-        const { fixOrderMismatch } = await import('../../services/stripe/sync.js');
+        const { fixOrderMismatch } = await import('../../services/stripe/sync');
         await fixOrderMismatch(sessionId);
         res.json({ success: true });
     } catch (error: any) { res.status(500).json({ error: error.message }); }
@@ -33,7 +33,7 @@ router.post('/fix-mismatch', async (req: Request, res: Response) => {
 // POST /api/admin/stripe/sync-subscriptions
 router.post('/sync-subscriptions', async (req: Request, res: Response) => {
     try {
-        const { syncAllSubscriptions } = await import('../../services/stripe/sync.js');
+        const { syncAllSubscriptions } = await import('../../services/stripe/sync');
         res.json(await syncAllSubscriptions());
     } catch (error: any) { res.status(500).json({ error: error.message }); }
 });

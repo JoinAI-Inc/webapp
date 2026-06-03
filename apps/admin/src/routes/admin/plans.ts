@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@repo/database';
-import { serializeBigInt } from './utils.js';
-import { stripe } from '../../services/stripe/client.js';
+import { serializeBigInt } from './utils';
+import { stripe } from '../../services/stripe/client';
 
 const router = express.Router();
 

@@ -1059,7 +1059,7 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@media/storage@*", "@media/storage@file:/Users/racoon/Documents/join/team 14/webapp/packages/storage":
+"@media/storage@*", "@media/storage@^1.0.0", "@media/storage@file:/Users/racoon/Documents/join/team 14/webapp/packages/storage":
   version "1.0.0"
   resolved "file:packages/storage"
   dependencies:
@@ -1613,13 +1613,20 @@
   resolved "file:apps/admin"
   dependencies:
     "@ant-design/icons" "^6.1.0"
+    "@media/storage" "^1.0.0"
+    "@repo/database" "^0.0.0"
+    "@types/express" "^4.17.25"
+    "@types/node" "^20.19.41"
     antd "^6.1.3"
     axios "^1.13.2"
+    express "^5.2.1"
     moment "^2.30.1"
     next "^14.2.0"
     react "^18.2.0"
     react-dom "^18.2.0"
     recharts "^3.6.0"
+    stripe "^20.4.1"
+    typescript "^5.9.3"
 
 "@repo/auth-api@file:/Users/racoon/Documents/join/team 14/webapp/packages/auth-api":
   version "1.0.0"
@@ -1633,12 +1640,9 @@
   version "0.1.0"
   resolved "file:apps/bacc"
   dependencies:
-    "@auth/prisma-adapter" "^2.7.4"
-    "@media/storage" "*"
-    "@repo/auth-api" "*"
-    "@repo/database" "*"
     "@upstash/redis" "^1.36.2"
     clsx "^2.1.0"
+    embla-carousel-react "^8.6.0"
     framer-motion "^11.0.0"
     lucide-react "^0.363.0"
     nanoid "^5.1.6"
@@ -1646,9 +1650,10 @@
     next-auth "5.0.0-beta.25"
     react "^18"
     react-dom "^18"
+    react-fast-marquee "^1.6.5"
     tailwind-merge "^2.2.2"
 
-"@repo/database@*", "@repo/database@file:/Users/racoon/Documents/join/team 14/webapp/packages/database":
+"@repo/database@*", "@repo/database@^0.0.0", "@repo/database@file:/Users/racoon/Documents/join/team 14/webapp/packages/database":
   version "0.0.0"
   resolved "file:packages/database"
   dependencies:
@@ -2364,7 +2369,7 @@
     "@types/range-parser" "*"
     "@types/send" "*"
 
-"@types/express@^4.17.21":
+"@types/express@^4.17.21", "@types/express@^4.17.25":
   version "4.17.25"
   resolved "https://registry.npmjs.org/@types/express/-/express-4.17.25.tgz"
   integrity sha512-dVd04UKsfpINUnK0yBoYHDF3xu7xVH4BuDotC/xGuycx4CgbP48X/KF/586bcObxT0HENHXEU8Nqtu6NR+eKhw==
@@ -2407,10 +2412,10 @@
   resolved "https://registry.npmjs.org/@types/ms/-/ms-2.1.0.tgz"
   integrity sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==
 
-"@types/node@*", "@types/node@^20", "@types/node@^20.10.6", "@types/node@^20.14.0", "@types/node@>=16":
-  version "20.19.33"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.19.33.tgz"
-  integrity sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw==
+"@types/node@*", "@types/node@^20", "@types/node@^20.10.6", "@types/node@^20.14.0", "@types/node@^20.19.41", "@types/node@>=16":
+  version "20.19.41"
+  resolved "https://registry.npmjs.org/@types/node/-/node-20.19.41.tgz"
+  integrity sha512-ECymXOukMnOoVkC2bb1Vc/w/836DXncOg5m8Xj1RH7xSHZJWNYY6Zh7EH477vcnD5egKNNfy2RpNOmuChhFPgQ==
   dependencies:
     undici-types "~6.21.0"
 
@@ -5236,7 +5241,7 @@ next-auth@5.0.0-beta.25:
   dependencies:
     "@auth/core" "0.37.2"
 
-"next@^14.0.0-0 || ^15.0.0-0", next@14.2.0:
+"next@^14.0.0-0 || ^15.0.0-0":
   version "14.2.0"
   resolved "https://registry.npmjs.org/next/-/next-14.2.0.tgz"
   integrity sha512-2T41HqJdKPqheR27ll7MFZ3gtTYvGew7cUc0PwPSyK9Ao5vvwpf9bYfP4V5YBGLckHF2kEGvrLte5BqLSv0s8g==
@@ -5281,6 +5286,8 @@ next@^14.2.0:
     "@next/swc-win32-arm64-msvc" "14.2.33"
     "@next/swc-win32-ia32-msvc" "14.2.33"
     "@next/swc-win32-x64-msvc" "14.2.33"
+
+next@14.2.0:
 
 next@16.1.1:
   version "16.1.1"
@@ -6260,10 +6267,10 @@ strip-json-comments@^3.1.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
-stripe@^20.1.0, stripe@^20.1.2:
-  version "20.3.1"
-  resolved "https://registry.npmjs.org/stripe/-/stripe-20.3.1.tgz"
-  integrity sha512-k990yOT5G5rhX3XluRPw5Y8RLdJDW4dzQ29wWT66piHrbnM2KyamJ1dKgPsw4HzGHRWjDiSSdcI2WdxQUPV3aQ==
+stripe@^20.1.0, stripe@^20.1.2, stripe@^20.4.1:
+  version "20.4.1"
+  resolved "https://registry.npmjs.org/stripe/-/stripe-20.4.1.tgz"
+  integrity sha512-axCguHItc8Sxt0HC6aSkdVRPffjYPV7EQqZRb2GkIa8FzWDycE7nHJM19C6xAIynH1Qp1/BHiopSi96jGBxT0w==
 
 strnum@^2.1.0:
   version "2.1.2"
@@ -6526,7 +6533,7 @@ typescript-eslint@^8.46.0:
     "@typescript-eslint/typescript-estree" "8.55.0"
     "@typescript-eslint/utils" "8.55.0"
 
-typescript@^5, typescript@^5.3.3, typescript@^5.5.0, typescript@>=2.7, typescript@>=3.3.1, typescript@>=4.2.0, typescript@>=4.8.4, "typescript@>=4.8.4 <6.0.0":
+typescript@^5, typescript@^5.3.3, typescript@^5.5.0, typescript@^5.9.3, typescript@>=2.7, typescript@>=3.3.1, typescript@>=4.2.0, typescript@>=4.8.4, "typescript@>=4.8.4 <6.0.0":
   version "5.9.3"
   resolved "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz"
   integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
@@ -6551,10 +6558,15 @@ undefsafe@^2.0.5:
   resolved "https://registry.npmjs.org/undefsafe/-/undefsafe-2.0.5.tgz"
   integrity sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==
 
-undici-types@~6.21.0, undici-types@~7.16.0:
+undici-types@~6.21.0:
   version "6.21.0"
   resolved "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz"
   integrity sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==
+
+undici-types@~7.16.0:
+  version "7.16.0"
+  resolved "https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz"
+  integrity sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==
 
 unpipe@~1.0.0:
   version "1.0.0"

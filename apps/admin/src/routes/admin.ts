@@ -1,16 +1,16 @@
 import express, { Request, Response, NextFunction } from 'express';
-import usersRouter from './admin/users.js';
-import appsRouter from './admin/apps.js';
-import plansRouter from './admin/plans.js';
-import statsRouter from './admin/stats.js';
-import stripeRouter from './admin/stripe.js';
-import templatesRouter from './admin/templates.js';
-import featuresRouter from './admin/features.js';
-import tagsRouter from './admin/tags.js';
-import assetsRouter from './admin/assets.js';
-import siteThemesRouter from './admin/site-themes.js';
-import uploadsRouter from './admin/uploads.js';
-import generationConfigRouter from './admin/generation-config.js';
+import usersRouter from './admin/users';
+import appsRouter from './admin/apps';
+import plansRouter from './admin/plans';
+import statsRouter from './admin/stats';
+import stripeRouter from './admin/stripe';
+import templatesRouter from './admin/templates';
+import featuresRouter from './admin/features';
+import tagsRouter from './admin/tags';
+import assetsRouter from './admin/assets';
+import siteThemesRouter from './admin/site-themes';
+import uploadsRouter from './admin/uploads';
+import generationConfigRouter from './admin/generation-config';
 
 const router = express.Router();
 

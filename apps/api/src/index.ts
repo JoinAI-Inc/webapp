@@ -16,7 +16,6 @@ dotenv.config({ path: join(__dirname, '../.env') });
 
 
 // Routes
-import adminRoutes from './routes/admin.js';
 import clientRoutes from './routes/client.js';
 import authRoutes from './routes/auth.js';
 import paymentRoutes from './routes/payment.js';
@@ -40,10 +39,8 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
     'http://localhost:3003', // BACC前端（本地）
     'http://localhost:3000', // 其他前端（本地）
-    'http://localhost:3004', // Admin前端（本地）
     // 生产环境域名 - 部署前替换为实际域名
     process.env.BACC_ORIGIN || '',       // 例：https://app.yourdomain.com
-    process.env.ADMIN_ORIGIN || '',      // 例：https://admin.yourdomain.com
 ].filter(Boolean);
 
 app.use(cors({
@@ -60,7 +57,6 @@ app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-app.use('/api/admin', adminRoutes);
 app.use('/api/store', clientRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', nextauthRoutes);  // NextAuth 专用路由
