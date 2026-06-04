@@ -261,6 +261,15 @@ router.post('/check-access', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields: userId, featureKey' });
         }
 
+        const authedUserId = verifyInternalRequest(
+            req.headers['x-internal-user-id'] as string | undefined,
+            req.headers['x-internal-timestamp'] as string | undefined,
+            req.headers['x-internal-signature'] as string | undefined,
+        );
+        if (!authedUserId || authedUserId !== userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
         const feature = await prisma.feature.findUnique({ where: { featureKey } });
         if (!feature || !feature.isActive) {
             return res.json({ hasAccess: false, source: null });

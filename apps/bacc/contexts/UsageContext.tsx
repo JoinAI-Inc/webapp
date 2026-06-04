@@ -4,8 +4,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useRe
 import { useAuth } from './AuthContext';
 import { UserBalance, AccessCheckResult } from '@/types/usage';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
 interface UsageContextValue {
     balances: UserBalance[];
     loading: boolean;
@@ -72,14 +70,13 @@ export function UsageProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            const res = await fetch(`${API_URL}/api/usage/check-access`, {
+            const res = await fetch('/api/usage/check-access', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    userId: user.id,
                     featureKey
                 })
             });
