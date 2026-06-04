@@ -56,7 +56,6 @@
 | `NANO_BANANA_API_KEY` | 你的 Google AI API Key | Production, Preview, Development |
 | `NEXT_PUBLIC_API_BASE_URL` | `/api` | Production, Preview, Development |
 | `NEXT_PUBLIC_APP_ID` | 你的应用 ID | Production, Preview, Development |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | 你的 Google OAuth Client ID | Production, Preview, Development |
 
 **添加方法**：
 1. 在 "Name" 输入框填写变量名（如 `DATABASE_URL`）

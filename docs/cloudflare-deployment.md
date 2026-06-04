@@ -194,7 +194,6 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
         NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     },
     async rewrites() {
         const apiBackend = process.env.API_BACKEND_URL || 'http://localhost:3001';
@@ -230,7 +229,6 @@ bacc 的 secrets 在 **Cloudflare Dashboard → Pages → 项目 → Settings �
 | `NEXT_PUBLIC_API_BASE_URL` | `/api` |
 | `API_BACKEND_URL` | api Worker 的 `workers.dev` 地址（wrangler deploy 完成后获取）|
 | `NEXT_PUBLIC_APP_ID` | App ID |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
 | `NEXT_PUBLIC_IMAGE_URL` | `https://your-r2-domain/bacc/image` |

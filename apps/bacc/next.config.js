@@ -20,7 +20,6 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
         NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     },
 
     // API 路由重写 - 开发环境将 /api 请求代理到后端 API 服务器

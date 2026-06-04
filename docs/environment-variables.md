@@ -40,7 +40,6 @@ For Docker Compose deployment, copy `config/env/docker.env.example` to
 | `AUTH_SECRET` | `AUTH_SECRET`, `NEXTAUTH_SECRET` |
 | `API_JWT_SECRET` | `JWT_SECRET` |
 | `INTERNAL_SERVICE_SECRET` | `WORKER_SECRET` |
-| `PUBLIC_GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_ID` | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
 
 ## Variables That Should Stay Internal
 
@@ -59,7 +58,6 @@ These are bundled into browser-side JavaScript or used in browser redirects:
 - `PAYMENT_RETURN_ORIGIN`
 - `NEXT_PUBLIC_IMAGE_URL`
 - `NEXT_PUBLIC_APP_ID`
-- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
 - `NEXT_PUBLIC_ENABLE_DEBUG_LOGS`
 
 ## Legacy Names
