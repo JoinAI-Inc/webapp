@@ -25,6 +25,8 @@ For Docker Compose deployment, copy `config/env/docker.env.example` to
 | `API_ALLOWED_ORIGIN` | Browser origin allowed by the API CORS policy. | `http://localhost:3003` |
 | `PAYMENT_RETURN_ORIGIN` | Browser redirect base for payment success/cancel URLs. | `http://localhost:3003` |
 | `INTERNAL_API_ORIGIN` | Container-to-container API origin used by BACC server routes. | `http://api:3001` |
+| `OUTBOUND_HTTP_PROXY` | Optional outbound proxy for server-side calls to Google, Stripe, or model providers. | `http://host.docker.internal:7890` |
+| `NO_PROXY` | Hosts that must bypass the outbound proxy. | `localhost,127.0.0.1,api,postgres` |
 | `AUTH_SECRET` | Auth.js/NextAuth session/JWT secret. | `openssl rand -base64 32` |
 | `API_JWT_SECRET` | API-issued backend JWT secret. | `openssl rand -base64 32` |
 | `INTERNAL_SERVICE_SECRET` | Shared secret for BACC/API internal requests. | `openssl rand -base64 32` |
@@ -40,6 +42,24 @@ For Docker Compose deployment, copy `config/env/docker.env.example` to
 | `AUTH_SECRET` | `AUTH_SECRET`, `NEXTAUTH_SECRET` |
 | `API_JWT_SECRET` | `JWT_SECRET` |
 | `INTERNAL_SERVICE_SECRET` | `WORKER_SECRET` |
+| `OUTBOUND_HTTP_PROXY` | `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, `https_proxy` |
+| `NO_PROXY` | `NO_PROXY`, `no_proxy` |
+
+## Runtime Outbound Proxy
+
+Browser proxy settings only affect the user's browser. OAuth still needs server-side
+network access because BACC exchanges the Google authorization code for tokens
+from inside the Docker container. If the server cannot reach Google directly,
+set:
+
+```env
+OUTBOUND_HTTP_PROXY=http://host.docker.internal:7890
+NO_PROXY=localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin
+```
+
+`docker-compose.yml` maps `host.docker.internal` to the Docker host on Linux.
+The proxy service on the host must listen on an address reachable from Docker
+containers, not only on the container's own `127.0.0.1`.
 
 ## Variables That Should Stay Internal
 

@@ -1649,6 +1649,7 @@
     react-dom "^18"
     react-fast-marquee "^1.6.5"
     tailwind-merge "^2.2.2"
+    undici "^6.26.0"
 
 "@repo/database@*", "@repo/database@^0.0.0", "@repo/database@file:/Users/racoon/Documents/join/team 14/webapp/packages/database":
   version "0.0.0"
@@ -2796,9 +2797,8 @@ anymatch@~3.1.2:
   resolved "file:apps/api"
   dependencies:
     "@cloudflare/containers" "^0.1.1"
-    "@media/storage" "*"
     "@repo/database" "*"
-    "@upstash/redis" "^1.36.2"
+    "@repo/queue" "*"
     axios "^1.13.2"
     body-parser "^2.2.1"
     cors "^2.8.5"
@@ -6600,6 +6600,11 @@ undici-types@~7.16.0:
   version "7.16.0"
   resolved "https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz"
   integrity sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==
+
+undici@^6.26.0:
+  version "6.26.0"
+  resolved "https://registry.npmjs.org/undici/-/undici-6.26.0.tgz"
+  integrity sha512-4yqz8a3n5HmGTlsbADNtr/dJlhkh/55Rq798G6ibiULcXbDtaLpTl1pvdqcbFfeoj3iSi52lePFM7h9H21cw/A==
 
 unpipe@~1.0.0:
   version "1.0.0"

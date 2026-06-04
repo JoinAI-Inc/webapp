@@ -63,6 +63,14 @@ services:
       APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
       TWITTER_CLIENT_ID: ${TWITTER_CLIENT_ID:-}
       TWITTER_CLIENT_SECRET: ${TWITTER_CLIENT_SECRET:-}
+      HTTP_PROXY: ${OUTBOUND_HTTP_PROXY:-}
+      HTTPS_PROXY: ${OUTBOUND_HTTP_PROXY:-}
+      http_proxy: ${OUTBOUND_HTTP_PROXY:-}
+      https_proxy: ${OUTBOUND_HTTP_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin}
+      no_proxy: ${NO_PROXY:-localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${API_PORT:-3001}:3001"
     depends_on:
@@ -97,6 +105,14 @@ services:
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
       R2_BUCKET_NAME: ${R2_BUCKET_NAME:-webapp}
       R2_PUBLIC_DOMAIN: ${R2_PUBLIC_DOMAIN:-}
+      HTTP_PROXY: ${OUTBOUND_HTTP_PROXY:-}
+      HTTPS_PROXY: ${OUTBOUND_HTTP_PROXY:-}
+      http_proxy: ${OUTBOUND_HTTP_PROXY:-}
+      https_proxy: ${OUTBOUND_HTTP_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin}
+      no_proxy: ${NO_PROXY:-localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -116,6 +132,7 @@ services:
       NODE_ENV: production
       PORT: 3003
       HOSTNAME: 0.0.0.0
+      NODE_OPTIONS: --require /app/apps/bacc/proxy-bootstrap.cjs
       API_BACKEND_URL: ${INTERNAL_API_ORIGIN:-${API_BACKEND_URL:-http://api:3001}}
       AUTH_URL: ${AUTH_PUBLIC_ORIGIN:-${PUBLIC_WEB_ORIGIN:-${AUTH_URL:-${NEXTAUTH_URL:-http://localhost:3003}}}}
       NEXTAUTH_URL: ${AUTH_PUBLIC_ORIGIN:-${PUBLIC_WEB_ORIGIN:-${NEXTAUTH_URL:-${AUTH_URL:-http://localhost:3003}}}}
@@ -128,6 +145,14 @@ services:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
       NEXT_PUBLIC_APP_ID: ${NEXT_PUBLIC_APP_ID:-bacc}
       NEXT_PUBLIC_ENABLE_DEBUG_LOGS: ${NEXT_PUBLIC_ENABLE_DEBUG_LOGS:-false}
+      HTTP_PROXY: ${OUTBOUND_HTTP_PROXY:-}
+      HTTPS_PROXY: ${OUTBOUND_HTTP_PROXY:-}
+      http_proxy: ${OUTBOUND_HTTP_PROXY:-}
+      https_proxy: ${OUTBOUND_HTTP_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin}
+      no_proxy: ${NO_PROXY:-localhost,127.0.0.1,::1,api,postgres,worker,bacc,admin}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${BACC_PORT:-3003}:3003"
     depends_on:
