@@ -69,7 +69,8 @@ The codebase still reads some legacy names directly:
 - `NEXTAUTH_URL` / `NEXTAUTH_SECRET`: NextAuth v4-compatible names.
 - `AUTH_URL` / `AUTH_SECRET`: Auth.js/NextAuth v5 names.
 - `WORKER_SECRET`: internal request signing secret, not only worker-specific.
-- `OAUTH_CALLBACK_BASE`: legacy apps/api OAuth callback, not used by BACC NextAuth login.
+- `OAUTH_CALLBACK_BASE`: legacy apps/api OAuth callback for non-Docker/direct API
+  OAuth only. Docker BACC login does not use it.
 - `PUBLIC_WEB_ORIGIN`: deprecated umbrella fallback for older `.env.docker` files.
 - `NEXT_PUBLIC_API_URL`: deprecated. BACC browser code should call same-origin
   `/api/*` routes; BACC server routes call `INTERNAL_API_ORIGIN`.
