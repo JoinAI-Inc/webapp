@@ -16,8 +16,6 @@ logs
 *.log
 .env
 .env.*
-!.env.example
-!.env.docker.example
 postgres-data
 database-backups
 output

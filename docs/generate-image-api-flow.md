@@ -145,7 +145,7 @@ API 进程不消费队列。队列消费需要单独启动 worker：
 npm run dev:worker
 ```
 
-worker 从 `apps/worker/.env` 读取运行配置。可从 `apps/worker/.env.example` 创建本地配置文件；不要让 worker 读取 `apps/api/.env` 或 `apps/api/wrangler.jsonc`。
+worker 从 `apps/worker/.env` 读取运行配置。可从 `config/env/worker.env.example` 创建本地配置文件；不要让 worker 读取 `apps/api/.env` 或 `apps/api/wrangler.jsonc`。
 
 生产环境启动入口：
 

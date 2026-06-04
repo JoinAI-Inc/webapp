@@ -13,7 +13,8 @@ but they are different responsibilities.
 - `INTERNAL_*`: Docker-network addresses used by containers.
 - Framework/runtime names: variables required by NextAuth, Prisma, Stripe, or existing code.
 
-For Docker Compose deployment, prefer setting the clearer variables in `.env.docker`.
+For Docker Compose deployment, copy `config/env/docker.env.example` to
+`.env.docker`, then prefer setting the clearer variables in `.env.docker`.
 `docker-compose.yml` maps them into the framework/runtime names the apps currently read.
 
 ## Canonical Docker Variables
