@@ -6,9 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, Flame } from "lucide-react";
 
-const ICON_FAVORITE_UNLIKE = '/new-home/icon-favorite-unlike.png';
-const ICON_FAVORITE_UNLIKE_HOVER = '/new-home/icon-favorite-unlike-hover.png';
-const ICON_FAVORITE_LIKE = '/new-home/icon-favorite-like.png';
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
+const ICON_FAVORITE_UNLIKE = `${IMAGE_URL}/new-home/icon-favorite-unlike.png`;
+const ICON_FAVORITE_UNLIKE_HOVER = `${IMAGE_URL}/new-home/icon-favorite-unlike-hover.png`;
+const ICON_FAVORITE_LIKE = `${IMAGE_URL}/new-home/icon-favorite-like.png`;
 
 function GatherLuckIcon() {
     return (

@@ -4,7 +4,7 @@ import { storage } from '../../lib/storage';
 const router = express.Router();
 
 const VALID_CONTEXTS = new Set(['site-theme', 'template']);
-const VALID_PAGES = new Set(['home', 'about', 'poke', 'footer', 'global']);
+const VALID_PAGES = new Set(['home', 'about', 'poke', 'footer', 'login', 'global']);
 const VALID_SECTIONS = new Set([
     'hero',
     'red-brand',
@@ -16,6 +16,8 @@ const VALID_SECTIONS = new Set([
     'about',
     'poke',
     'footer',
+    'login',
+    'providers',
     'theme',
     'template',
 ]);

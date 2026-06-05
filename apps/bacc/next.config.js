@@ -12,7 +12,12 @@ const nextConfig = {
 
     // Image optimization configuration
     images: {
-        domains: [],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'pub-cfc37210b6a543b492b7f0e494faac09.r2.dev',
+            },
+        ],
         unoptimized: true, // Cloudflare Pages doesn't support Next.js image optimization
     },
 
@@ -42,6 +47,10 @@ const nextConfig = {
             {
                 source: '/api/payment/:path*',
                 destination: `${apiBackend}/api/payment/:path*`,
+            },
+            {
+                source: '/api/site-theme',
+                destination: `${apiBackend}/api/site-theme`,
             },
         ];
     },

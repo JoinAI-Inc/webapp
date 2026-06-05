@@ -11,6 +11,8 @@ import { PremiumFeatureSubscribeBanner } from "./slot-config/PremiumBanner";
 import { UploadWidget } from "./slot-config/UploadWidget";
 import { AssetSelectionWidget } from "./slot-config/AssetSelectionWidget";
 
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
+
 export function SlotConfigPanel({
     templateId,
     generationFeatureKey: configuredTemplateFeatureKey,
@@ -473,7 +475,7 @@ export function SlotConfigPanel({
                     {isBrewing ? (
                         <button
                             className="absolute bottom-[16px] left-[24px] right-[24px] z-30 flex h-[24px] items-center justify-center rounded-[23px] bg-cover bg-center px-[18px] py-[6px] text-[12px] font-normal leading-[1.4] tracking-[0.12px] text-white transition-opacity hover:opacity-90 tablet:bottom-[24px] tablet:left-[16px] tablet:right-auto tablet:h-[40px] tablet:w-[116px] tablet:px-[20px] tablet:py-[10px] tablet:text-[14px] tablet:tracking-[0.14px]"
-                            style={{ backgroundImage: "url('/assets/generation-one-more-bg.png')" }}
+                            style={{ backgroundImage: `url("${IMAGE_URL}/assets/generation-one-more-bg.png")` }}
                             onClick={() => {
                                 setSubmittedTaskId(null);
                                 activeTaskIdRef.current = null;

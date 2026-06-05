@@ -98,7 +98,9 @@ temp/
 # bacc public image assets (large files, managed separately)
 apps/bacc/public/new-home/
 apps/bacc/public/new-home-compressed/
-apps/bacc/public/assets/
+apps/bacc/public/assets/*
+!apps/bacc/public/assets/**/
+!apps/bacc/public/assets/**/*.svg
 apps/bacc/public/landing-footer/lucky-photo-footer-bg.png
 apps/bacc/public/landing-footer/lucky-photo-footer-collage.png
 apps/bacc/public/login-design/lucky-photo-login-collage.png

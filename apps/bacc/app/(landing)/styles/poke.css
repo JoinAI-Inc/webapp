@@ -79,7 +79,7 @@
   min-width: 0;
   min-height: 264px;
   padding: 0 24px;
-  background: url("/landing-poke/lucky-photo-poke-panel-center.png") center / 100% 100% no-repeat;
+  background: var(--poke-panel-center-image) center / 100% 100% no-repeat;
 }
 
 .poke-thanks-table-frame {

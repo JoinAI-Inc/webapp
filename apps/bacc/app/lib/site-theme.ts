@@ -1,4 +1,5 @@
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+const FALLBACK_IMAGE_URL = "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image";
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || FALLBACK_IMAGE_URL).replace(/\/$/, "");
 const BASE = `${IMAGE_URL}/new-home`;
 const API_BASE_URL = process.env.API_BACKEND_URL || "http://localhost:3001";
 
@@ -160,6 +161,16 @@ export type SiteThemeConfig = {
     placeholder: string;
     emailLabel: string;
     email: string;
+  };
+  login: {
+    logoImageUrl: string;
+    titleAccentImageUrl: string;
+    mobileCollageImageUrl: string;
+    desktopCollageImageUrl: string;
+    googleIconUrl: string;
+    discordIconUrl: string;
+    xIconUrl: string;
+    appleIconUrl: string;
   };
   poke: {
     backgroundColor: string;
@@ -402,14 +413,14 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
   },
   footer: {
     backgroundColor: "#EC2E2E",
-    backgroundImageUrl: "/landing-footer/lucky-photo-footer-bg.png",
+    backgroundImageUrl: `${IMAGE_URL}/landing-footer/lucky-photo-footer-bg.png`,
     title: "Get your fortune Foto right now",
     titleColor: "#FFFFFF",
     ctaLabel: "Try it free",
     ctaIconUrl: "/landing-footer/lucky-photo-home-cta-icon-brand.svg",
     ctaBackgroundColor: "#FFFFFF",
     ctaTextColor: "#EC2E2E",
-    collageImageUrl: "/landing-footer/lucky-photo-footer-collage.png",
+    collageImageUrl: `${IMAGE_URL}/landing-footer/lucky-photo-footer-collage.png`,
     metaColor: "#E0B2B2",
     copyrightText: "Copyright © 2026 JoinAI. All rights reserved.",
     recordText: "浙ICP备2021040718号-2",
@@ -419,7 +430,7 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
     backgroundImageUrl: `${BASE}/bg-home-1.png`,
     illustrationUrl: `${BASE}/img-about-horses.png`,
     decorationImageUrl: "/bg-about-1.svg",
-    heartIconUrl: "/icon-heart.png",
+    heartIconUrl: `${IMAGE_URL}/icon-heart.png`,
     accentColor: "#EC2E2E",
     textColor: "#0A0708",
     mutedTextColor: "#9B9A9D",
@@ -434,6 +445,16 @@ export const DEFAULT_SITE_THEME: SiteThemeConfig = {
     placeholder: "Leave us a message...",
     emailLabel: "or sent us an E-Mail:",
     email: "hello@joinai.com",
+  },
+  login: {
+    logoImageUrl: "/login-design/lucky-photo-logo.svg",
+    titleAccentImageUrl: "/login-design/lucky-photo-title-accent.svg",
+    mobileCollageImageUrl: `${IMAGE_URL}/login-design/lucky-photo-mobile-collage.png`,
+    desktopCollageImageUrl: `${IMAGE_URL}/login-design/lucky-photo-login-collage.png`,
+    googleIconUrl: "/login-design/lucky-photo-icon-google.svg",
+    discordIconUrl: "/login-design/lucky-photo-icon-discord.svg",
+    xIconUrl: "/login-design/lucky-photo-icon-x.svg",
+    appleIconUrl: "/login-design/lucky-photo-icon-apple.svg",
   },
   poke: {
     backgroundColor: "#FFF9F2",
@@ -566,6 +587,7 @@ export function normalizeSiteThemeConfig(
   const announcement = asObject(data.announcement);
   const footer = asObject(data.footer);
   const about = asObject(data.about);
+  const login = asObject(data.login);
   const poke = asObject(data.poke);
 
   return {
@@ -709,6 +731,16 @@ export function normalizeSiteThemeConfig(
       placeholder: asString(about.placeholder, DEFAULT_SITE_THEME.about.placeholder),
       emailLabel: asString(about.emailLabel, DEFAULT_SITE_THEME.about.emailLabel),
       email: asString(about.email, DEFAULT_SITE_THEME.about.email),
+    },
+    login: {
+      logoImageUrl: asString(login.logoImageUrl, DEFAULT_SITE_THEME.login.logoImageUrl),
+      titleAccentImageUrl: asString(login.titleAccentImageUrl, DEFAULT_SITE_THEME.login.titleAccentImageUrl),
+      mobileCollageImageUrl: asString(login.mobileCollageImageUrl, DEFAULT_SITE_THEME.login.mobileCollageImageUrl),
+      desktopCollageImageUrl: asString(login.desktopCollageImageUrl, DEFAULT_SITE_THEME.login.desktopCollageImageUrl),
+      googleIconUrl: asString(login.googleIconUrl, DEFAULT_SITE_THEME.login.googleIconUrl),
+      discordIconUrl: asString(login.discordIconUrl, DEFAULT_SITE_THEME.login.discordIconUrl),
+      xIconUrl: asString(login.xIconUrl, DEFAULT_SITE_THEME.login.xIconUrl),
+      appleIconUrl: asString(login.appleIconUrl, DEFAULT_SITE_THEME.login.appleIconUrl),
     },
     poke: {
       backgroundColor: asString(poke.backgroundColor, DEFAULT_SITE_THEME.poke.backgroundColor),

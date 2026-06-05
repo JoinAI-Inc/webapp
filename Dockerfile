@@ -42,7 +42,7 @@ CMD ["node", "apps/worker/dist/index.js"]
 
 FROM source AS bacc
 ARG API_BACKEND_URL=http://api:3001
-ARG NEXT_PUBLIC_IMAGE_URL=
+ARG NEXT_PUBLIC_IMAGE_URL=https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image
 ARG NEXT_PUBLIC_API_BASE_URL=
 ARG NEXT_PUBLIC_APP_ID=bacc
 ENV NODE_ENV=production

@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
+
 export function PremiumCoinIcon() {
     return (
         <div className="relative size-[24px] shrink-0 overflow-hidden tablet:size-[26px]" aria-hidden="true">
@@ -57,7 +59,7 @@ export function PremiumFeatureSubscribeBanner({ featureKey }: { featureKey: stri
                     <div className="-scale-y-100 rotate-[-110.09deg]">
                         <div className="relative h-[565.298px] w-[318.088px]">
                             <Image
-                                src="/assets/subscription-banner/banner-bg-mobile.png"
+                                src={`${IMAGE_URL}/assets/subscription-banner/banner-bg-mobile.png`}
                                 alt=""
                                 fill
                                 sizes="318px"
@@ -72,7 +74,7 @@ export function PremiumFeatureSubscribeBanner({ featureKey }: { featureKey: stri
                     <div className="-scale-y-100 rotate-[-110.09deg]">
                         <div className="relative h-[660.76px] w-[371.804px]">
                             <Image
-                                src="/assets/subscription-banner/banner-bg-desktop.png"
+                                src={`${IMAGE_URL}/assets/subscription-banner/banner-bg-desktop.png`}
                                 alt=""
                                 fill
                                 sizes="372px"

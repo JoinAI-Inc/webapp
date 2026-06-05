@@ -1,11 +1,12 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import clsx from 'clsx';
 import { LoginPageSkeleton } from '@/app/components/Skeletons';
+import { DEFAULT_SITE_THEME, normalizeSiteThemeConfig, type SiteThemeConfig } from '@/app/lib/site-theme';
 
 type AuthProvider = 'google' | 'discord' | 'x' | 'apple';
 
@@ -42,6 +43,27 @@ const AUTH_PROVIDERS: Record<AuthProvider, AuthProviderConfig> = {
     },
 };
 
+function buildAuthProviders(login: SiteThemeConfig['login']): Record<AuthProvider, AuthProviderConfig> {
+    return {
+        google: {
+            ...AUTH_PROVIDERS.google,
+            icon: login.googleIconUrl,
+        },
+        discord: {
+            ...AUTH_PROVIDERS.discord,
+            icon: login.discordIconUrl,
+        },
+        x: {
+            ...AUTH_PROVIDERS.x,
+            icon: login.xIconUrl,
+        },
+        apple: {
+            ...AUTH_PROVIDERS.apple,
+            icon: login.appleIconUrl,
+        },
+    };
+}
+
 function LoginContent() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -49,6 +71,9 @@ function LoginContent() {
     const redirectTo = searchParams.get('redirectTo') || '/';
     const [activeProvider, setActiveProvider] = useState<AuthProvider | null>(null);
     const [feedback, setFeedback] = useState<string | null>(null);
+    const [siteTheme, setSiteTheme] = useState<SiteThemeConfig>(DEFAULT_SITE_THEME);
+    const loginTheme = siteTheme.login;
+    const authProviders = useMemo(() => buildAuthProviders(loginTheme), [loginTheme]);
 
     useEffect(() => {
         if (status === 'authenticated' && session?.user) {
@@ -60,8 +85,34 @@ function LoginContent() {
         }
     }, [status, session, redirectTo, router]);
 
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadSiteTheme() {
+            try {
+                const response = await fetch('/api/site-theme', { cache: 'no-store' });
+                if (!response.ok) return;
+
+                const material = await response.json();
+                if (!cancelled) {
+                    setSiteTheme(normalizeSiteThemeConfig(material?.config));
+                }
+            } catch {
+                if (!cancelled) {
+                    setSiteTheme(DEFAULT_SITE_THEME);
+                }
+            }
+        }
+
+        loadSiteTheme();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     const handleProviderClick = (provider: AuthProvider) => {
-        const config = AUTH_PROVIDERS[provider];
+        const config = authProviders[provider];
 
         if (!config.enabled) {
             setFeedback(config.message || `${config.label} login is currently unavailable.`);
@@ -83,7 +134,7 @@ function LoginContent() {
                 <section className="relative z-[1] flex min-h-full min-w-[0px] flex-1 flex-col px-[20px] py-[28px] tablet:px-[36px] tablet:py-[40px] desktop:px-[48px] desktop:py-[44px]">
                     <Image
                         className="login-fade-in block h-[32px] w-[146px] shrink-0 select-none object-contain [-webkit-user-drag:none] [animation-delay:120ms]"
-                        src="/login-design/lucky-photo-logo.svg"
+                        src={loginTheme.logoImageUrl}
                         alt="Lucky Photo"
                         width={146}
                         height={32}
@@ -99,7 +150,8 @@ function LoginContent() {
                             </h1>
                             <div className="login-fade-in relative inline-flex w-full justify-center [animation-delay:380ms]">
                                 <div
-                                    className="pointer-events-none absolute bottom-[8px] left-1/2 z-[2] h-[62px] w-[274px] -translate-x-1/2 bg-[url('/login-design/lucky-photo-title-accent.svg')] bg-center bg-no-repeat [background-size:274px_auto] desktop:bottom-[16px] desktop:w-[min(100%,330px)] desktop:[background-size:330px_auto]"
+                                    className="pointer-events-none absolute bottom-[8px] left-1/2 z-[2] h-[62px] w-[274px] -translate-x-1/2 bg-center bg-no-repeat [background-size:274px_auto] desktop:bottom-[16px] desktop:w-[min(100%,330px)] desktop:[background-size:330px_auto]"
+                                    style={{ backgroundImage: `url("${loginTheme.titleAccentImageUrl}")` }}
                                     aria-hidden="true"
                                 />
                                 <div
@@ -116,7 +168,7 @@ function LoginContent() {
                         </div>
 
                         <div className="mt-[28px] grid w-[87.5vw] max-w-[320px] gap-[16px] tablet:w-[368px] tablet:max-w-[368px]">
-                            {(Object.entries(AUTH_PROVIDERS) as Array<[AuthProvider, typeof AUTH_PROVIDERS[AuthProvider]]>).map(([provider, config], index) => {
+                            {(Object.entries(authProviders) as Array<[AuthProvider, typeof authProviders[AuthProvider]]>).map(([provider, config], index) => {
                                 const isLoading = activeProvider === provider;
 
                                 return (
@@ -172,9 +224,20 @@ function LoginContent() {
                 </section>
 
                 <aside
-                    className="login-visual-fade absolute inset-x-[0px] bottom-[0px] block h-[60vh] max-h-[620px] w-full select-none overflow-hidden bg-[url('/login-design/lucky-photo-mobile-collage.png')] bg-cover bg-center bg-bottom [-webkit-user-drag:none] desktop:relative desktop:inset-auto desktop:h-[100vh] desktop:h-[100svh] desktop:max-h-none desktop:w-[40vw] desktop:min-w-[320px] desktop:max-w-[760px] desktop:shrink-0 desktop:basis-[40vw] desktop:bg-[url('/login-design/lucky-photo-login-collage.png')] desktop:bg-center"
+                    className="login-visual-fade absolute inset-x-[0px] bottom-[0px] block h-[60vh] max-h-[620px] w-full select-none overflow-hidden [-webkit-user-drag:none] desktop:relative desktop:inset-auto desktop:h-[100vh] desktop:h-[100svh] desktop:max-h-none desktop:w-[40vw] desktop:min-w-[320px] desktop:max-w-[760px] desktop:shrink-0 desktop:basis-[40vw]"
                     aria-label="Promotional image"
-                />
+                >
+                    <div
+                        className="absolute inset-0 bg-cover bg-center bg-bottom desktop:hidden"
+                        style={{ backgroundImage: `url("${loginTheme.mobileCollageImageUrl}")` }}
+                        aria-hidden="true"
+                    />
+                    <div
+                        className="absolute inset-0 hidden bg-cover bg-center desktop:block"
+                        style={{ backgroundImage: `url("${loginTheme.desktopCollageImageUrl}")` }}
+                        aria-hidden="true"
+                    />
+                </aside>
             </main>
         </div>
     );

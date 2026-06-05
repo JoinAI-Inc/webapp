@@ -1,6 +1,6 @@
 import React from "react";
 
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || 'https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image').replace(/\/$/, '');
 
 if (process.env.NODE_ENV === 'development' && !IMAGE_URL) {
     console.warn('[CardFrame] NEXT_PUBLIC_IMAGE_URL is not set. Card borders will not render.');

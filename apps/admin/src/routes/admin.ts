@@ -14,10 +14,12 @@ import generationConfigRouter from './admin/generation-config';
 
 const router = express.Router();
 
+const getAdminSecret = () => process.env.ADMIN_SECRET || process.env.NEXT_PUBLIC_ADMIN_API_TOKEN || 'admin_secret_123';
+
 // 管理员认证中间件
 const adminAuth = (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers['authorization'];
-    if (token !== `Bearer ${process.env.ADMIN_SECRET}`) {
+    if (token !== `Bearer ${getAdminSecret()}`) {
         return res.status(403).json({ error: 'Unauthorized' });
     }
     next();

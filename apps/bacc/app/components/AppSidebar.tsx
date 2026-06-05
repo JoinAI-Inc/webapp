@@ -7,7 +7,7 @@ import { LayoutGrid, FolderOpen, Menu } from "lucide-react";
 import { UserMenuButton } from "./UserMenu";
 import { usePathname } from "next/navigation";
 
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || 'https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image').replace(/\/$/, '');
 
 /**
  * 应用级侧边栏 Shell，与 studio 路由组的导航保持视觉一致。

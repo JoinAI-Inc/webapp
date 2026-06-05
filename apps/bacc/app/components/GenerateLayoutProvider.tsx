@@ -110,9 +110,9 @@ export function GenerateLayoutProvider({ children }: { children: ReactNode }) {
         return () => document.removeEventListener("mousedown", handler);
     }, [mobileMenuOpen]);
 
-    const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || '';
+    const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || 'https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image').replace(/\/$/, '');
 
-    const SELECTED_BG = IMAGE_URL + '/new-home/bg-nav-button-selected.png';
+    const SELECTED_BG = `${IMAGE_URL}/new-home/bg-nav-button-selected.png`;
 
 
 

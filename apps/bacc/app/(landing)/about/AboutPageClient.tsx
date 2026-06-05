@@ -8,10 +8,11 @@ import { LandingScrollOptimizer } from "../../components/LandingScrollOptimizer"
 
 type Status = "idle" | "submitting" | "done" | "limitReached";
 
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
 const ABOUT_BACKGROUND_FALLBACK =
-    "/landing-about/lucky-photo-poke-top-pattern.png";
+    `${IMAGE_URL}/landing-about/lucky-photo-poke-top-pattern.png`;
 const ABOUT_ILLUSTRATION_FALLBACK =
-    "/landing-about/lucky-photo-poke-horses.png";
+    `${IMAGE_URL}/landing-about/lucky-photo-poke-horses.png`;
 
 function resolveAboutAsset(src: string, fallback: string) {
     if (!src || src.startsWith("/new-home/")) {

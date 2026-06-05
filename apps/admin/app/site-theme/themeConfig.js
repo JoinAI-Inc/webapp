@@ -1,3 +1,6 @@
+const FALLBACK_IMAGE_URL = 'https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image';
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || FALLBACK_IMAGE_URL).replace(/\/$/, '');
+
 export const DEFAULT_CONFIG = {
     theme: {
         primaryColor: '#EC2E2E',
@@ -116,14 +119,14 @@ export const DEFAULT_CONFIG = {
     },
     footer: {
         backgroundColor: '#EC2E2E',
-        backgroundImageUrl: '/landing-footer/lucky-photo-footer-bg.png',
+        backgroundImageUrl: `${IMAGE_URL}/landing-footer/lucky-photo-footer-bg.png`,
         title: 'Get your fortune Foto right now',
         titleColor: '#FFFFFF',
         ctaLabel: 'Try it free',
         ctaIconUrl: '/landing-footer/lucky-photo-home-cta-icon-brand.svg',
         ctaBackgroundColor: '#FFFFFF',
         ctaTextColor: '#EC2E2E',
-        collageImageUrl: '/landing-footer/lucky-photo-footer-collage.png',
+        collageImageUrl: `${IMAGE_URL}/landing-footer/lucky-photo-footer-collage.png`,
         metaColor: '#E0B2B2',
         copyrightText: 'Copyright © 2026 JoinAI. All rights reserved.',
         recordText: '浙ICP备2021040718号-2',
@@ -133,7 +136,7 @@ export const DEFAULT_CONFIG = {
         backgroundImageUrl: '',
         illustrationUrl: '',
         decorationImageUrl: '/bg-about-1.svg',
-        heartIconUrl: '/icon-heart.png',
+        heartIconUrl: `${IMAGE_URL}/icon-heart.png`,
         accentColor: '#EC2E2E',
         textColor: '#0A0708',
         mutedTextColor: '#9B9A9D',
@@ -148,6 +151,16 @@ export const DEFAULT_CONFIG = {
         placeholder: 'Leave us a message...',
         emailLabel: 'or sent us an E-Mail:',
         email: 'hello@joinai.com',
+    },
+    login: {
+        logoImageUrl: '/login-design/lucky-photo-logo.svg',
+        titleAccentImageUrl: '/login-design/lucky-photo-title-accent.svg',
+        mobileCollageImageUrl: `${IMAGE_URL}/login-design/lucky-photo-mobile-collage.png`,
+        desktopCollageImageUrl: `${IMAGE_URL}/login-design/lucky-photo-login-collage.png`,
+        googleIconUrl: '/login-design/lucky-photo-icon-google.svg',
+        discordIconUrl: '/login-design/lucky-photo-icon-discord.svg',
+        xIconUrl: '/login-design/lucky-photo-icon-x.svg',
+        appleIconUrl: '/login-design/lucky-photo-icon-apple.svg',
     },
     poke: {
         backgroundColor: '#FFF9F2',
@@ -290,6 +303,7 @@ export function normalizeConfig(config) {
         announcement: { ...DEFAULT_CONFIG.announcement, ...(source.announcement || {}) },
         footer: { ...DEFAULT_CONFIG.footer, ...(source.footer || {}) },
         about: { ...DEFAULT_CONFIG.about, ...(source.about || {}) },
+        login: { ...DEFAULT_CONFIG.login, ...(source.login || {}) },
         poke: {
             ...DEFAULT_CONFIG.poke,
             ...(source.poke || {}),

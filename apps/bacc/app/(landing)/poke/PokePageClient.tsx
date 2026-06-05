@@ -18,8 +18,9 @@ type OverflowState = {
 };
 
 const VISIBLE_ROW_COUNT = 16;
-const POKE_BACKGROUND_URL = "/landing-poke/lucky-photo-poke-background.png";
-const PANEL_BASE = "/landing-poke";
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
+const POKE_BACKGROUND_URL = `${IMAGE_URL}/landing-poke/lucky-photo-poke-background.png`;
+const PANEL_BASE = `${IMAGE_URL}/landing-poke`;
 
 export function PokePageClient({
     material,
@@ -84,6 +85,7 @@ export function PokePageClient({
             style={{
                 "--poke-landing-bg": poke.backgroundColor,
                 "--poke-landing-bg-image": `url(${POKE_BACKGROUND_URL})`,
+                "--poke-panel-center-image": `url(${PANEL_BASE}/lucky-photo-poke-panel-center.png)`,
                 "--poke-heading-color": poke.headingColor,
                 "--poke-table-header-color": poke.tableHeaderColor,
                 "--poke-table-text-color": poke.tableTextColor,
@@ -185,7 +187,7 @@ export function PokePageClient({
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                         className="poke-thanks-special-icon"
-                                        src={`${PANEL_BASE}/lucky-photo-special-thanks-icon.svg`}
+                                        src="/landing-poke/lucky-photo-special-thanks-icon.svg"
                                         alt=""
                                         draggable={false}
                                     />

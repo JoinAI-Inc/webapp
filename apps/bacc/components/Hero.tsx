@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, Wand2 } from "lucide-react";
 import Link from "next/link";
 
+const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
+
 export default function Hero() {
     return (
         <section className="pt-[128px] pb-[80px] px-[24px] overflow-hidden">
@@ -51,7 +53,7 @@ export default function Hero() {
                     >
                         <div className="relative rounded-xl overflow-hidden aspect-[4/5] bg-neutral-900 group">
                             <img
-                                src="/hero-model.png"
+                                src={`${IMAGE_URL}/hero-model.png`}
                                 alt="Blonde Model in Hanfu Preview"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />

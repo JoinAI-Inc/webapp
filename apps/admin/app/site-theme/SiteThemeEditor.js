@@ -813,6 +813,30 @@ export default function SiteThemeEditor({ id }) {
             ),
         },
         {
+            key: 'login',
+            label: 'Login',
+            children: (
+                <>
+                    <SectionCard title="登录页品牌和背景素材">
+                        <div style={FIELD_GRID_STYLE}>
+                            <ImageUrlField label="Logo" value={config.login.logoImageUrl} aspectRatio="146 / 32" uploadMeta={uploadMeta('login', 'login', 'logo')} onChange={(value) => setNested('login', 'logoImageUrl', value)} />
+                            <ImageUrlField label="标题装饰图" value={config.login.titleAccentImageUrl} aspectRatio="274 / 62" uploadMeta={uploadMeta('login', 'login', 'title-accent')} onChange={(value) => setNested('login', 'titleAccentImageUrl', value)} />
+                            <ImageUrlField label="移动端拼贴图" value={config.login.mobileCollageImageUrl} aspectRatio="390 / 420" uploadMeta={uploadMeta('login', 'login', 'mobile-collage')} onChange={(value) => setNested('login', 'mobileCollageImageUrl', value)} />
+                            <ImageUrlField label="桌面端拼贴图" value={config.login.desktopCollageImageUrl} aspectRatio="760 / 900" uploadMeta={uploadMeta('login', 'login', 'desktop-collage')} onChange={(value) => setNested('login', 'desktopCollageImageUrl', value)} />
+                        </div>
+                    </SectionCard>
+                    <SectionCard title="登录方式图标">
+                        <div style={FIELD_GRID_STYLE}>
+                            <ImageUrlField label="Google 图标" value={config.login.googleIconUrl} aspectRatio="1 / 1" uploadMeta={uploadMeta('login', 'providers', 'google-icon')} onChange={(value) => setNested('login', 'googleIconUrl', value)} />
+                            <ImageUrlField label="Discord 图标" value={config.login.discordIconUrl} aspectRatio="1 / 1" uploadMeta={uploadMeta('login', 'providers', 'discord-icon')} onChange={(value) => setNested('login', 'discordIconUrl', value)} />
+                            <ImageUrlField label="X 图标" value={config.login.xIconUrl} aspectRatio="1 / 1" uploadMeta={uploadMeta('login', 'providers', 'x-icon')} onChange={(value) => setNested('login', 'xIconUrl', value)} />
+                            <ImageUrlField label="Apple 图标" value={config.login.appleIconUrl} aspectRatio="1 / 1" uploadMeta={uploadMeta('login', 'providers', 'apple-icon')} onChange={(value) => setNested('login', 'appleIconUrl', value)} />
+                        </div>
+                    </SectionCard>
+                </>
+            ),
+        },
+        {
             key: 'footer',
             label: 'Footer',
             children: (

@@ -3,7 +3,7 @@
   margin-left: calc(50% - 50vw);
   overflow: hidden;
   background:
-    var(--site-footer-bg-image, url("/landing-footer/lucky-photo-footer-bg.png"))
+    var(--site-footer-bg-image)
       center / cover no-repeat,
     var(--site-footer-bg, #ec2e2e);
 }
