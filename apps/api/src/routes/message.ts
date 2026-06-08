@@ -1,6 +1,11 @@
 import express, { Request, Response } from 'express';
 import { verifyInternalRequest } from '../lib/internal-auth.js';
-import { createMessage, findMessageUser } from '../services/messages.js';
+import {
+    createMessage,
+    findMessageUser,
+    getMessageRateLimitCounts,
+    getMessageRateLimitDecision,
+} from '../services/messages.js';
 
 const router = express.Router();
 const MAX_MESSAGE_LENGTH = 2000;
@@ -59,9 +64,29 @@ router.post('/', async (req: Request, res: Response) => {
             return res.status(401).json({ error: 'Authenticated user not found.' });
         }
 
+        const ipAddress = getClientIP(req);
+        const visitorId = typeof req.body?.visitorId === 'string'
+            ? req.body.visitorId.trim()
+            : null;
+        const rateLimitDecision = getMessageRateLimitDecision(
+            await getMessageRateLimitCounts({
+                userId: user?.id ?? null,
+                visitorId,
+                ipAddress,
+            }),
+        );
+
+        if (rateLimitDecision.allowed === false) {
+            return res.status(429).json({
+                error: 'Message submission limit reached. Please try again later.',
+                reason: rateLimitDecision.reason,
+            });
+        }
+
         const message = await createMessage({
             content,
-            ipAddress: getClientIP(req),
+            visitorId,
+            ipAddress,
             userAgent: firstHeaderValue(req.headers['user-agent']) || null,
             user,
         });

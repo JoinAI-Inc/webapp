@@ -5,6 +5,8 @@ import { makeInternalHeaders } from "@/lib/internal-auth";
 
 const API_BASE_URL = process.env.API_BACKEND_URL || 'http://localhost:3001';
 const MAX_MESSAGE_LENGTH = 2000;
+const VISITOR_COOKIE_NAME = 'about_visitor_id';
+const VISITOR_COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
 function getClientIP(req: NextRequest): string {
     const forwarded = req.headers.get("x-forwarded-for");
@@ -38,6 +40,8 @@ export async function POST(req: NextRequest) {
         : null;
 
     const authHeaders = userId ? await makeInternalHeaders(userId) : {};
+    const existingVisitorId = req.cookies.get(VISITOR_COOKIE_NAME)?.value;
+    const visitorId = existingVisitorId || crypto.randomUUID();
 
     let response: Response;
     try {
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
                 ...(req.headers.get('x-real-ip') ? { 'x-real-ip': req.headers.get('x-real-ip') as string } : {}),
                 ...(req.headers.get('user-agent') ? { 'user-agent': req.headers.get('user-agent') as string } : {}),
             },
-            body: JSON.stringify({ content }),
+            body: JSON.stringify({ content, visitorId }),
         });
     } catch {
         return NextResponse.json(
@@ -61,5 +65,16 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json().catch(() => ({}));
 
-    return NextResponse.json(data, { status: response.status });
+    const nextResponse = NextResponse.json(data, { status: response.status });
+    nextResponse.cookies.set({
+        name: VISITOR_COOKIE_NAME,
+        value: visitorId,
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: VISITOR_COOKIE_MAX_AGE_SECONDS,
+    });
+
+    return nextResponse;
 }
