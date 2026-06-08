@@ -26,6 +26,7 @@ import queueRoutes from './routes/queue.js';
 import historyRoutes from './routes/history.js';
 import templateRoutes from './routes/templates.js';
 import siteThemeRoutes from './routes/site-theme.js';
+import messageRoutes from './routes/message.js';
 
 // Configure global proxy if needed
 // Proxy removed by request
@@ -66,6 +67,7 @@ app.use('/api/queue', queueRoutes);
 app.use('/api/history', historyRoutes); // 历史记录路由
 app.use('/api/templates', templateRoutes);
 app.use('/api/site-theme', siteThemeRoutes);
+app.use('/api/message', messageRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

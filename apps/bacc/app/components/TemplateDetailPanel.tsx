@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ArrowLeft } from "lucide-react";
 import { SlotConfigPanel } from "./SlotConfigPanel";
 import { TemplateDetailSkeleton } from "./Skeletons";
@@ -20,6 +22,7 @@ interface TemplateDetail {
     name: string;
     imageUrl: string;
     favoriteCount: number;
+    isFavorited?: boolean;
     generationFeatureKey?: string | null;
     slots: Slot[];
 }
@@ -35,18 +38,24 @@ export function TemplateDetailPanel({
 }) {
     const [template, setTemplate] = useState<TemplateDetail | null>(null);
     const [loading, setLoading] = useState(true);
+    const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+    const router = useRouter();
+    const { status: sessionStatus } = useSession();
+    const isAuthenticated = sessionStatus === "authenticated";
 
     useEffect(() => {
+        if (sessionStatus === "loading") return;
+
         setLoading(true);
         setTemplate(null);
         setGeneratedImageUrl(null);
         fetch(`/api/templates/${templateId}`)
             .then((r) => r.json())
-            .then((data) => setTemplate(data))
+            .then((data) => setTemplate({ ...data, isFavorited: isAuthenticated ? data.isFavorited : false }))
             .finally(() => setLoading(false));
-    }, [templateId]);
+    }, [templateId, isAuthenticated, sessionStatus]);
 
     if (loading) {
         return <TemplateDetailSkeleton showBackButton onBack={onBack} />;
@@ -65,6 +74,45 @@ export function TemplateDetailPanel({
     const handleTaskSubmitted = (taskId: string) => {
         setGeneratedImageUrl(null);
         onTaskSubmitted?.(taskId);
+    };
+    const handleFavorite = async () => {
+        if (sessionStatus === "loading" || favoriteLoading) return;
+
+        if (!isAuthenticated) {
+            router.push("/login");
+            return;
+        }
+
+        setFavoriteLoading(true);
+        try {
+            const res = await fetch(`/api/templates/${template.id}/favorite`, {
+                method: "POST",
+            });
+
+            if (res.status === 401) {
+                router.push("/login");
+                return;
+            }
+
+            if (!res.ok) return;
+
+            const data = await res.json();
+            setTemplate(prev => {
+                if (!prev) return prev;
+                const nextIsFavorited = !!data.isFavorited;
+                return {
+                    ...prev,
+                    isFavorited: nextIsFavorited,
+                    favoriteCount: nextIsFavorited
+                        ? prev.favoriteCount + 1
+                        : Math.max(0, prev.favoriteCount - 1),
+                };
+            });
+        } catch {
+            // Keep the current favorite state if the request fails.
+        } finally {
+            setFavoriteLoading(false);
+        }
     };
 
     return (
@@ -97,10 +145,20 @@ export function TemplateDetailPanel({
                         </div>
                     </div>
 
-                    <button className="flex size-[28px] items-center justify-center rounded-full bg-[#f2f2f3] text-[#6a696c] transition-colors hover:bg-[#e8e8e8]" aria-label="Favorite template">
+                    <button
+                        type="button"
+                        className={`flex size-[28px] cursor-pointer items-center justify-center rounded-full transition-colors disabled:cursor-default ${template.isFavorited
+                            ? "bg-[#fef2f2] text-[#EC2E2E] hover:bg-[#fcdada]"
+                            : "bg-[#f2f2f3] text-[#6a696c] hover:bg-[#e8e8e8]"
+                            }`}
+                        aria-label={template.isFavorited ? "Unfavorite template" : "Favorite template"}
+                        aria-pressed={template.isFavorited ? true : false}
+                        disabled={sessionStatus === "loading" || favoriteLoading}
+                        onClick={handleFavorite}
+                    >
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_273_8257)">
-                                <path d="M10.0001 17.6399C9.80007 17.6399 9.60007 17.5899 9.43007 17.4899C8.63007 17.0199 1.57007 12.7699 1.57007 7.56992C1.57007 5.15992 3.31007 2.66992 6.23007 2.66992C7.71007 2.66992 9.08007 3.25992 10.0001 4.26992C10.9201 3.26992 12.2901 2.66992 13.7701 2.66992C16.6901 2.66992 18.4301 5.15992 18.4301 7.56992C18.4301 12.7799 11.3701 17.0299 10.5701 17.4899C10.4001 17.5899 10.2001 17.6399 10.0001 17.6399ZM6.23007 4.00992C4.16007 4.00992 2.92007 5.80992 2.92007 7.55992C2.92007 11.7699 9.09007 15.6899 10.0001 16.2499C10.9101 15.6899 17.0801 11.7699 17.0801 7.55992C17.0801 5.81992 15.8401 4.00992 13.7701 4.00992C12.4101 4.00992 11.1901 4.66992 10.5901 5.72992C10.3501 6.14992 9.66007 6.14992 9.42007 5.72992C8.81007 4.66992 7.60007 4.00992 6.24007 4.00992H6.23007Z" fill="#22252A" />
+                                <path d="M10.0001 17.6399C9.80007 17.6399 9.60007 17.5899 9.43007 17.4899C8.63007 17.0199 1.57007 12.7699 1.57007 7.56992C1.57007 5.15992 3.31007 2.66992 6.23007 2.66992C7.71007 2.66992 9.08007 3.25992 10.0001 4.26992C10.9201 3.26992 12.2901 2.66992 13.7701 2.66992C16.6901 2.66992 18.4301 5.15992 18.4301 7.56992C18.4301 12.7799 11.3701 17.0299 10.5701 17.4899C10.4001 17.5899 10.2001 17.6399 10.0001 17.6399ZM6.23007 4.00992C4.16007 4.00992 2.92007 5.80992 2.92007 7.55992C2.92007 11.7699 9.09007 15.6899 10.0001 16.2499C10.9101 15.6899 17.0801 11.7699 17.0801 7.55992C17.0801 5.81992 15.8401 4.00992 13.7701 4.00992C12.4101 4.00992 11.1901 4.66992 10.5901 5.72992C10.3501 6.14992 9.66007 6.14992 9.42007 5.72992C8.81007 4.66992 7.60007 4.00992 6.24007 4.00992H6.23007Z" fill={template.isFavorited ? "#EC2E2E" : "#22252A"} />
                             </g>
                             <defs>
                                 <clipPath id="clip0_273_8257">

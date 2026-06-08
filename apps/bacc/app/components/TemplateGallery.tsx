@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Flame } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Flame } from "lucide-react";
 
 const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
 const ICON_FAVORITE_UNLIKE = `${IMAGE_URL}/new-home/icon-favorite-unlike.png`;
@@ -61,6 +62,10 @@ export function TemplateGallery({
     const [colCount, setColCount] = useState(5);
     const [mounted, setMounted] = useState(false);
     const router = useRouter();
+    const { status: sessionStatus } = useSession();
+    const isAuthenticated = sessionStatus === "authenticated";
+    // 用 ref 缓存收藏 ID 集合，避免切换标签时重复请求
+    const favoritedIds = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         setMounted(true);
@@ -78,23 +83,37 @@ export function TemplateGallery({
     }, []);
 
     const handleFavoriteChange = useCallback((id: string, isFavorited: boolean, favoriteCount: number) => {
+        const ids = new Set(favoritedIds.current);
+        if (isFavorited) ids.add(id);
+        else ids.delete(id);
+        favoritedIds.current = ids;
         setTemplates(prev => prev.map(t => t.id === id ? { ...t, isFavorited, favoriteCount } : t));
     }, []);
-    // 用 ref 缓存收藏 ID 集合，避免重复请求
-    const favoritedIds = useRef<Set<string>>(new Set());
-
     // 客户端挂载后同步收藏状态
     useEffect(() => {
+        if (sessionStatus === "loading") return;
+
+        if (!isAuthenticated) {
+            favoritedIds.current = new Set();
+            setTemplates(prev => prev.map(t => ({ ...t, isFavorited: false })));
+            return;
+        }
+
+        let cancelled = false;
         fetch("/api/templates/favorites")
             .then(r => r.ok ? r.json() : [])
             .then((data: Array<{ id: string }>) => {
-                if (!Array.isArray(data) || data.length === 0) return;
-                const ids = new Set(data.map(t => t.id));
+                if (cancelled) return;
+                const ids = Array.isArray(data) ? new Set(data.map(t => t.id)) : new Set<string>();
                 favoritedIds.current = ids;
                 setTemplates(prev => prev.map(t => ({ ...t, isFavorited: ids.has(t.id) })));
             })
             .catch(() => { });
-    }, []);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [isAuthenticated, sessionStatus]);
 
     const handleTagSelect = useCallback(async (tagId: string | null) => {
         setSelectedTag(tagId);
@@ -108,13 +127,13 @@ export function TemplateGallery({
             const list: Template[] = Array.isArray(json) ? json : (json.data || []);
             // 合并本地收藏状态
             const ids = favoritedIds.current;
-            setTemplates(ids.size > 0 ? list.map(t => ({ ...t, isFavorited: ids.has(t.id) })) : list);
+            setTemplates(list.map(t => ({ ...t, isFavorited: isAuthenticated && ids.has(t.id) })));
         } catch {
             // 静默失败，保留当前数据
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [isAuthenticated]);
 
     const filteredTemplates = templates;
 
@@ -193,6 +212,8 @@ export function TemplateGallery({
                                 <TemplateCard
                                     template={template}
                                     onLoginRequired={() => router.push("/login")}
+                                    isAuthenticated={isAuthenticated}
+                                    isAuthLoading={sessionStatus === "loading"}
                                     onSelect={onSelect}
                                 />
                             </div>
@@ -207,6 +228,8 @@ export function TemplateGallery({
                                         <TemplateCard
                                             template={template}
                                             onLoginRequired={() => router.push("/login")}
+                                            isAuthenticated={isAuthenticated}
+                                            isAuthLoading={sessionStatus === "loading"}
                                             onSelect={onSelect}
                                             onFavoriteChange={handleFavoriteChange}
                                         />
@@ -232,11 +255,15 @@ function TemplateCard({
     onLoginRequired,
     onSelect,
     onFavoriteChange,
+    isAuthenticated,
+    isAuthLoading,
 }: {
     template: Template;
     onLoginRequired: () => void;
     onSelect?: (templateId: string) => void;
     onFavoriteChange?: (id: string, isFavorited: boolean, count: number) => void;
+    isAuthenticated: boolean;
+    isAuthLoading: boolean;
 }) {
     const [isFavorited, setIsFavorited] = useState(template.isFavorited ?? false);
     const [favoriteCount, setFavoriteCount] = useState(template.favoriteCount);
@@ -250,7 +277,13 @@ function TemplateCard({
     const handleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (loading) return;
+        if (isAuthLoading || loading) return;
+
+        if (!isAuthenticated) {
+            onLoginRequired();
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -300,9 +333,9 @@ function TemplateCard({
 
                 {/* Favorite Button */}
                 <button
-                    className="group/btn absolute right-[16px] top-[16px] z-10 flex size-[32px] items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] opacity-0 backdrop-blur-[16px] transition-[opacity,transform] duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto active:scale-95"
+                    className="group/btn absolute right-[16px] top-[16px] z-10 flex size-[32px] cursor-pointer items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] opacity-0 backdrop-blur-[16px] transition-[opacity,transform] duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto active:scale-95 disabled:cursor-default"
                     onClick={handleFavorite}
-                    disabled={loading}
+                    disabled={isAuthLoading || loading}
                 >
                     {isFavorited ? (
                         <Image src={ICON_FAVORITE_LIKE} alt="Liked" width={24} height={24} priority={false} />
