@@ -300,7 +300,7 @@ function TemplateCard({
 
                 {/* Favorite Button */}
                 <button
-                    className="group/btn absolute right-[16px] top-[16px] z-10 flex size-[32px] items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] backdrop-blur-[16px] pointer-events-auto transition-transform active:scale-95"
+                    className="group/btn absolute right-[16px] top-[16px] z-10 flex size-[32px] items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] opacity-0 backdrop-blur-[16px] transition-[opacity,transform] duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto active:scale-95"
                     onClick={handleFavorite}
                     disabled={loading}
                 >

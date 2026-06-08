@@ -7,6 +7,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Heart, Menu } from "lucide-react";
 import { UserMenuButton } from "./UserMenu";
+import {
+    FavoritesSkeleton,
+    GalleryGridSkeleton,
+    GenerateStudioSkeleton,
+    TemplateDetailSkeleton,
+} from "./Skeletons";
 
 type TabType = "idea" | "gallery" | "favorites";
 type NavIconProps = SVGProps<SVGSVGElement> & { size?: number | string };
@@ -14,6 +20,7 @@ type NavIconProps = SVGProps<SVGSVGElement> & { size?: number | string };
 interface GenerateContextProps {
     activeTab: TabType;
     setActiveTab: (tab: TabType) => void;
+    startNavigation: (href: string) => void;
     latestTaskId: string | null;
     setLatestTaskId: (id: string | null) => void;
 }
@@ -75,6 +82,38 @@ function GalleryNavIcon({ size = 20, ...props }: NavIconProps) {
     );
 }
 
+function StudioNavigationLoadingOverlay({ href }: { href: string }) {
+    let content: ReactNode;
+
+    if (/^\/generate\/[^/?#]+/.test(href)) {
+        content = (
+            <div className="w-[92vw] max-w-[1280px]">
+                <TemplateDetailSkeleton />
+            </div>
+        );
+    } else if (href.startsWith("/gallery") || href.startsWith("/generate?tab=gallery")) {
+        content = (
+            <div className="w-[92vw] max-w-[1280px] py-[32px]">
+                <GalleryGridSkeleton />
+            </div>
+        );
+    } else if (href.startsWith("/favorites")) {
+        content = (
+            <div className="w-[92vw] max-w-[1280px] py-[32px]">
+                <FavoritesSkeleton />
+            </div>
+        );
+    } else {
+        content = <GenerateStudioSkeleton />;
+    }
+
+    return (
+        <div className="absolute inset-0 z-[80] flex justify-center overflow-y-auto bg-white" data-studio-nav-loading="true">
+            {content}
+        </div>
+    );
+}
+
 export function useGenerateContext() {
     const context = useContext(GenerateContext);
     if (!context) throw new Error("useGenerateContext must be used within a GenerateLayoutProvider");
@@ -84,20 +123,71 @@ export function useGenerateContext() {
 export function GenerateLayoutProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
+    const [pendingHref, setPendingHref] = useState<string | null>(null);
 
     let activeTab: TabType = "idea";
     if (pathname?.includes("/gallery")) activeTab = "gallery";
     else if (pathname?.includes("/favorites")) activeTab = "favorites";
 
+    const startNavigation = (href: string) => {
+        if (href === pathname) return;
+        setPendingHref(href);
+        router.push(href);
+    };
+
     const setActiveTab = (tab: TabType) => {
-        if (tab === "idea") router.push("/generate");
-        else if (tab === "gallery") router.push("/gallery");
-        else if (tab === "favorites") router.push("/favorites");
+        const href = tab === "idea" ? "/generate" : tab === "gallery" ? "/gallery" : "/favorites";
+        startNavigation(href);
     };
 
     const [latestTaskId, setLatestTaskId] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setPendingHref(null);
+    }, [pathname]);
+
+    useEffect(() => {
+        const handleDocumentClick = (event: MouseEvent) => {
+            if (
+                event.defaultPrevented ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey ||
+                event.button !== 0
+            ) {
+                return;
+            }
+
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+
+            const anchor = target.closest<HTMLAnchorElement>("a[href]");
+            if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
+
+            const url = new URL(anchor.href, window.location.href);
+            if (url.origin !== window.location.origin || url.pathname === pathname) return;
+
+            if (url.pathname === "/generate" && url.searchParams.get("tab") === "gallery") {
+                setPendingHref("/generate?tab=gallery");
+                return;
+            }
+
+            if (
+                url.pathname === "/generate" ||
+                url.pathname.startsWith("/generate/") ||
+                url.pathname === "/gallery" ||
+                url.pathname === "/favorites"
+            ) {
+                setPendingHref(`${url.pathname}${url.search}`);
+            }
+        };
+
+        document.addEventListener("click", handleDocumentClick, true);
+        return () => document.removeEventListener("click", handleDocumentClick, true);
+    }, [pathname]);
 
     useEffect(() => {
         if (!mobileMenuOpen) return;
@@ -125,6 +215,7 @@ export function GenerateLayoutProvider({ children }: { children: ReactNode }) {
     return (
         <GenerateContext.Provider value={{
             activeTab, setActiveTab,
+            startNavigation,
             latestTaskId, setLatestTaskId
         }}>
             <div className="flex flex-col h-screen bg-white overflow-hidden w-full">
@@ -220,6 +311,7 @@ export function GenerateLayoutProvider({ children }: { children: ReactNode }) {
 
                 {/* Main Content */}
                 <div className="flex-1 overflow-hidden relative">
+                    {pendingHref ? <StudioNavigationLoadingOverlay href={pendingHref} /> : null}
                     {children}
                 </div>
             </div>

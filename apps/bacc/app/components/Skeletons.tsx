@@ -45,7 +45,7 @@ export function StudioTemplateGallerySkeleton() {
 export function GenerateStudioSkeleton() {
     return (
         <main className="w-full h-full overflow-y-auto flex justify-center bg-white">
-            <div className="w-[92vw] max-w-[1280px]">
+            <div className="w-[92vw] max-w-[1600px]">
                 <div className="p-[0px]">
                     <div className="flex items-center gap-[6px] pt-[32px]">
                         <div className="skeleton h-[28px] w-[28px] rounded-[6px]" />

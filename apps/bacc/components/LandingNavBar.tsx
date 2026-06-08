@@ -2,8 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  AboutRouteSkeleton,
+  HomeRouteSkeleton,
+  PokeRouteSkeleton,
+} from "@/app/components/LandingRouteSkeletons";
+import { GenerateStudioSkeleton } from "@/app/components/Skeletons";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -21,13 +28,75 @@ const navConfigs = {
   },
 } as const;
 
+function LandingNavLoadingOverlay({ href }: { href: string }) {
+  if (href.startsWith("/generate")) {
+    return (
+      <div className="fixed inset-0 z-[2000] bg-white" data-nav-loading="true" aria-hidden="true">
+        <GenerateStudioSkeleton />
+      </div>
+    );
+  }
+
+  if (href === "/about") return <AboutRouteSkeleton />;
+  if (href === "/poke") return <PokeRouteSkeleton />;
+  return <HomeRouteSkeleton />;
+}
+
 export default function LandingNavBar() {
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const navConfig = navConfigs[pathname as keyof typeof navConfigs] ?? navConfigs.default;
   const isTransparentLight = navConfig.transparentTone === "light";
+
+  const handleNavStart = (href: string, event: MouseEvent<HTMLAnchorElement>) => {
+    setIsMenuOpen(false);
+
+    if (
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0 ||
+      href === pathname
+    ) {
+      return;
+    }
+
+    setPendingHref(href);
+  };
+
+  useEffect(() => {
+    const handleDocumentClick = (event: globalThis.MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        event.button !== 0
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
+
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin || url.pathname === pathname) return;
+
+      setPendingHref(`${url.pathname}${url.search}`);
+    };
+
+    document.addEventListener("click", handleDocumentClick, true);
+    return () => document.removeEventListener("click", handleDocumentClick, true);
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,6 +110,7 @@ export default function LandingNavBar() {
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setPendingHref(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -68,6 +138,7 @@ export default function LandingNavBar() {
 
   return (
     <>
+      {pendingHref ? <LandingNavLoadingOverlay href={pendingHref} /> : null}
       <style>{`
         .site-header {
           position: sticky;
@@ -387,7 +458,7 @@ export default function LandingNavBar() {
             href="/"
             className="site-logo"
             aria-label="Lucky Photo home"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={(event) => handleNavStart("/", event)}
           >
             <Image
               className="site-logo-image site-logo-image-default"
@@ -417,6 +488,7 @@ export default function LandingNavBar() {
                   className={`site-nav-link${isActive ? " site-nav-link-active" : ""}`}
                   data-hidden={hidden ? "true" : undefined}
                   aria-current={isActive ? "page" : undefined}
+                  onClick={(event) => handleNavStart(href, event)}
                 >
                   {label}
                 </Link>
@@ -428,7 +500,7 @@ export default function LandingNavBar() {
             href="/generate"
             className="site-cta"
             aria-label="Try it free"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={(event) => handleNavStart("/generate", event)}
           >
             <span className="site-cta-label">Try it free</span>
           </Link>
@@ -449,7 +521,7 @@ export default function LandingNavBar() {
                   }`}
                   data-hidden={hidden ? "true" : undefined}
                   aria-current={isActive ? "page" : undefined}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(event) => handleNavStart(href, event)}
                 >
                   {label}
                 </Link>

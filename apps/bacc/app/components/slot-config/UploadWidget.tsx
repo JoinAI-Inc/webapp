@@ -84,6 +84,8 @@ export function UploadWidget({ slot, index, isActive, upload, onFileChange }: Up
                         alt={slot.label}
                         fill
                         className="object-contain"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
                         unoptimized
                     />
                     <div className="pointer-events-none absolute inset-[0px] rounded-[8px] bg-black/0 transition-colors group-hover:bg-black/25" />

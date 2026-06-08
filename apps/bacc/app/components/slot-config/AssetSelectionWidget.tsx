@@ -156,6 +156,8 @@ export function AssetSelectionWidget({
                                 alt={asset.name}
                                 fill
                                 className="object-cover"
+                                draggable={false}
+                                onDragStart={(e) => e.preventDefault()}
                                 unoptimized
                             />
                             {/* Premium Badge */}

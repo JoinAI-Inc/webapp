@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { History, Download, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import { HistoryPageSkeleton } from "@/app/components/Skeletons";
+import { GalleryGridSkeleton, HistoryPageSkeleton } from "@/app/components/Skeletons";
 
 interface HistoryItem {
     id: string;
@@ -31,6 +31,7 @@ export default function HistoryPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filter, setFilter] = useState<string>("");
+    const [isNavigatingToGallery, setIsNavigatingToGallery] = useState(false);
 
     useEffect(() => {
         loadHistory();
@@ -108,6 +109,13 @@ export default function HistoryPage() {
 
     return (
         <main className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-['Inter',_sans-serif]">
+            {isNavigatingToGallery && (
+                <div className="fixed inset-0 z-[2000] flex justify-center overflow-y-auto bg-[#f9f9f9]" data-gallery-nav-loading="true">
+                    <div className="w-full max-w-full desktop:max-w-[1600px] px-[24px] tablet:px-[48px] py-[40px]">
+                        <GalleryGridSkeleton />
+                    </div>
+                </div>
+            )}
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-[24px] py-[96px]">
@@ -150,6 +158,7 @@ export default function HistoryPage() {
                         <p className="text-[#9b9a9d] mb-[16px]">暂无生成历史</p>
                         <Link
                             href="/gallery"
+                            onClick={() => setIsNavigatingToGallery(true)}
                             className="inline-flex items-center gap-[8px] px-[24px] py-[12px] bg-gradient-to-b from-[#EC2E2E] to-[#d62626] text-white rounded-full font-bold shadow-[0_12px_40px_rgba(236,46,46,0.2)] hover:scale-105 transition-transform"
                         >
                             开始创作

@@ -1,15 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { TemplateDetailPanel } from "./TemplateDetailPanel";
 import { useGenerateContext } from "./GenerateLayoutProvider";
 
 export function TemplateDetailPageClient({ templateId }: { templateId: string }) {
-    const router = useRouter();
-    const { setLatestTaskId } = useGenerateContext();
+    const { setLatestTaskId, startNavigation } = useGenerateContext();
 
     const handleBackToTemplates = () => {
-        router.push("/generate");
+        startNavigation("/generate");
     };
 
     return (

@@ -21,7 +21,7 @@ export function GenerateStudio({
 }) {
     return (
         <main className="w-full h-full overflow-y-auto flex justify-center bg-white">
-            <div className="w-[92vw] max-w-[1280px]">
+            <div className="w-[92vw] max-w-[1600px]">
                 <div className="p-[0px]">
                     <div className="j-h5 text-[#080606] flex items-center gap-[6px] pt-[32px]">
                         <Image src={`${IMAGE_URL}/new-home/icon-idea.png`} alt="idea" width={28} height={28} />

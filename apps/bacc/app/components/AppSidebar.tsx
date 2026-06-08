@@ -20,7 +20,7 @@ export function AppSidebar() {
 
     const items = [
         { href: '/generate', Icon: LayoutGrid, label: 'Templates', active: !pathname.includes('/generate/') },
-        { href: '/generate?tab=gallery', Icon: FolderOpen, label: 'My Gallery', active: false },
+        { href: '/gallery', Icon: FolderOpen, label: 'My Gallery', active: pathname === '/gallery' },
     ];
 
     useEffect(() => {
