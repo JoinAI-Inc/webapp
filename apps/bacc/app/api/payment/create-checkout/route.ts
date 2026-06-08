@@ -1,11 +1,16 @@
 export const runtime = 'edge';
 import { auth } from '@/lib/auth';
+import { makeInternalHeaders } from '@/lib/internal-auth';
 
 export async function POST(request: Request) {
     const session = await auth();
+    const userId = session?.userId;
 
-    if (!session?.backendJwt || !session?.userId) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) {
+        return Response.json(
+            { error: 'Unauthorized', message: 'Missing backend user session' },
+            { status: 401 }
+        );
     }
 
     try {
@@ -23,10 +28,10 @@ export async function POST(request: Request) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.backendJwt}`,
+                    ...(await makeInternalHeaders(userId)),
                 },
                 body: JSON.stringify({
-                    userId: session.userId,  // 使用后端数据库的 userId
+                    userId,  // 使用后端数据库的 userId
                     pricingPlanId,
                     successUrl,
                     cancelUrl,

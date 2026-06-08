@@ -6,15 +6,15 @@ import {
     constructWebhookEvent,
     handleWebhookEvent
 } from '../services/stripe/index.js';
-import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js';
+import { authenticateJWTOrInternal, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
  * POST /api/payment/create-checkout
- * 创建Stripe Checkout Session（需要 JWT 认证）
+ * 创建Stripe Checkout Session（需要 JWT 或内部签名认证）
  */
-router.post('/create-checkout', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/create-checkout', authenticateJWTOrInternal, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.userId!;
         const { pricingPlanId, successUrl, cancelUrl, billingInterval } = req.body;

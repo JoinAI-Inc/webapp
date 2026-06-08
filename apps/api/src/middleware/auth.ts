@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { verifyInternalRequest } from '../lib/internal-auth.js';
 
 export interface AuthenticatedRequest extends Request {
     userId?: string;
@@ -61,6 +62,29 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
             message: 'Authentication failed'
         });
     }
+}
+
+function firstHeaderValue(value: string | string[] | undefined): string | undefined {
+    return Array.isArray(value) ? value[0] : value;
+}
+
+/**
+ * 接受外部 JWT 或 BACC server-to-server 内部签名。
+ * 浏览器仍不能直接伪造内部签名，因为 WORKER_SECRET 只存在于服务端环境。
+ */
+export function authenticateJWTOrInternal(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const internalUserId = verifyInternalRequest(
+        firstHeaderValue(req.headers['x-internal-user-id']),
+        firstHeaderValue(req.headers['x-internal-timestamp']),
+        firstHeaderValue(req.headers['x-internal-signature']),
+    );
+
+    if (internalUserId) {
+        req.userId = internalUserId;
+        return next();
+    }
+
+    return authenticateJWT(req, res, next);
 }
 
 /**
