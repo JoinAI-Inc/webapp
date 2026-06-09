@@ -2,6 +2,7 @@
 import { prisma } from '@repo/database';
 import { stripe, STRIPE_CONFIG } from './client.js';
 import type { CreateCheckoutSessionParams, CheckoutSessionResult, SyncSessionParams, SyncSessionResult } from './types.js';
+import { processPaymentSuccess } from './webhook.js';
 
 /**
  * 创建Stripe Checkout Session
@@ -149,7 +150,7 @@ export async function createCheckoutSession(
 export async function syncCheckoutSession(
     params: SyncSessionParams
 ): Promise<SyncSessionResult> {
-    const { sessionId } = params;
+    const { sessionId, userId } = params;
 
     // 1. 从Stripe获取session详情
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -174,6 +175,10 @@ export async function syncCheckoutSession(
         throw new Error('Order not found for this session');
     }
 
+    if (userId && order.userId !== userId) {
+        throw new Error('Order does not belong to authenticated user');
+    }
+
     // 防止重复处理
     if (order.status === 'PAID') {
         return {
@@ -183,74 +188,13 @@ export async function syncCheckoutSession(
         };
     }
 
-    // 3. 使用事务处理支付成功后的操作
-    const result = await prisma.$transaction(async (tx) => {
-        // 3.1 更新Order状态
-        const updatedOrder = await tx.order.update({
-            where: { id: order.id },
-            data: {
-                status: 'PAID',
-                paidAt: new Date(),
-                stripePaymentIntentId: session.payment_intent as string,
-                stripeSubscriptionId: session.subscription as string | null,
-                stripeInvoiceId: (session as any).invoice || null,
-            }
-        });
+    await processPaymentSuccess(order.id, session);
 
-        // 3.2 计算权益到期时间
-        let expireTime: Date | null = null;
-        const plan = order.pricingPlan;
-
-        if (plan.planType === 'SUBSCRIPTION' && session.subscription) {
-            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-            expireTime = new Date((subscription as any).current_period_end * 1000);
-        }
-
-        // 3.3 创建UserEntitlement
-        const entitlement = await tx.userEntitlement.create({
-            data: {
-                userId: order.userId,
-                sourceOrderId: order.id,
-                entitlementType: plan.planType === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PERMANENT',
-                startTime: new Date(),
-                expireTime,
-                status: 'ACTIVE',
-                stripeSubscriptionId: session.subscription as string | null,
-            }
-        });
-
-        // 3.4 Link apps to entitlement from plan's apps
-        if (plan.apps && plan.apps.length > 0) {
-            await tx.userEntitlementApp.createMany({
-                data: plan.apps.map(app => ({
-                    entitlementId: entitlement.id,
-                    appId: app.appId
-                }))
-            });
-        }
-
-        // 3.5 更新用户统计
-        await tx.user.update({
-            where: { id: order.userId },
-            data: {
-                totalSpendAmount: {
-                    increment: order.amount
-                },
-                totalOrderCount: {
-                    increment: 1
-                }
-            }
-        });
-
-        return {
-            success: true,
-            orderId: updatedOrder.id,
-            entitlementId: entitlement.id,
-            type: session.mode as 'payment' | 'subscription'
-        };
-    });
-
-    return result;
+    return {
+        success: true,
+        orderId: order.id,
+        type: session.mode as 'payment' | 'subscription'
+    };
 }
 
 /**

@@ -247,7 +247,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
 /**
  * 处理支付成功的通用逻辑
  */
-async function processPaymentSuccess(
+export async function processPaymentSuccess(
     orderId: bigint,
     session?: Stripe.Checkout.Session | null,
     invoice?: Stripe.Invoice | null
@@ -276,13 +276,18 @@ async function processPaymentSuccess(
     }
 
     await prisma.$transaction(async (tx) => {
+        const sessionSubscriptionId = session?.subscription as string | null;
+        const stripeSubscriptionId = sessionSubscriptionId || order.stripeSubscriptionId;
+
         // 1. 更新Order状态
         await tx.order.update({
             where: { id: orderId },
             data: {
                 status: 'PAID',
                 paidAt: new Date(),
-                stripeInvoiceId: invoice?.id || null
+                stripePaymentIntentId: (session?.payment_intent as string | null) || order.stripePaymentIntentId,
+                stripeSubscriptionId,
+                stripeInvoiceId: invoice?.id || (session as any)?.invoice || order.stripeInvoiceId
             }
         });
 
@@ -344,8 +349,8 @@ async function processPaymentSuccess(
             // 订阅或一次性购买：创建UserEntitlement
             let expireTime: Date | null = null;
 
-            if (plan.planType === 'SUBSCRIPTION' && order.stripeSubscriptionId) {
-                const subscription = await stripe.subscriptions.retrieve(order.stripeSubscriptionId);
+            if (plan.planType === 'SUBSCRIPTION' && stripeSubscriptionId) {
+                const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
                 expireTime = new Date((subscription as any).current_period_end * 1000);
             }
 
@@ -358,7 +363,7 @@ async function processPaymentSuccess(
                     startTime: new Date(),
                     expireTime,
                     status: 'ACTIVE',
-                    stripeSubscriptionId: order.stripeSubscriptionId
+                    stripeSubscriptionId
                 }
             });
 

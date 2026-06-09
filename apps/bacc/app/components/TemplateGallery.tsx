@@ -350,11 +350,11 @@ function TemplateCard({
                 {/* Stats and Info overlay */}
                 <div className="absolute inset-x-[16px] bottom-[13px] z-10 flex flex-col gap-[16px] text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
                     <div className="flex flex-col gap-[8px] px-[4px]">
-                        <h3 className="font-medium text-[17px] leading-[1.4] tracking-[0.17px] line-clamp-2">
+                        <h3 className="j-l1">
                             {template.name}
                         </h3>
-                        <div className="flex items-center text-[14px] font-normal leading-[1.4] tracking-[0.14px] text-white">
-                            <Flame size={18} strokeWidth={2.5} /> {favoriteCount}
+                        <div className="flex items-center j-t3 text-white">
+                            <Flame size={16} strokeWidth={2.5} /> <span className="flex text-center">{favoriteCount}</span>
                         </div>
                     </div>
                     <div className="flex h-[40px] w-full items-center justify-center gap-[6px] rounded-[24px] bg-[#EC2E2E] px-[16px] py-[8px] text-white pointer-events-auto active:scale-95">

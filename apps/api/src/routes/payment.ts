@@ -47,15 +47,16 @@ router.post('/create-checkout', authenticateJWTOrInternal, async (req: Authentic
  * POST /api/payment/sync-session
  * 同步Checkout Session结果（支付成功后前端调用）
  */
-router.post('/sync-session', async (req: Request, res: Response) => {
+router.post('/sync-session', authenticateJWTOrInternal, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { sessionId } = req.body;
+        const userId = req.userId!;
 
         if (!sessionId) {
             return res.status(400).json({ error: 'sessionId is required' });
         }
 
-        const result = await syncCheckoutSession({ sessionId });
+        const result = await syncCheckoutSession({ sessionId, userId });
 
         // Serialize BigInt
         const serialized = JSON.parse(JSON.stringify(result, (key, value) =>

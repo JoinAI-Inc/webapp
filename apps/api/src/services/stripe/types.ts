@@ -26,6 +26,7 @@ export interface SubscriptionInfo {
 
 export interface SyncSessionParams {
     sessionId: string;
+    userId?: string;
 }
 
 export interface SyncSessionResult {
