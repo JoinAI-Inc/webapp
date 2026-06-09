@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { syncBackendIdentity } from "./backend-auth";
 import { logger } from "./logger";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -37,46 +38,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return session;
         },
         async jwt({ token, user, account }) {
-            // 初次登录时调用后端获取 JWT
-            if (account && user) {
+            if (account) {
+                (token as any).authProvider = account.provider;
+                (token as any).authProviderAccountId = account.providerAccountId;
+            }
+
+            if (user) {
+                token.email = user.email || token.email;
+                token.name = user.name || token.name;
+                token.picture = user.image || token.picture;
+            }
+
+            // 首次调用失败后，在后续 session 请求中继续补偿后端身份。
+            if (!token.backendJwt || !token.userId) {
                 try {
                     logger.debug('NextAuth JWT - 开始调用后端认证', {
-                        provider: account.provider,
-                        userId: user.id
+                        provider: (token as any).authProvider || 'google',
+                        providerAccountId: (token as any).authProviderAccountId || token.sub,
                     });
 
-                    const res = await fetch(`${process.env.API_BACKEND_URL}/api/auth/nextauth/callback`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            provider: account.provider,
-                            providerAccountId: account.providerAccountId,
-                            email: user.email,
-                            name: user.name,
-                            image: user.image,
-                        }),
+                    await syncBackendIdentity(token as any, {
+                        apiBackendUrl: process.env.API_BACKEND_URL,
                     });
 
-                    logger.debug('NextAuth JWT - 后端响应状态', { status: res.status });
-
-                    if (res.ok) {
-                        const data = await res.json();
-
-                        // 注意: data.token 会被 logger 自动脱敏
-                        logger.debug('NextAuth JWT - 后端认证成功', {
-                            hasToken: !!data.token,
-                            userId: data.user?.id
-                        });
-
-                        // 保存后端 JWT 到 token
-                        token.backendJwt = data.token;
-                        token.userId = data.user?.id || user.id;
-                    } else {
-                        logger.error('NextAuth JWT - 后端认证失败', { status: res.status });
-                        token.userId = user.id;
-                    }
+                    logger.debug('NextAuth JWT - 后端认证成功', {
+                        hasToken: !!token.backendJwt,
+                        userId: token.userId,
+                    });
                 } catch (error) {
                     logger.error('NextAuth JWT - 调用后端失败', error);
                 }
