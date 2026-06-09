@@ -8,10 +8,13 @@ const proxyUrl =
 
 if (proxyUrl) {
   try {
-    const { ProxyAgent, setGlobalDispatcher } = require("undici");
+    const { EnvHttpProxyAgent, setGlobalDispatcher } = require("undici");
+    const noProxy = process.env.NO_PROXY || process.env.no_proxy || "";
 
-    setGlobalDispatcher(new ProxyAgent(proxyUrl));
-    console.log(`[Proxy] Outbound HTTP proxy enabled: ${new URL(proxyUrl).host}`);
+    setGlobalDispatcher(new EnvHttpProxyAgent());
+    console.log(
+      `[Proxy] Outbound HTTP proxy enabled: ${new URL(proxyUrl).host}; NO_PROXY=${noProxy}`
+    );
   } catch (error) {
     console.warn("[Proxy] Failed to enable outbound HTTP proxy", error);
   }
