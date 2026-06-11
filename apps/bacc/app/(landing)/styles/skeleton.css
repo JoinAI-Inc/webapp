@@ -25,6 +25,7 @@
   overflow: hidden;
   background: #ebebec;
   border-radius: 8px;
+  contain: layout paint;
 }
 
 .home-sk-block::after {
@@ -92,7 +93,7 @@
   flex-direction: column;
   align-items: center;
   padding-top: 70px;
-  padding-bottom: 70px;
+  padding-bottom: 100px;
 }
 
 /* brand icon — 横向矩形，匹配 hero-brand-icon 实际比例 */
@@ -192,6 +193,7 @@
   display: grid;
   align-content: center;
   gap: 16px;
+  contain: layout paint;
 }
 
 .home-sk-media-row {
@@ -293,7 +295,7 @@
   width: 87.5vw;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 100px 0 120px;
+  padding: 120px 0;
 }
 
 .home-sk-copy {
@@ -324,6 +326,10 @@
   background: #f5f5f5;
 }
 
+.home-sk-ootd-card {
+  aspect-ratio: 464 / 546;
+}
+
 /* ─── Pet ──────────────────────────────────────────────────── */
 
 .home-sk-pet {
@@ -331,7 +337,8 @@
   width: 87.5vw;
   max-width: 1440px;
   margin: 0 auto;
-  height: 360px;
+  height: 760px;
+  margin-bottom: 100px;
 }
 
 .home-sk-pet-title {
@@ -344,13 +351,69 @@
   transform: translate(-50%, -50%);
 }
 
+.home-sk-pet-collage {
+  position: absolute;
+  width: auto;
+  border-radius: 16px;
+}
+
+.home-sk-pet-collage-top-left {
+  top: 50px;
+  left: clamp(160px, calc(-161.2px + 30.13vw), 320px);
+  width: 166px;
+  height: 220px;
+}
+
+.home-sk-pet-collage-top-right {
+  top: 0;
+  right: 110px;
+  width: 242px;
+  height: 320px;
+}
+
+.home-sk-pet-story {
+  position: absolute;
+  bottom: 24px;
+  left: clamp(20px, calc(-100.72px + 11.31vw), 80px);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(32px, calc(-4.24px + 3.4vw), 50px);
+}
+
+.home-sk-pet-collage-bottom-left {
+  position: relative;
+  width: 242px;
+  height: 320px;
+}
+
+.home-sk-pet-story-line {
+  width: clamp(360px, calc(-42.64px + 37.85vw), 560px);
+  height: 40px;
+  margin-top: clamp(40px, calc(7.81px + 3.02vw), 56px);
+}
+
+.home-sk-pet-collage-bottom-right {
+  right: 0;
+  bottom: 68px;
+  width: 166px;
+  height: 220px;
+}
+
+.home-sk-pet-mobile-copy,
+.home-sk-pet-mobile-grid {
+  display: none;
+}
+
+.home-sk-ootd-dots {
+  display: none;
+}
+
 /* ─── Inspiration card ─────────────────────────────────────── */
 
 .home-sk-card-block {
   width: 100vw;
   padding: 100px 0 80px;
-  /* 使用与实际 InspritionSection 一致的红色渐变 */
-  background: linear-gradient(180deg, #da2524 0%, #c00b0a 100%);
+  background: transparent;
 }
 
 .home-sk-card-inner {
@@ -358,15 +421,16 @@
   height: 580px;
   margin: 0 auto;
   border-radius: 24px;
-  background: #ebebec;
+  background: linear-gradient(180deg, #da2524 0%, #c00b0a 100%);
   display: grid;
   grid-template-columns: 60px 1fr 60px;
   align-items: stretch;
   overflow: hidden;
+  contain: layout paint;
 }
 
 .home-sk-card-frame-side {
-  background: #d8d8da;
+  background: rgba(255, 243, 224, 0.42);
 }
 
 .home-sk-card-frame-center {
@@ -374,6 +438,7 @@
   flex-direction: column;
   align-items: center;
   padding-top: 40px;
+  background: #fff3e0;
 }
 
 .home-sk-card-marquee {
@@ -397,7 +462,7 @@
   width: 87.5vw;
   max-width: 1069px;
   margin: 0 auto;
-  padding: 80px 0;
+  padding: 0 0 80px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   column-gap: 120px;
@@ -504,6 +569,13 @@
 
 /* ─── Mobile ───────────────────────────────────────────────── */
 
+@media (min-width: 1068px) {
+  .home-sk-media {
+    height: clamp(600px, calc(486.29px + 10.65vw), 700px);
+    border-radius: clamp(24px, calc(14.9px + 0.85vw), 32px);
+  }
+}
+
 @media (max-width: 1068px) {
   .home-sk-hero {
     padding-top: 48px;
@@ -521,13 +593,17 @@
     margin-top: 56px;
   }
 
+  .home-sk-hero {
+    padding-bottom: 80px;
+  }
+
   .home-sk-year {
     padding-top: 64px;
     padding-bottom: 74px;
   }
 
   .home-sk-gallery {
-    padding: 80px 0 100px;
+    padding: 100px 0;
   }
 
   .home-sk-gallery-grid {
@@ -535,7 +611,41 @@
   }
 
   .home-sk-pet {
-    height: 300px;
+    height: 640px;
+    margin-bottom: 80px;
+  }
+
+  .home-sk-pet-collage-top-right {
+    right: 20px;
+    width: 196px;
+    height: clamp(220px, calc(164.15px + 7.6vw), 260px);
+  }
+
+  .home-sk-pet-collage-top-left {
+    top: 32px;
+    left: clamp(80px, calc(-50.24px + 17.72vw), 160px);
+    width: 166px;
+    height: 220px;
+  }
+
+  .home-sk-pet-collage-bottom-right {
+    bottom: 48px;
+    width: 120px;
+    height: 160px;
+  }
+
+  .home-sk-pet-collage-bottom-left {
+    width: 196px;
+    height: 260px;
+  }
+
+  .home-sk-pet-story {
+    left: 20px;
+  }
+
+  .home-sk-pet-story-line {
+    width: clamp(280px, calc(5.28px + 37.38vw), 392px);
+    margin-top: clamp(20px, calc(-13.28px + 4.53vw), 40px);
   }
 
   .home-sk-card-block {
@@ -548,6 +658,7 @@
 
   .home-sk-split {
     column-gap: 60px;
+    padding-bottom: 60px;
   }
 
   .home-sk-line-split-title {
@@ -617,6 +728,10 @@
     border-radius: 16px;
   }
 
+  .home-sk-hero {
+    padding-bottom: 60px;
+  }
+
   .home-sk-media-row {
     gap: 8px;
   }
@@ -652,8 +767,12 @@
   }
 
   .home-sk-gallery-grid-three {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    display: block;
+    margin-top: 24px;
+  }
+
+  .home-sk-gallery-grid-three > :not(:first-child) {
+    display: none;
   }
 
   .home-sk-gallery-card {
@@ -662,15 +781,57 @@
 
   .home-sk-pet {
     height: auto;
-    padding: 20px 0;
+    margin-bottom: 60px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .home-sk-pet-title {
     position: static;
+    order: 1;
     transform: none;
     width: 100%;
     height: 28px;
     margin: 0 auto;
+  }
+
+  .home-sk-pet-collage,
+  .home-sk-pet-story {
+    display: none;
+  }
+
+  .home-sk-pet-mobile-copy {
+    display: block;
+    order: 2;
+    width: 100%;
+    height: 20px;
+    margin: 4px 0 24px;
+  }
+
+  .home-sk-pet-mobile-grid {
+    display: grid;
+    order: 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 80px;
+  }
+
+  .home-sk-ootd-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .home-sk-ootd-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
   }
 
   .home-sk-card-block {
@@ -678,6 +839,7 @@
   }
 
   .home-sk-card-inner {
+    width: 100vw;
     height: 480px;
     border-radius: 0;
   }
@@ -685,7 +847,7 @@
   .home-sk-split {
     grid-template-columns: 1fr;
     row-gap: 24px;
-    padding: 40px 0;
+    padding: 0 0 40px;
   }
 
   .home-sk-split-copy {

@@ -80,6 +80,7 @@ export function SlotConfigPanel({
     const ootdSlots = slots.filter(s => s.slotType === 'OOTD');
     const decorationSlots = slots.filter(s => s.slotType === 'DECORATION');
     const isBrewing = !!submittedTaskId;
+    // const isBrewing = true;
 
     const selectedPremiumFeatures = useMemo(() => {
         const features = new Map<string, string>();

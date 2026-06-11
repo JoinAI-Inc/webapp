@@ -61,9 +61,13 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
                 (item: HistoryItem) => item.url || item.thumbnailUrl
             );
             if (reset) {
+                // setHistoryItems([]);
+
                 setHistoryItems(items);
                 pageRef.current = 2;
             } else {
+                // setHistoryItems([]);
+
                 setHistoryItems(prev => {
                     const existingIds = new Set(prev.map(i => i.id));
                     return [...prev, ...items.filter((i: HistoryItem) => !existingIds.has(i.id))];
@@ -215,6 +219,9 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
 
             {/* Grid container */}
             <div className="grid grid-cols-2 gap-[4px] tablet:grid-cols-3 desktop:grid-cols-4 desktop-l:grid-cols-5 desktop-l:grid-cols-6">
+                {/* mock brewing card */}
+                {/* <BrewingCard task={{}} /> */}
+
                 {/* Brewing card first */}
                 {pendingTasks.map((task) => <BrewingCard key={task.taskId} task={task} />)}
 
@@ -265,39 +272,18 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
             {reachedEnd && historyItems.length === 0 && pendingTasks.length === 0 && !loading && (
                 <div className="flex flex-col items-center justify-center h-[50vh] w-full text-center gap-[16px]">
                     <div className="relative mb-[16px]">
-                        <svg width="128" height="96" viewBox="0 0 128 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="20" y="8" width="26" height="26" rx="4" fill="#F3F4F6" />
-                            <rect x="51" y="8" width="26" height="26" rx="4" fill="#F3F4F6" />
-                            <rect x="82" y="8" width="26" height="26" rx="4" fill="#F3F4F6" />
-                            <rect x="20" y="39" width="26" height="26" rx="4" fill="#F3F4F6" />
-                            <rect x="51" y="39" width="26" height="26" rx="4" fill="#F3F4F6" />
-                            <rect x="82" y="39" width="26" height="26" rx="4" fill="#F3F4F6" />
-                            <g transform="translate(68, 32) rotate(15)">
-                                <rect x="-15" y="-20" width="30" height="40" rx="3" fill="#333333" stroke="white" strokeWidth="2" />
-                                <rect x="-13" y="-18" width="26" height="24" rx="2" fill="white" />
-                                <text x="0" y="14" fill="white" fontSize="5" fontWeight="bold" textAnchor="middle">Lucky</text>
-                                <text x="0" y="21" fill="white" fontSize="5" fontWeight="bold" textAnchor="middle">Photo</text>
-                            </g>
-                            <g transform="translate(54, 40) rotate(-15)">
-                                <rect x="-18" y="-24" width="36" height="46" rx="3" fill="#EC2E2E" stroke="white" strokeWidth="2" />
-                                <rect x="-16" y="-22" width="32" height="30" rx="2" fill="white" />
-                                <circle cx="-6" cy="14" r="3.5" fill="white" />
-                                <circle cx="-6.5" cy="14" r="1.5" fill="#333333" />
-                                <circle cx="6" cy="14" r="3.5" fill="white" />
-                                <circle cx="5.5" cy="14" r="1.5" fill="#333333" />
-                            </g>
-                        </svg>
+                        <img src="/assets/my-gallery-empty.svg" width={186} height={156} alt="" />
                     </div>
-                    <div className="flex flex-col items-center gap-[4px]">
-                        <p className="text-[15px] font-medium text-[#080606]">Your gallery is empty.</p>
-                        <p className="text-[14px] text-[#6a696c]">
+                    <div className="flex flex-col items-center gap-[4px] j-l1">
+                        <p className="text-[#6A696C]">Your gallery is empty.</p>
+                        <p className="text-[#6a696c]">
                             <button
                                 onClick={() => setActiveTab("idea")}
-                                className="text-[#EC2E2E] hover:underline transition-colors font-medium"
+                                className="text-[#EC2E2E] underline transition-colors font-medium cursor-pointer underline-offset-[2px]"
                             >
-                                Proceed to Idea
+                                Go to Idea
                             </button>
-                            {" "}to begin my lucky photo session.
+                            {" "}to create your Lucky Photo
                         </p>
                     </div>
                 </div>

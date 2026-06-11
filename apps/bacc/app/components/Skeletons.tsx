@@ -3,13 +3,13 @@ type SkeletonCountProps = {
 };
 
 export function StudioTemplateGallerySkeleton() {
-    const columnPatterns = [
-        ["aspect-[2/3]", "aspect-[4/5]", "aspect-[3/4]"],
-        ["aspect-[5/7]", "aspect-[2/3]", "aspect-[1/1]"],
-        ["aspect-[3/4]", "aspect-[2/3]", "aspect-[4/5]"],
-        ["aspect-[2/3]", "aspect-[1/1]", "aspect-[5/7]"],
-        ["aspect-[4/5]", "aspect-[2/3]", "aspect-[3/4]"],
-        ["aspect-[2/3]", "aspect-[5/7]", "aspect-[1/1]"],
+    const cardAspects = [
+        "aspect-[2/3]", "aspect-[4/5]", "aspect-[3/4]",
+        "aspect-[5/7]", "aspect-[2/3]", "aspect-[1/1]",
+        "aspect-[3/4]", "aspect-[2/3]", "aspect-[4/5]",
+        "aspect-[2/3]", "aspect-[1/1]", "aspect-[5/7]",
+        "aspect-[4/5]", "aspect-[2/3]", "aspect-[3/4]",
+        "aspect-[2/3]", "aspect-[5/7]", "aspect-[1/1]",
     ];
 
     return (
@@ -24,17 +24,35 @@ export function StudioTemplateGallerySkeleton() {
                 ))}
             </div>
 
-            <div className="w-full flex gap-[4px] items-start">
-                {columnPatterns.map((column, columnIndex) => (
-                    <div
-                        key={columnIndex}
-                        className="hidden min-w-[0px] flex-1 flex-col gap-[8px] tablet:gap-[4px] first:flex [&:nth-child(2)]:flex mobile-l:[&:nth-child(3)]:flex tablet:[&:nth-child(4)]:flex desktop:[&:nth-child(5)]:flex desktop-l:[&:nth-child(6)]:flex"
-                    >
-                        {column.map((aspect, itemIndex) => (
-                            <div key={itemIndex} className="w-full overflow-hidden rounded-[8px] bg-white">
-                                <div className={`skeleton w-full rounded-[8px] ${aspect}`} />
-                            </div>
-                        ))}
+            <style>{`
+                .template-skeleton-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 8px;
+                }
+                @media (min-width: 735px) {
+                    .template-skeleton-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+                }
+                @media (min-width: 1032px) {
+                    .template-skeleton-grid { grid-template-columns: repeat(4, 1fr); }
+                }
+                @media (min-width: 1280px) {
+                    .template-skeleton-grid { grid-template-columns: repeat(5, 1fr); }
+                }
+                @media (min-width: 1528px) {
+                    .template-skeleton-grid { grid-template-columns: repeat(6, 1fr); }
+                }
+            `}</style>
+            <div className="template-skeleton-grid w-full">
+                {cardAspects.map((aspect, index) => (
+                    <div key={index} className="min-w-[0px]">
+                        <div className="w-full overflow-hidden rounded-[4px] bg-white">
+                            <div className={`skeleton w-full rounded-[4px] ${aspect}`} />
+                        </div>
+                        <div className="mt-[8px] flex items-center justify-between gap-[8px] px-[2px] pb-[4px] tablet:hidden">
+                            <div className="skeleton h-[20px] min-w-[0px] flex-1 rounded-[6px]" />
+                            <div className="skeleton h-[16px] w-[42px] shrink-0 rounded-[6px]" />
+                        </div>
                     </div>
                 ))}
             </div>
@@ -45,8 +63,8 @@ export function StudioTemplateGallerySkeleton() {
 export function GenerateStudioSkeleton() {
     return (
         <main className="w-full h-full overflow-y-auto flex justify-center bg-white">
-            <div className="w-[92vw] max-w-[1600px]">
-                <div className="p-[0px]">
+            <div className="w-[92vw] px-0 tablet:px-[24px] tablet:w-[100vw] max-w-[1600px]">
+                <div>
                     <div className="flex items-center gap-[6px] pt-[32px]">
                         <div className="skeleton h-[28px] w-[28px] rounded-[6px]" />
                         <div className="skeleton h-[28px] w-[156px] rounded-[8px]" />
@@ -68,8 +86,8 @@ export function TemplateDetailSkeleton({
     onBack?: () => void;
 }) {
     return (
-        <div className="w-full max-w-[1280px] px-[16px] tablet:px-[24px] py-[24px] tablet:py-[32px] mx-auto">
-            <div className="mb-[14px] flex items-center justify-between gap-[6px] tablet:justify-start">
+        <div className="w-full max-w-[1280px] pt-[24px] tablet:pt-[32px] flex items-center flex-col">
+            <div className="w-[92vw] mb-[14px] max-w-[1280px] flex items-center justify-between gap-[6px] tablet:justify-start">
                 <div className="flex min-w-[0px] items-center gap-[16px]">
                     {showBackButton ? (
                         <button
@@ -95,48 +113,52 @@ export function TemplateDetailSkeleton({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 desktop:grid-cols-[506px_minmax(0,758px)] gap-[16px] items-start">
-                <div className="relative left-1/2 w-[92vw] -translate-x-1/2 desktop:sticky desktop:left-auto desktop:top-[24px] desktop:w-full desktop:translate-x-[0px]">
+            <div className="grid grid-cols-1 desktop:grid-cols-[calc(40%-16px)_60%] gap-[16px] items-start w-full tablet:w-[92vw] max-w-[1280px]">
+                <div className="max-w-[1280px] relative left-1/2 w-[92vw] -translate-x-1/2 desktop:sticky desktop:left-auto desktop:top-[24px] desktop:w-full desktop:translate-x-[0px]">
                     <div className="flex w-full justify-center desktop:block">
                         <div className="relative inline-flex max-w-full overflow-hidden rounded-[16px] border border-[#e8e8e8] bg-[#f2f2f3] p-[12px] tablet:flex tablet:h-[360px] tablet:w-full tablet:items-center tablet:justify-center tablet:rounded-[8px] tablet:bg-white tablet:p-[16px] desktop:block desktop:h-auto">
                             <div className="skeleton aspect-[474/706] h-[296px] max-w-[calc(92vw-24px)] rounded-[4px] tablet:h-[328px] tablet:max-w-none desktop:h-auto desktop:w-full" />
                         </div>
                     </div>
-                    <div className="tablet:hidden w-full mt-[20px] mb-[8px]">
-                        <div className="skeleton h-[28px] w-[72%] rounded-[8px]" />
+                    <div className="tablet:hidden w-full py-[16px]">
+                        <div className="skeleton mx-auto h-[28px] w-[72%] rounded-[8px]" />
                     </div>
                 </div>
 
-                <div className="w-full overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white p-[15px] desktop:min-h-[776px]">
-                    <div className="flex gap-[8px] overflow-hidden">
-                        {[0, 1, 2, 3].map((item) => (
-                            <div key={item} className="skeleton h-[112px] w-[138px] shrink-0 rounded-[8px]" />
-                        ))}
-                    </div>
-                    <div className="relative mt-[16px] flex min-h-[174px] flex-col rounded-[8px] border border-[#e1d9ff] bg-white px-[16px] py-[21px]">
-                        <div className="flex flex-col gap-[16px]">
-                            {[0, 1].map((item) => (
-                                <div key={item} className="flex flex-col gap-[12px] tablet:flex-row tablet:items-center">
-                                    <div className="skeleton h-[20px] w-[130px] rounded-[6px]" />
-                                    <div className="flex items-center gap-[8px]">
-                                        {[0, 1, 2].map((button) => (
-                                            <div key={button} className="skeleton h-[34px] w-[92px] rounded-[16px]" />
-                                        ))}
-                                    </div>
-                                </div>
+                <div className="relative w-full overflow-hidden bg-white flex flex-col items-center mb-0 tablet:mb-[24px]">
+                    <div className="relative w-full overflow-hidden rounded-[8px] border-[#e8e8e8] bg-white pb-[16px] pt-[16px] tablet:border tablet:pb-[24px]">
+                        <div className="flex gap-[8px] overflow-hidden px-[16px]">
+                            {[0, 1, 2, 3].map((item) => (
+                                <div key={item} className="skeleton h-[114px] w-[138px] shrink-0 rounded-[8px]" />
                             ))}
                         </div>
-                        <div className="mt-[16px]">
-                            <div className="skeleton mb-[6px] h-[20px] w-[52px] rounded-[6px]" />
-                            <div className="grid grid-cols-3 gap-[8px] tablet:grid-cols-4">
-                                {[0, 1, 2, 3].map((item) => (
-                                    <div key={item} className="skeleton aspect-[4/5] rounded-[8px]" />
+                        <div className="mx-[16px] relative mt-[16px] flex min-h-[174px] flex-col rounded-[8px] border border-[#8364ff] bg-white py-[21px]">
+                            <div className="flex flex-col gap-[16px]">
+                                {[0, 1].map((item) => (
+                                    <div key={item} className="flex flex-col gap-[12px] tablet:flex-row tablet:items-center">
+                                        <div className="skeleton mx-[16px] h-[20px] w-[130px] rounded-[6px] tablet:mx-[0px] tablet:ml-[16px]" />
+                                        <div className="flex items-center gap-[8px] px-[16px] tablet:px-[0px]">
+                                            {[0, 1, 2].map((button) => (
+                                                <div key={button} className="skeleton h-[32px] w-[92px] rounded-[16px]" />
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
+                            <div className="mt-[16px]">
+                                <div className="skeleton mx-[16px] mb-[6px] h-[20px] w-[52px] rounded-[6px]" />
+                                <div className="grid grid-cols-3 gap-[8px] px-[16px] tablet:grid-cols-4">
+                                    {[0, 1, 2, 3].map((item) => (
+                                        <div key={item} className="skeleton aspect-[4/5] rounded-[8px]" />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="my-[24px] h-px w-[calc(100%-32px)] bg-[#e8e8e8] mx-auto" />
+                        <div className="relative mt-[24px] flex w-full flex-col items-start px-[16px] tablet:mt-[40px]">
+                            <div className="skeleton h-[40px] w-full max-w-[400px] rounded-[23px] tablet:w-[174px]" />
                         </div>
                     </div>
-                    <div className="my-[24px] h-px w-full bg-[#e8e8e8]" />
-                    <div className="skeleton h-[39px] w-[174px] rounded-[23px]" />
                 </div>
             </div>
         </div>
@@ -182,7 +204,7 @@ export function FavoritesSkeleton({ count = 12 }: SkeletonCountProps) {
                 <div className="skeleton size-[28px] rounded-full" />
                 <div className="skeleton h-[32px] w-[142px] rounded-[8px]" />
             </div>
-            <div className="grid grid-cols-2 gap-[12px] tablet:grid-cols-3 desktop:grid-cols-5 desktop-l:grid-cols-6">
+            <div className="grid grid-cols-2 gap-[12px] tablet:grid-cols-4 desktop:grid-cols-5 desktop-l:grid-cols-6">
                 {Array.from({ length: count }).map((_, index) => (
                     <div key={index} className="skeleton aspect-[2/3] rounded-[1rem]" />
                 ))}
@@ -234,7 +256,7 @@ export function HistoryPageSkeleton({ includeHeader = true }: { includeHeader?: 
                         <div className="skeleton h-[22px] w-[240px] rounded-[6px]" />
                     </div>
                     <div className="mb-[32px] flex gap-[16px]">
-                        {[64, 104, 64, 64].map((width, index) => (
+                        {[64, 104].map((width, index) => (
                             <div key={index} className="skeleton h-[40px] rounded-full" style={{ width }} />
                         ))}
                     </div>
@@ -263,29 +285,34 @@ export function HistoryPageSkeleton({ includeHeader = true }: { includeHeader?: 
 
 export function LoginPageSkeleton() {
     return (
-        <div className="min-h-screen flex bg-white font-['Inter',_sans-serif]">
-            <div className="w-full tablet:w-1/2 flex flex-col px-[40px] py-[40px] bg-white">
-                <div className="flex items-center gap-[10px]">
-                    <div className="skeleton h-[32px] w-[32px] rounded-xl" />
-                    <div className="skeleton h-[20px] w-[104px] rounded-[6px]" />
-                </div>
-                <div className="flex flex-1 flex-col items-center justify-center">
-                    <div className="w-full max-w-[420px] space-y-[32px]">
-                        <div className="space-y-[12px]">
-                            <div className="skeleton mx-auto h-[48px] w-full rounded-[10px]" />
-                            <div className="skeleton mx-auto h-[20px] w-[76%] rounded-[8px]" />
+        <div className="h-screen max-h-screen min-h-screen h-[100svh] max-h-[100svh] min-h-[100svh] overflow-hidden bg-white">
+            <main className="relative flex h-full min-h-full flex-col overflow-hidden desktop:flex-row desktop:justify-between">
+                <section className="relative z-[1] flex min-h-full min-w-[0px] flex-1 flex-col px-[20px] py-[28px] tablet:px-[36px] tablet:py-[40px] desktop:px-[48px] desktop:py-[44px]">
+                    <div className="skeleton h-[32px] w-[146px] shrink-0 rounded-[6px]" />
+
+                    <div className="grid w-full max-w-[368px] flex-1 translate-y-[-32px] content-center justify-items-center self-center desktop:translate-y-[0px]">
+                        <div className="grid w-full max-w-[368px] justify-items-center gap-[12px]">
+                            <div className="grid w-full justify-items-center gap-[6px]">
+                                <div className="skeleton h-[30px] w-[82%] rounded-[8px]" />
+                                <div className="skeleton h-[30px] w-[68%] rounded-[8px]" />
+                            </div>
+                            <div className="skeleton h-[30px] w-[min(100%,300px)] rounded-full desktop:h-[36px]" />
                         </div>
-                        <div className="space-y-[12px]">
-                            <div className="skeleton h-[56px] w-full rounded-[999px]" />
-                            <div className="skeleton h-[56px] w-full rounded-[999px]" />
+
+                        <div className="mt-[28px] grid w-[87.5vw] max-w-[320px] gap-[16px] tablet:w-[368px] tablet:max-w-[368px]">
+                            {Array.from({ length: 4 }).map((_, index) => (
+                                <div key={index} className="skeleton min-h-[40px] w-full rounded-full tablet:min-h-[48px]" />
+                            ))}
                         </div>
-                        <div className="skeleton mx-auto h-[20px] w-[64px] rounded-[6px]" />
+
+                        <div className="skeleton mt-[16px] h-[17px] w-[87.5vw] max-w-[320px] rounded-[6px] tablet:w-[368px] tablet:max-w-[368px]" />
                     </div>
-                </div>
-            </div>
-            <div className="hidden tablet:block w-1/2">
-                <div className="skeleton h-full w-full rounded-[0px]" />
-            </div>
+                </section>
+
+                <aside className="absolute inset-x-[0px] bottom-[0px] block h-[60vh] max-h-[620px] w-full overflow-hidden desktop:relative desktop:inset-auto desktop:h-[100svh] desktop:max-h-none desktop:w-[40vw] desktop:min-w-[320px] desktop:max-w-[760px] desktop:shrink-0 desktop:basis-[40vw]">
+                    <div className="h-full w-full bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(242,242,243,0.9)_28%,#e8e8e8_100%)] desktop:bg-[#f2f2f3]" />
+                </aside>
+            </main>
         </div>
     );
 }

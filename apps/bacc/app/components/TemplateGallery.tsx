@@ -303,7 +303,7 @@ function TemplateCard({
                             <span className="flex text-center">{template.favoriteCount}</span>
                         </div>
                     </div>
-                    <div className="pointer-events-auto flex h-[40px] w-full items-center justify-center gap-[6px] rounded-[24px] bg-[#EC2E2E] px-[16px] py-[8px] text-white active:scale-95">
+                    <div className="pointer-events-auto flex h-[40px] w-full items-center justify-center gap-[6px] rounded-[24px] bg-[#EC2E2E] hover:bg-[#CB0707] px-[16px] py-[8px] text-white active:scale-95">
                         <GatherLuckIcon />
                         <span className="j-t2 whitespace-nowrap">Gather your luck</span>
                     </div>

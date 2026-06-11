@@ -110,8 +110,8 @@ export default function HistoryPage() {
     return (
         <main className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c] font-['Inter',_sans-serif]">
             {isNavigatingToGallery && (
-                <div className="fixed inset-0 z-[2000] flex justify-center overflow-y-auto bg-[#f9f9f9]" data-gallery-nav-loading="true">
-                    <div className="w-full max-w-full desktop:max-w-[1600px] px-[24px] tablet:px-[48px] py-[40px]">
+                <div className="fixed inset-0 z-[2000] flex justify-center overflow-y-auto bg-white" data-gallery-nav-loading="true">
+                    <div className="w-[92vw] max-w-[1600px] px-0 tablet:w-full tablet:px-[24px] py-[40px]">
                         <GalleryGridSkeleton />
                     </div>
                 </div>

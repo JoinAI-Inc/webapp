@@ -1,3 +1,5 @@
+import type { Ref } from "react";
+
 function SkeletonBlock({ className }: { className?: string }) {
   return <span className={`home-sk-block${className ? ` ${className}` : ""}`} />;
 }
@@ -80,6 +82,19 @@ function PetSkeleton() {
   return (
     <div className="home-sk-pet">
       <SkeletonBlock className="home-sk-line home-sk-line-lg home-sk-pet-title" />
+      <SkeletonBlock className="home-sk-pet-collage home-sk-pet-collage-top-left" />
+      <SkeletonBlock className="home-sk-pet-collage home-sk-pet-collage-top-right" />
+      <div className="home-sk-pet-story">
+        <SkeletonBlock className="home-sk-pet-collage home-sk-pet-collage-bottom-left" />
+        <SkeletonBlock className="home-sk-line home-sk-pet-story-line" />
+      </div>
+      <SkeletonBlock className="home-sk-pet-collage home-sk-pet-collage-bottom-right" />
+      <SkeletonBlock className="home-sk-line home-sk-pet-mobile-copy" />
+      <div className="home-sk-pet-mobile-grid">
+        {Array.from({ length: 4 }).map((_, item) => (
+          <SkeletonBlock key={item} className="home-sk-gallery-card" />
+        ))}
+      </div>
     </div>
   );
 }
@@ -93,7 +108,12 @@ function OotdSkeleton() {
       </div>
       <div className="home-sk-gallery-grid home-sk-gallery-grid-three">
         {Array.from({ length: 3 }).map((_, item) => (
-          <SkeletonBlock key={item} className="home-sk-gallery-card" />
+          <SkeletonBlock key={item} className="home-sk-gallery-card home-sk-ootd-card" />
+        ))}
+      </div>
+      <div className="home-sk-ootd-dots">
+        {[0, 1, 2].map((item) => (
+          <SkeletonBlock key={item} className="home-sk-ootd-dot" />
         ))}
       </div>
     </div>
@@ -135,7 +155,7 @@ function SplitSkeleton() {
   );
 }
 
-function HomeFooterSkeleton() {
+function LandingFooterSkeleton() {
   return (
     <div className="home-sk-footer">
       <SkeletonBlock className="home-sk-line home-sk-line-footer-title" />
@@ -149,9 +169,13 @@ function HomeFooterSkeleton() {
   );
 }
 
-export function HomeRouteSkeleton() {
+type LandingRouteSkeletonProps = {
+  rootRef?: Ref<HTMLDivElement>;
+};
+
+export function HomeRouteSkeleton({ rootRef }: LandingRouteSkeletonProps = {}) {
   return (
-    <div className="home-sk-root" data-route-loading="true" aria-hidden="true">
+    <div ref={rootRef} className="home-sk-root" data-route-loading="true" aria-hidden="true">
       <SkeletonNav />
       <HomeHeroSkeleton />
       <YearSkeleton />
@@ -160,14 +184,14 @@ export function HomeRouteSkeleton() {
       <OotdSkeleton />
       <CardSkeleton />
       <SplitSkeleton />
-      <HomeFooterSkeleton />
+      <LandingFooterSkeleton />
     </div>
   );
 }
 
-export function AboutRouteSkeleton() {
+export function AboutRouteSkeleton({ rootRef }: LandingRouteSkeletonProps = {}) {
   return (
-    <div className="home-sk-root about-sk-root" data-route-loading="true" aria-hidden="true">
+    <div ref={rootRef} className="home-sk-root about-sk-root" data-route-loading="true" aria-hidden="true">
       <SkeletonNav />
       <div className="about-sk-hero">
         <div className="about-sk-copy">
@@ -182,44 +206,47 @@ export function AboutRouteSkeleton() {
           <SkeletonBlock className="about-sk-illustration" />
         </div>
       </div>
-      <div className="about-sk-footer">
-        <SkeletonBlock className="home-sk-line home-sk-line-sm" />
-        <SkeletonBlock className="home-sk-button" />
-        <SkeletonBlock className="about-sk-footer-collage" />
-      </div>
+      <LandingFooterSkeleton />
     </div>
   );
 }
 
-export function PokeRouteSkeleton() {
+export function PokeRouteSkeleton({ rootRef }: LandingRouteSkeletonProps = {}) {
   return (
-    <div className="home-sk-root poke-sk-root" data-route-loading="true" aria-hidden="true">
+    <div ref={rootRef} className="home-sk-root poke-sk-root" data-route-loading="true" aria-hidden="true">
       <SkeletonNav />
       <div className="poke-sk-hero">
-        <SkeletonBlock className="poke-sk-line poke-sk-line-title" />
-        <SkeletonBlock className="poke-sk-line poke-sk-line-title poke-sk-line-title-short" />
+        {Array.from({ length: 3 }).map((_, item) => (
+          <div
+            key={item}
+            className={`poke-sk-title-row${item === 2 ? " poke-sk-line-title-short" : ""}`}
+          >
+            <SkeletonBlock className="poke-sk-line poke-sk-line-title" />
+            <SkeletonBlock className="poke-sk-line poke-sk-line-title-mobile-continuation" />
+          </div>
+        ))}
         <div className="poke-sk-panel">
           <div className="poke-sk-table-head">
             <SkeletonBlock className="poke-sk-col" />
             <SkeletonBlock className="poke-sk-col" />
             <SkeletonBlock className="poke-sk-col poke-sk-col-narrow" />
           </div>
-          {Array.from({ length: 8 }).map((_, item) => (
+          {Array.from({ length: 16 }).map((_, item) => (
             <div key={item} className="poke-sk-table-row">
               <SkeletonBlock className="poke-sk-col" />
               <SkeletonBlock className="poke-sk-col" />
               <SkeletonBlock className="poke-sk-col poke-sk-col-narrow" />
             </div>
           ))}
-          <SkeletonBlock className="poke-sk-divider" />
-          <SkeletonBlock className="poke-sk-line poke-sk-line-sm" />
+          <SkeletonBlock className="poke-sk-more" />
+          <div className="poke-sk-meta">
+            <SkeletonBlock className="poke-sk-divider" />
+            <SkeletonBlock className="poke-sk-line poke-sk-line-sm" />
+            <SkeletonBlock className="poke-sk-line poke-sk-line-special" />
+          </div>
         </div>
       </div>
-      <div className="poke-sk-footer">
-        <SkeletonBlock className="home-sk-line home-sk-line-sm" />
-        <SkeletonBlock className="home-sk-button" />
-        <SkeletonBlock className="poke-sk-footer-collage" />
-      </div>
+      <LandingFooterSkeleton />
     </div>
   );
 }

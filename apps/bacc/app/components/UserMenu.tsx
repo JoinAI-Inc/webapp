@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -179,6 +179,45 @@ function BalanceModal({ onClose }: { onClose: () => void; userId?: string }) {
 
 // ─── User Menu Button ─────────────────────────────────────────────────────────
 
+function LuckyBalanceIcon() {
+    const gradientId = useId();
+    const outerGradientId = `${gradientId}-outer`;
+    const middleGradientId = `${gradientId}-middle`;
+    const innerGradientId = `${gradientId}-inner`;
+
+    return (
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            className="shrink-0"
+        >
+            <path d="M9 0C4.032 0 0 4.032 0 9C0 13.968 4.032 18 9 18C13.968 18 18 13.968 18 9C18 4.032 13.968 0 9 0ZM9 5.724C9.864 7.029 10.971 8.145 12.285 9C10.971 9.864 9.855 10.98 9 12.285C8.145 10.98 7.029 9.864 5.715 9C7.029 8.145 8.145 7.029 9 5.724Z" fill="#930808" />
+            <path d="M9 1C4.58222 1 1 4.58222 1 9C1 13.4178 4.58222 17 9 17C13.4178 17 17 13.4178 17 9C17 4.58222 13.4178 1 9 1ZM9 12.2444C8.15556 10.9556 7.05333 9.85333 5.75556 9C7.05333 8.15556 8.15556 7.05333 9 5.76444C9.85333 7.05333 10.9467 8.15556 12.2444 9C10.9467 9.85333 9.84444 10.9556 9 12.2444Z" fill={`url(#${outerGradientId})`} />
+            <path d="M8.99956 3.51898C5.97555 3.51898 3.51855 5.97598 3.51855 8.99998C3.51855 12.024 5.97555 14.49 8.99956 14.49C12.0236 14.49 14.4806 12.033 14.4806 8.99998C14.4806 5.96698 12.0326 3.51898 8.99956 3.51898ZM12.2846 8.99998C10.9706 9.86398 9.85456 10.98 8.99956 12.285C8.14456 10.98 7.02855 9.86398 5.71455 8.99998C7.02855 8.14498 8.14456 7.02898 8.99956 5.72398C9.86355 7.02898 10.9706 8.14498 12.2846 8.99998Z" fill={`url(#${middleGradientId})`} />
+            <path d="M13.7343 8.31602C12.0153 7.38002 10.6203 5.98502 9.69333 4.27502C9.55833 4.03202 9.29733 3.87002 9.00933 3.86102C8.73033 3.86102 8.46933 4.01402 8.32533 4.26602C7.38933 5.97602 5.98533 7.38002 4.26633 8.31602C4.02333 8.44202 3.86133 8.71202 3.86133 9.00002C3.86133 9.28802 4.01433 9.54902 4.26633 9.68402C5.97633 10.611 7.38033 12.015 8.32533 13.734C8.46933 13.986 8.72133 14.139 9.00933 14.139C9.29733 14.139 9.55833 13.986 9.69333 13.734C10.6203 12.024 12.0153 10.629 13.7343 9.68402C13.9863 9.54902 14.1393 9.28802 14.1393 9.00002C14.1393 8.71202 13.9863 8.44202 13.7343 8.31602ZM9.00033 12.285C8.14533 10.98 7.02933 9.86402 5.71533 9.00002C7.02933 8.14502 8.14533 7.02902 9.00033 5.72402C9.86433 7.02902 10.9713 8.14502 12.2853 9.00002C10.9713 9.86402 9.85533 10.98 9.00033 12.285Z" fill={`url(#${innerGradientId})`} />
+            <defs>
+                <linearGradient id={outerGradientId} x1="15.2222" y1="15.6667" x2="2.77778" y2="3.22222" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FFD66D" />
+                    <stop offset="0.49" stopColor="#FFA703" />
+                    <stop offset="1" stopColor="#FFDA60" />
+                </linearGradient>
+                <linearGradient id={middleGradientId} x1="8.99955" y1="3.51898" x2="8.99955" y2="14.49" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FF5A29" />
+                    <stop offset="1" stopColor="#FF8B03" />
+                </linearGradient>
+                <linearGradient id={innerGradientId} x1="10.3503" y1="14.4" x2="8.55035" y2="4.50002" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FFC505" />
+                    <stop offset="1" stopColor="#FFF604" />
+                </linearGradient>
+            </defs>
+        </svg>
+    );
+}
+
 export function UserMenuButton({ mobileCompact = false }: { mobileCompact?: boolean } = {}) {
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -257,37 +296,7 @@ export function UserMenuButton({ mobileCompact = false }: { mobileCompact?: bool
                 >
                     <span className="hidden tablet:inline">Top up</span>
                     <div className={mobileCompact ? "flex items-center justify-center gap-[4px]" : "flex items-center bg-[#0F00001F] rounded-[4px] justify-center h-[24px] gap-[4px] px-[6px]"}>
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_374_1528)">
-                                <g clip-path="url(#clip1_374_1528)">
-                                    <path d="M9 0C4.032 0 0 4.032 0 9C0 13.968 4.032 18 9 18C13.968 18 18 13.968 18 9C18 4.032 13.968 0 9 0ZM9 5.724C9.864 7.029 10.971 8.145 12.285 9C10.971 9.864 9.855 10.98 9 12.285C8.145 10.98 7.029 9.864 5.715 9C7.029 8.145 8.145 7.029 9 5.724Z" fill="#930808" />
-                                    <path d="M9 1C4.58222 1 1 4.58222 1 9C1 13.4178 4.58222 17 9 17C13.4178 17 17 13.4178 17 9C17 4.58222 13.4178 1 9 1ZM9 12.2444C8.15556 10.9556 7.05333 9.85333 5.75556 9C7.05333 8.15556 8.15556 7.05333 9 5.76444C9.85333 7.05333 10.9467 8.15556 12.2444 9C10.9467 9.85333 9.84444 10.9556 9 12.2444Z" fill="url(#paint0_linear_374_1528)" />
-                                    <path d="M8.99956 3.51898C5.97555 3.51898 3.51855 5.97598 3.51855 8.99998C3.51855 12.024 5.97555 14.49 8.99956 14.49C12.0236 14.49 14.4806 12.033 14.4806 8.99998C14.4806 5.96698 12.0326 3.51898 8.99956 3.51898ZM12.2846 8.99998C10.9706 9.86398 9.85456 10.98 8.99956 12.285C8.14456 10.98 7.02855 9.86398 5.71455 8.99998C7.02855 8.14498 8.14456 7.02898 8.99956 5.72398C9.86355 7.02898 10.9706 8.14498 12.2846 8.99998Z" fill="url(#paint1_linear_374_1528)" />
-                                    <path d="M13.7343 8.31602C12.0153 7.38002 10.6203 5.98502 9.69333 4.27502C9.55833 4.03202 9.29733 3.87002 9.00933 3.86102C8.73033 3.86102 8.46933 4.01402 8.32533 4.26602C7.38933 5.97602 5.98533 7.38002 4.26633 8.31602C4.02333 8.44202 3.86133 8.71202 3.86133 9.00002C3.86133 9.28802 4.01433 9.54902 4.26633 9.68402C5.97633 10.611 7.38033 12.015 8.32533 13.734C8.46933 13.986 8.72133 14.139 9.00933 14.139C9.29733 14.139 9.55833 13.986 9.69333 13.734C10.6203 12.024 12.0153 10.629 13.7343 9.68402C13.9863 9.54902 14.1393 9.28802 14.1393 9.00002C14.1393 8.71202 13.9863 8.44202 13.7343 8.31602ZM9.00033 12.285C8.14533 10.98 7.02933 9.86402 5.71533 9.00002C7.02933 8.14502 8.14533 7.02902 9.00033 5.72402C9.86433 7.02902 10.9713 8.14502 12.2853 9.00002C10.9713 9.86402 9.85533 10.98 9.00033 12.285Z" fill="url(#paint2_linear_374_1528)" />
-                                </g>
-                            </g>
-                            <defs>
-                                <linearGradient id="paint0_linear_374_1528" x1="15.2222" y1="15.6667" x2="2.77778" y2="3.22222" gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#FFD66D" />
-                                    <stop offset="0.49" stop-color="#FFA703" />
-                                    <stop offset="1" stop-color="#FFDA60" />
-                                </linearGradient>
-                                <linearGradient id="paint1_linear_374_1528" x1="8.99955" y1="3.51898" x2="8.99955" y2="14.49" gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#FF5A29" />
-                                    <stop offset="1" stop-color="#FF8B03" />
-                                </linearGradient>
-                                <linearGradient id="paint2_linear_374_1528" x1="10.3503" y1="14.4" x2="8.55035" y2="4.50002" gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#FFC505" />
-                                    <stop offset="1" stop-color="#FFF604" />
-                                </linearGradient>
-                                <clipPath id="clip0_374_1528">
-                                    <rect width="18" height="18" fill="white" />
-                                </clipPath>
-                                <clipPath id="clip1_374_1528">
-                                    <rect width="18" height="18" fill="white" />
-                                </clipPath>
-                            </defs>
-                        </svg>
+                        <LuckyBalanceIcon />
 
                         <span className={mobileCompact ? "font-normal" : "text-[13px] font-bold pr-[4px] tablet:pr-[0px]"}>{balance !== null ? balance : "..."}</span>
                     </div>

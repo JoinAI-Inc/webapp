@@ -84,19 +84,19 @@ function StudioNavigationLoadingOverlay({ href }: { href: string }) {
 
     if (/^\/generate\/[^/?#]+/.test(href)) {
         content = (
-            <div className="w-[92vw] max-w-[1280px]">
+            <div className="w-full max-w-[1280px]">
                 <TemplateDetailSkeleton />
             </div>
         );
     } else if (href.startsWith("/gallery") || href.startsWith("/generate?tab=gallery")) {
         content = (
-            <div className="w-[92vw] max-w-[1280px] py-[32px]">
+            <div className="w-[92vw] max-w-[1600px] px-0 tablet:w-full tablet:px-[24px] py-[40px]">
                 <GalleryGridSkeleton />
             </div>
         );
     } else if (href.startsWith("/favorites")) {
         content = (
-            <div className="w-[92vw] max-w-[1280px] py-[32px]">
+            <div className="w-full max-w-full desktop:max-w-[1600px] px-[24px] tablet:px-[48px] py-[40px]">
                 <FavoritesSkeleton />
             </div>
         );

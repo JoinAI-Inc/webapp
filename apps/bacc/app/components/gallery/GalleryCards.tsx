@@ -76,24 +76,13 @@ function GalleryText({
 // 生成中卡片
 export function BrewingCard({ task }: { task: PendingTask }) {
     const slots = extractPendingSlotImages(task);
-    const firstSlot = slots[0];
     const meta = getPendingGalleryCardMeta(task);
 
     return (
         <article className="flex flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white">
             <div className="relative aspect-[263/332] w-full p-[3px] pb-[0px]">
                 <div className="relative h-full w-full overflow-hidden rounded-[4px] bg-[#F3F3F3]">
-                    {firstSlot ? (
-                        <Image
-                            src={firstSlot}
-                            alt="Generating..."
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, 16vw"
-                            className="h-full w-full scale-110 object-cover blur-[8px] brightness-95 saturate-110"
-                        />
-                    ) : (
-                        <div className="h-full w-full animate-pulse bg-[linear-gradient(135deg,#e3f1ff_0%,#f5d9dc_52%,#ffc4b7_100%)]" />
-                    )}
+                    <div className="generation-preview-visual absolute inset-[0px]" aria-hidden="true" />
 
                     <div className="absolute inset-[0px] bg-black/[0.08]" />
                     <div className="absolute left-[12px] top-[12px] flex h-[25px] w-[100px] items-center pl-[6px] rounded-[4px] bg-[#EC2E2E]">
@@ -135,7 +124,7 @@ export function HistoryCard({
                 type="button"
                 aria-label={`Preview ${templateMeta.title}`}
                 onClick={() => onPreview(item)}
-                className="absolute inset-[0px] z-[15] rounded-[8px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2F80ED]"
+                className="absolute inset-[0px] z-[15] cursor-pointer rounded-[8px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2F80ED]"
             />
             <div className="relative aspect-[255/329] w-full p-[3px] pb-[0px]">
                 {resultUrl ? (
@@ -169,7 +158,7 @@ export function HistoryCard({
                             onRecreate(item);
                         }}
                         aria-label="Create another from this template"
-                        className="absolute right-[12px] top-[12px] z-20 flex size-[32px] items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] text-white opacity-0 backdrop-blur-[16px] transition-opacity duration-200 tablet:group-hover:opacity-100 focus-visible:opacity-100"
+                        className="absolute right-[12px] top-[12px] z-20 flex size-[32px] items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.4)] hover:bg-[rgba(10,7,8,0.8)] p-[4px] text-white opacity-0 backdrop-blur-[16px] transition-opacity duration-200 tablet:group-hover:opacity-100 focus-visible:opacity-100 cursor-pointer"
                     >
                         <RecreateIcon className="size-[24px]" />
                     </button>
@@ -181,7 +170,7 @@ export function HistoryCard({
             <p
                 aria-hidden="true"
                 data-template-title="desktop"
-                className="pointer-events-none absolute bottom-[12px] left-[12px] right-[12px] z-[11] hidden truncate j-l2 text-white opacity-0 transition-opacity duration-200 tablet:block tablet:group-hover:opacity-100"
+                className="pointer-events-none absolute bottom-[16px] left-[16px] right-[16px] z-[11] hidden truncate j-l1 text-white opacity-0 transition-opacity duration-200 tablet:block tablet:group-hover:opacity-100"
             >
                 {templateMeta.title}
             </p>

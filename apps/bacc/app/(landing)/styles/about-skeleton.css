@@ -18,13 +18,16 @@
   width: 87.5vw;
   max-width: 1360px;
   margin: 0 auto;
-  padding-top: 120px;
+  padding-top: 80px;
+  margin-bottom: 100px;
 }
 
 .about-sk-copy {
   display: flex;
+  min-height: 1px;
   flex-direction: column;
   padding-top: 40px;
+  padding-bottom: 40px;
 }
 
 .about-sk-line {
@@ -49,7 +52,8 @@
 
 .about-sk-input {
   width: 100%;
-  height: 200px;
+  min-height: 160px;
+  flex: 1 1 auto;
   margin-top: 24px;
   border-radius: 16px;
 }
@@ -102,15 +106,13 @@
   .about-sk-hero {
     grid-template-columns: minmax(0, 50%) minmax(260px, calc(50% - 60px));
     column-gap: 60px;
-    padding-top: 100px;
+    padding-top: 60px;
+    margin-bottom: 80px;
   }
 
   .about-sk-copy {
     padding-top: 24px;
-  }
-
-  .about-sk-footer {
-    margin-top: 80px;
+    padding-bottom: 20px;
   }
 }
 
@@ -120,11 +122,13 @@
   .about-sk-hero {
     grid-template-columns: 100%;
     column-gap: 0;
-    padding-top: 80px;
+    padding-top: 40px;
+    margin-bottom: 60px;
   }
 
   .about-sk-copy {
     padding-top: 0;
+    padding-bottom: 0;
   }
 
   .about-sk-line-title {
@@ -132,7 +136,6 @@
   }
 
   .about-sk-input {
-    height: 160px;
     border-radius: 8px;
   }
 
@@ -150,7 +153,4 @@
     max-width: 100%;
   }
 
-  .about-sk-footer {
-    margin-top: 60px;
-  }
 }
