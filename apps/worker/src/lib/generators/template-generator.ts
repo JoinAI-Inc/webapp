@@ -1,6 +1,8 @@
 import { BaseGenerator } from './base-generator.js';
 import { storage } from '../storage.js';
 import sharp from 'sharp';
+import { createGallerySubjects } from './gallery-subjects.js';
+import { createGallerySlotImages } from './template-slot-images.js';
 
 const INPUT_IMAGE_MAX_DIMENSION = parseInt(process.env.TEMPLATE_INPUT_IMAGE_MAX_DIMENSION || '1536', 10);
 const INPUT_IMAGE_JPEG_QUALITY = parseInt(process.env.TEMPLATE_INPUT_IMAGE_JPEG_QUALITY || '82', 10);
@@ -21,6 +23,8 @@ export interface TemplateSlotInput {
     refId: string;        // 对应模板 slot 的 refId
     imageSource: string;  // base64 data URL 或 https URL
     assetPayload?: any;
+    gender?: unknown;
+    makeup?: unknown;
 }
 
 export interface TemplateGeneratePayload {
@@ -211,12 +215,14 @@ export class TemplateGenerator extends BaseGenerator {
 
         // ── 上传结果到 R2 ───────────────────────────────────────────────────
         const imageBuffer = Buffer.from(base64Image, 'base64');
+        const slotImages = await createGallerySlotImages(slots);
+        const gallerySubjects = createGallerySubjects(slots);
         const uploadResult = await storage.upload({
             file: imageBuffer,
             fileName: `template-${templateId}-${Date.now()}.png`,
             appId: 'bacc',
             tags: ['template', 'generated'],
-            metadata: { templateId, templateName },
+            metadata: { templateId, templateName, slotImages, gallerySubjects },
             createdBy: userId,
             userId,
             generationType: 'template',

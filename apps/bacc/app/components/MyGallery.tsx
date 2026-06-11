@@ -9,6 +9,7 @@ import { HistoryItem, PendingTask } from "./gallery/gallery.types";
 import { BrewingCard, HistoryCard } from "./gallery/GalleryCards";
 import { GalleryPreviewModal } from "./gallery/GalleryPreviewModal";
 import { getTemplateId } from "./gallery/gallery.types";
+import { decideGalleryPoll, GalleryTaskSnapshot } from "./gallery/gallery-task-polling";
 import { GalleryGridSkeleton } from "./Skeletons";
 
 interface MyGalleryProps {
@@ -18,8 +19,10 @@ interface MyGalleryProps {
     forceVisible?: boolean;
 }
 
+const GALLERY_PAGE_SIZE = 12;
+
 export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: MyGalleryProps) {
-    const { setActiveTab, latestTaskId } = useGenerateContext();
+    const { setActiveTab, latestTaskId, setLatestTaskId } = useGenerateContext();
     const router = useRouter();
     const newTaskId = propNewTaskId || latestTaskId;
     const { user, loading: authLoading } = useAuth();
@@ -31,6 +34,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
     const pageRef = useRef(1);
     const pollingRef = useRef<NodeJS.Timeout | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const handledWatchedTaskIdsRef = useRef(new Set<string>());
     // 用 ref 持有 pendingTasks，避免 useCallback 依赖导致无限循环
     const pendingTasksRef = useRef<PendingTask[]>([]);
     pendingTasksRef.current = pendingTasks;
@@ -47,7 +51,9 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
         setLoading(true);
         try {
             const page = reset ? 1 : pageRef.current;
-            const res = await fetch(`/api/history?page=${page}&pageSize=20`);
+            const res = await fetch(`/api/history?page=${page}&pageSize=${GALLERY_PAGE_SIZE}`, {
+                cache: "no-store",
+            });
             if (!res.ok) return;
             const data = await res.json();
             // 过滤掉无效 URL 的记录，避免白卡片
@@ -64,7 +70,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
                 });
                 pageRef.current = page + 1;
             }
-            setReachedEnd((data.items || []).length < 20);
+            setReachedEnd((data.items || []).length < GALLERY_PAGE_SIZE);
         } catch {
             // ignore
         } finally {
@@ -76,39 +82,68 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
     const pollCurrentTask = useCallback(async () => {
         if (!user) return;
         try {
-            const res = await fetch("/api/queue/current-task");
-            if (!res.ok) {
-                setPendingTasks([]);
-                return;
-            }
-            const data = await res.json();
-            const taskList = Array.isArray(data.tasks) ? data.tasks : (data.taskId ? [data] : []);
-            const activeTasks = taskList.filter((task: any) => task.status === "pending" || task.status === "processing");
+            const taskList: GalleryTaskSnapshot[] = [];
+            const currentTaskRes = await fetch("/api/queue/current-task", {
+                cache: "no-store",
+            });
 
-            if (activeTasks.length === 0) {
-                // 任务结束，若之前有任务则刷新历史
-                if (pendingTasksRef.current.length > 0) {
-                    setPendingTasks([]);
-                    fetchHistory(true);
+            if (currentTaskRes.ok) {
+                const data = await currentTaskRes.json();
+                const currentTasks = Array.isArray(data.tasks)
+                    ? data.tasks
+                    : (data.taskId ? [data] : []);
+                taskList.push(...currentTasks);
+            }
+
+            if (
+                newTaskId &&
+                !handledWatchedTaskIdsRef.current.has(newTaskId) &&
+                !taskList.some((task) => task.taskId === newTaskId)
+            ) {
+                const watchedTaskRes = await fetch(
+                    `/api/queue/status?taskId=${encodeURIComponent(newTaskId)}`,
+                    { cache: "no-store" },
+                );
+                if (watchedTaskRes.ok) {
+                    taskList.push(await watchedTaskRes.json());
                 }
-                // 停止轮询
+            }
+
+            const decision = decideGalleryPoll({
+                previousPendingTaskIds: pendingTasksRef.current.map((task) => task.taskId),
+                tasks: taskList,
+                watchedTaskId: newTaskId,
+                handledWatchedTaskIds: handledWatchedTaskIdsRef.current,
+            });
+
+            setPendingTasks(decision.activeTasks.map((task) => ({
+                taskId: task.taskId,
+                status: task.status,
+                metadata: (task.metadata as PendingTask["metadata"]) || null,
+                createdAt: task.createdAt || new Date().toISOString(),
+            })));
+
+            if (decision.shouldRefreshHistory) {
+                void fetchHistory(true);
+            }
+
+            if (decision.watchedTaskFinished && newTaskId) {
+                handledWatchedTaskIdsRef.current.add(newTaskId);
+                if (latestTaskId === newTaskId) {
+                    setLatestTaskId(null);
+                }
+            }
+
+            if (decision.activeTasks.length === 0) {
                 if (pollingRef.current) {
                     clearInterval(pollingRef.current);
                     pollingRef.current = null;
                 }
-                return;
             }
-
-            setPendingTasks(activeTasks.map((task: any) => ({
-                taskId: task.taskId,
-                status: task.status,
-                metadata: task.metadata || null,
-                createdAt: task.createdAt || new Date().toISOString(),
-            })));
         } catch {
             // ignore
         }
-    }, [user, fetchHistory]); // 不依赖 pendingTasks
+    }, [user, fetchHistory, newTaskId, latestTaskId, setLatestTaskId]);
 
     // 初始加载 + 检查是否有进行中任务
     useEffect(() => {
@@ -174,15 +209,7 @@ export function MyGallery({ newTaskId: propNewTaskId, forceVisible = false }: My
         <section id="gallery" className="w-full">
             {/* Header */}
             <div className="mb-[20px] flex items-center gap-[6px] pl-[2px]">
-                <div className="w-[24px] h-[22px]">
-                    <svg width="24" height="22" viewBox="0 0 24 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20.0094 3.3781C19.4694 2.7541 18.7134 2.3701 17.8974 2.3221L11.5735 1.8541C10.7455 1.7941 9.95345 2.0701 9.32945 2.6101C8.70545 3.1501 8.33345 3.9061 8.27345 4.7221V4.8301L5.70545 5.0941C4.87745 5.1781 4.13345 5.5861 3.61745 6.2341C3.10145 6.8701 2.87345 7.6741 2.95745 8.4781L4.01345 18.7381C4.09745 19.5661 4.49345 20.2981 5.12945 20.8261C5.68145 21.2821 6.36545 21.5101 7.06145 21.5101C7.16945 21.5101 7.28945 21.5101 7.39745 21.4861L13.6974 20.8381C14.9454 20.7181 15.9295 19.8781 16.3014 18.7381L16.6974 18.7621C16.7694 18.7621 16.8414 18.7621 16.9135 18.7621C17.6574 18.7621 18.3654 18.4981 18.9414 18.0061C19.5654 17.4661 19.9494 16.7101 19.9974 15.8941L20.7534 5.6101C20.8134 4.7821 20.5494 3.9901 20.0094 3.3661V3.3781ZM13.5414 19.2181L7.22945 19.8661C6.83345 19.9021 6.44945 19.7941 6.14945 19.5541C5.84945 19.3021 5.65745 18.9541 5.62145 18.5581L4.56545 8.2981C4.52945 7.9141 4.63745 7.5421 4.87745 7.2421C5.12945 6.9301 5.47745 6.7381 5.87345 6.7021L8.14145 6.4741L7.51745 15.0061C7.45745 15.8341 7.72145 16.6261 8.26145 17.2501C8.80145 17.8741 9.55745 18.2581 10.3735 18.3061L14.5854 18.6181C14.3454 18.9541 13.9734 19.1821 13.5414 19.2301V19.2181ZM19.1334 5.5021L18.3774 15.7861C18.3534 16.1701 18.1734 16.5301 17.8735 16.7821C17.5735 17.0341 17.2014 17.1661 16.8054 17.1421L15.7374 17.0581C15.7374 17.0581 15.7254 17.0581 15.7134 17.0581L10.4934 16.6741C10.1094 16.6501 9.74945 16.4701 9.49745 16.1701C9.24545 15.8701 9.11345 15.4861 9.13745 15.1021L9.82145 5.6101L9.88145 4.8301C9.90545 4.4341 10.0854 4.0861 10.3854 3.8221C10.6614 3.5821 10.9974 3.4621 11.3574 3.4621C11.3934 3.4621 11.4295 3.4621 11.4535 3.4621L17.7774 3.9301C18.1734 3.9541 18.5214 4.1341 18.7854 4.4341C19.0374 4.7341 19.1694 5.1061 19.1334 5.5021Z" fill="#22252A" />
-                        <path d="M17.1658 7.75804C17.1778 7.20604 16.5058 6.96604 16.1578 7.38604C15.4258 8.27404 14.6218 8.88604 13.8418 9.12604C13.4458 9.24604 13.2898 9.66604 13.5058 10.026C13.9378 10.722 14.1538 11.706 14.1298 12.858C14.1178 13.41 14.7898 13.65 15.1378 13.23C15.8698 12.342 16.6738 11.73 17.4538 11.49C17.8498 11.37 18.0058 10.95 17.7898 10.59C17.3578 9.89404 17.1418 8.91004 17.1658 7.75804Z" fill="#8640FF" />
-                        <path d="M2.48969 0.592348C2.31807 0.250593 1.82894 0.321571 1.75212 0.691469C1.59198 1.47232 1.2983 2.10758 0.898696 2.50736C0.695222 2.7092 0.73591 3.01685 0.984836 3.16716C1.47491 3.4531 1.92614 3.98535 2.28495 4.69824C2.45658 5.03999 2.9457 4.96902 3.02253 4.59912C3.18266 3.81827 3.47635 3.18301 3.87595 2.78323C4.07943 2.58139 4.03874 2.27374 3.78981 2.12342C3.29974 1.83748 2.8485 1.30524 2.48969 0.592348Z" fill="#FF3F2A" />
-                        <path d="M22.8226 17.3095C22.9028 17.0907 22.6673 16.9031 22.471 17.0233C22.0574 17.2778 21.6529 17.4124 21.3087 17.4017C21.1342 17.3955 21.0145 17.5419 21.0516 17.7151C21.129 18.052 21.0809 18.4743 20.9139 18.931C20.8338 19.1497 21.0693 19.3373 21.2656 19.2172C21.6791 18.9626 22.0837 18.8281 22.4279 18.8388C22.6024 18.845 22.722 18.6986 22.6849 18.5254C22.6075 18.1885 22.6557 17.7661 22.8226 17.3095Z" fill="#FFD972" />
-                        <path d="M22.4938 2.36481C22.4469 2.24124 22.2762 2.24834 22.2367 2.37279C22.154 2.63558 22.0306 2.8436 21.8791 2.96691C21.802 3.0291 21.8051 3.13631 21.8853 3.1968C22.0437 3.31244 22.18 3.5114 22.2782 3.76918C22.3251 3.89275 22.4957 3.88566 22.5352 3.7612C22.6179 3.49841 22.7414 3.2904 22.8929 3.16709C22.97 3.1049 22.9669 2.99769 22.8866 2.9372C22.7283 2.82155 22.5919 2.6226 22.4938 2.36481Z" fill="#62E06E" />
-                    </svg>
-                </div>
+                <img src="/assets/icon-my-gallery.svg" width={24} height={22} alt="" />
                 <h6 className="text-black j-h6">My Gallery</h6>
             </div>
 

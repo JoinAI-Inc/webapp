@@ -15,10 +15,17 @@ export async function GET(_req: NextRequest) {
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        const userId = ((session as any).userId || session.user.id) as string;
+        const userId = (session as any).userId as string | undefined;
+        if (!userId) {
+            return NextResponse.json(
+                { error: "Unauthorized", message: "Missing backend user session" },
+                { status: 401 }
+            );
+        }
 
         const response = await fetch(`${API_BASE_URL}/api/queue/current-task`, {
             headers: await makeInternalHeaders(userId),
+            cache: 'no-store',
         });
 
         if (!response.ok) {

@@ -10,8 +10,11 @@ import { NoCreditsModal } from "./slot-config/NoCreditsModal";
 import { PremiumFeatureSubscribeBanner } from "./slot-config/PremiumBanner";
 import { UploadWidget } from "./slot-config/UploadWidget";
 import { AssetSelectionWidget } from "./slot-config/AssetSelectionWidget";
+import { buildConfiguredSlots } from "./slot-config/configured-slots";
+import { findActiveTemplateTask } from "./slot-config/task-recovery";
 
 const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
+const actionButtonClassName = "flex h-[40px] w-full items-center justify-center gap-[8px] rounded-[23px] px-[18px] j-t2 text-white tablet:w-auto tablet:min-w-[116px] tablet:px-[20px] max-w-[400px] self-center tablet:self-start";
 
 export function SlotConfigPanel({
     templateId,
@@ -20,6 +23,7 @@ export function SlotConfigPanel({
     onTaskSubmitted,
     onGeneratingChange,
     onGenerationComplete,
+    onDirtyChange,
 }: {
     templateId: string;
     generationFeatureKey?: string | null;
@@ -27,6 +31,7 @@ export function SlotConfigPanel({
     onTaskSubmitted?: (taskId: string) => void;
     onGeneratingChange?: (isGenerating: boolean) => void;
     onGenerationComplete?: (imageUrl: string) => void;
+    onDirtyChange?: (isDirty: boolean) => void;
 }) {
     const [uploads, setUploads] = useState<Record<string, { preview: string; base64: string } | null>>({});
     const [loading, setLoading] = useState(false);
@@ -38,6 +43,15 @@ export function SlotConfigPanel({
     const [genders, setGenders] = useState<Record<string, string>>({});
     const [makeups, setMakeups] = useState<Record<string, string>>({});
     const activeTaskIdRef = useRef<string | null>(null);
+
+    // Report dirty state: any upload present, non-default asset selected, or gender/makeup changed from defaults
+    useEffect(() => {
+        const hasUploads = Object.values(uploads).some(v => v != null);
+        const hasSelectedAssets = Object.keys(selectedAssets).length > 0;
+        const hasChangedGenders = Object.values(genders).some(v => v !== 'Feminine');
+        const hasChangedMakeups = Object.values(makeups).some(v => v !== 'Need');
+        onDirtyChange?.(hasUploads || hasSelectedAssets || hasChangedGenders || hasChangedMakeups);
+    }, [uploads, selectedAssets, genders, makeups, onDirtyChange]);
     const submitInFlightRef = useRef(false);
 
     const pathname = usePathname();
@@ -132,6 +146,56 @@ export function SlotConfigPanel({
         onGeneratingChange?.(isBrewing);
     }, [isBrewing, onGeneratingChange]);
 
+    useEffect(() => {
+        if (sessionStatus !== 'authenticated' || !session || activeTaskIdRef.current) return;
+
+        let cancelled = false;
+
+        const restoreActiveTask = async () => {
+            try {
+                const response = await fetch('/api/queue/current-task', { cache: 'no-store' });
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const task = findActiveTemplateTask(data, templateId);
+                if (!task || cancelled) return;
+
+                setSubmittedTaskId(task.taskId);
+                activeTaskIdRef.current = task.taskId;
+                onTaskSubmitted?.(task.taskId);
+
+                const pollResult = await pollTaskStatus(task.taskId);
+                if (cancelled || activeTaskIdRef.current !== task.taskId) return;
+
+                setSubmittedTaskId(null);
+                activeTaskIdRef.current = null;
+
+                if (pollResult.status === 'completed' && pollResult.result?.imageUrl) {
+                    onGenerationComplete?.(pollResult.result.imageUrl);
+                } else {
+                    setError(pollResult.error || 'Generation failed. Please try again.');
+                }
+                await refreshBalances();
+            } catch (restoreError: any) {
+                if (!cancelled) {
+                    console.error('[Generation Recovery] Failed to restore active task:', restoreError);
+                }
+            }
+        };
+
+        void restoreActiveTask();
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        templateId,
+        sessionStatus,
+        session,
+        onTaskSubmitted,
+        onGenerationComplete,
+        refreshBalances,
+    ]);
+
     const unauthenticatedPremiumFeatureKey = sessionStatus !== 'loading' && !session
         ? selectedPremiumFeatures[0]?.featureKey
         : undefined;
@@ -211,29 +275,12 @@ export function SlotConfigPanel({
                 }
             }
 
-            // Notice: PERSON slots are user uploads (imageSource), 
-            // OOTD/DECORATION slots are asset IDs, mapped differently.
-            const configuredSlots: any[] = [];
-
-            // 1. Process uploaded images (PERSON slots)
-            slots.filter(s => uploadsSnapshot[s.id] != null).forEach(slot => {
-                configuredSlots.push({
-                    refId: slot.refId,
-                    slotType: slot.slotType,
-                    imageSource: uploadsSnapshot[slot.id]!.base64,
-                });
-            });
-
-            // 2. Process selected assets (OOTD / DECORATION)
-            Object.entries(selectedAssets).forEach(([slotId, assetId]) => {
-                const specTargetSlot = slots.find(s => s.id === slotId);
-                if (specTargetSlot) {
-                    configuredSlots.push({
-                        refId: specTargetSlot.refId,
-                        slotType: specTargetSlot.slotType,
-                        assetId: assetId
-                    });
-                }
+            const configuredSlots = buildConfiguredSlots({
+                slots,
+                uploads: uploadsSnapshot,
+                selectedAssets,
+                genders,
+                makeups,
             });
 
             const submitRes = await fetch('/api/generate/template', {
@@ -294,7 +341,7 @@ export function SlotConfigPanel({
     };
 
     return (
-        <div className={`relative w-full overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white p-[15px] desktop:min-h-[776px] ${isBrewing ? "pb-[56px] tablet:pb-[72px]" : ""}`}>
+        <div className={`relative w-full overflow-hidden bg-white flex flex-col items-center mb-0 tablet:mb-[24px]`}>
             {/* 余额不足弹窗 */}
             {showNoCredits && (
                 <NoCreditsModal
@@ -304,7 +351,7 @@ export function SlotConfigPanel({
             )}
 
             {/* Slot 配置 */}
-            <>
+            <div className="relative w-full overflow-hidden rounded-[8px] border-[#e8e8e8] bg-white pb-[16px] pt-[16px] tablet:border tablet:pb-[24px]">
                 <div className={isBrewing ? "pointer-events-none select-none" : undefined} aria-disabled={isBrewing ? true : undefined} inert={isBrewing ? true : undefined}>
                     {slots.length === 0 ? (
                         <div className="py-[32px] text-center text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
@@ -318,7 +365,7 @@ export function SlotConfigPanel({
 
                             {/* Tabs Header */}
                             {personSlots.length > 0 && (
-                                <div className="flex gap-[8px] overflow-x-auto scrollbar-hide">
+                                <div className="flex gap-[8px] overflow-x-auto scrollbar-hide px-[16px]">
                                     {personSlots.map((slot, index) => {
                                         const isActive = activeSlotId === slot.id || (activeSlotId === null && index === 0);
                                         return (
@@ -350,7 +397,7 @@ export function SlotConfigPanel({
 
                             {/* Active Tab Content Area - The "Box" (For active PERSON slot) */}
                             {personSlots.length > 0 && activeSlotId && personSlots.some(s => s.id === activeSlotId) && (
-                                <div className="relative mt-[16px] flex min-h-[174px] flex-col rounded-[8px] border border-[#8364ff] bg-white px-[16px] py-[21px]">
+                                <div className="mx-[16px] relative mt-[16px] flex min-h-[174px] flex-col rounded-[8px] border border-[#8364ff] bg-white py-[21px]">
                                     {/* The small connector arrow at the top */}
                                     <div
                                         className="hidden tablet:block absolute w-[14px] h-[14px] bg-white border-l border-t border-[#7A5AF8] transform rotate-45 transition-all duration-300 z-10"
@@ -363,8 +410,8 @@ export function SlotConfigPanel({
                                     <div className="flex-1">
                                         <div className="flex flex-col gap-[16px]">
                                             <div className="flex flex-col gap-[12px] tablet:flex-row tablet:items-center">
-                                                <span className="w-[130px] shrink-0 whitespace-nowrap text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">Protagonist gender</span>
-                                                <div className="flex shrink-0 items-center gap-[8px]">
+                                                <span className="w-[130px] shrink-0 whitespace-nowrap text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b] px-[16px]">Protagonist gender</span>
+                                                <div className="flex shrink-0 items-center gap-[8px] overflow-x-auto scrollbar-hide px-[16px]">
                                                     {['Feminine', 'Masculine', 'Furbaby'].map(opt => (
                                                         <button
                                                             key={opt}
@@ -380,8 +427,8 @@ export function SlotConfigPanel({
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-[12px] tablet:flex-row tablet:items-center">
-                                                <span className="w-[130px] shrink-0 whitespace-nowrap text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">Makeup Look</span>
-                                                <div className="flex shrink-0 items-center gap-[8px]">
+                                                <span className="px-[16px] w-[130px] shrink-0 whitespace-nowrap text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">Makeup Look</span>
+                                                <div className="flex shrink-0 items-center gap-[8px] px-[16px]">
                                                     {['Need', 'No need'].map(opt => (
                                                         <button
                                                             key={opt}
@@ -405,10 +452,11 @@ export function SlotConfigPanel({
                                                 if (!currentOotd) return null;
                                                 return (
                                                     <div className="w-full">
-                                                        <h3 className="pb-[6px] text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">OOTD</h3>
+                                                        <h3 className="px-[16px] pb-[6px] text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b]">OOTD</h3>
                                                         <div>
                                                             <AssetSelectionWidget
                                                                 slot={currentOotd}
+                                                                showSidePadding
                                                                 selectedAssets={selectedAssets}
                                                                 onAssetSelect={handleAssetSelect}
                                                                 onDefaultSelect={handleDefaultSelect}
@@ -431,6 +479,7 @@ export function SlotConfigPanel({
                                             <div>
                                                 <AssetSelectionWidget
                                                     slot={slot}
+                                                    showSidePadding={true}
                                                     selectedAssets={selectedAssets}
                                                     onAssetSelect={handleAssetSelect}
                                                     onDefaultSelect={handleDefaultSelect}
@@ -444,14 +493,15 @@ export function SlotConfigPanel({
                             {/* Divider & Global Decorate */}
                             {decorationSlots.length > 0 && (
                                 <>
-                                    <div className="my-[24px] h-px w-full bg-[#e8e8e8]"></div>
+                                    <div className="my-[24px] h-px w-[calc(100%-32px)] bg-[#e8e8e8] mx-auto"></div>
                                     <div className="w-full">
-                                        <h3 className="text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b] pb-[6px]">Decorate</h3>
+                                        <h3 className="px-[16px] text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-[#39383b] pb-[6px]">Decorate</h3>
                                         <div>
                                             {decorationSlots.map(slot => (
                                                 <div key={slot.id}>
                                                     <AssetSelectionWidget
                                                         slot={slot}
+                                                        showSidePadding
                                                         selectedAssets={selectedAssets}
                                                         onAssetSelect={handleAssetSelect}
                                                         onDefaultSelect={handleDefaultSelect}
@@ -471,68 +521,69 @@ export function SlotConfigPanel({
                     )}
                 </div>
 
-                {/* 生成按钮区域 */}
-                {isBrewing ? (
-                    <button
-                        className="absolute bottom-[16px] left-[24px] right-[24px] z-30 flex h-[24px] items-center justify-center rounded-[23px] bg-cover bg-center px-[18px] py-[6px] text-[12px] font-normal leading-[1.4] tracking-[0.12px] text-white transition-opacity hover:opacity-90 tablet:bottom-[24px] tablet:left-[16px] tablet:right-auto tablet:h-[40px] tablet:w-[116px] tablet:px-[20px] tablet:py-[10px] tablet:text-[14px] tablet:tracking-[0.14px]"
-                        style={{ backgroundImage: `url("${IMAGE_URL}/assets/generation-one-more-bg.png")` }}
-                        onClick={() => {
-                            setSubmittedTaskId(null);
-                            activeTaskIdRef.current = null;
-                            setError(null);
-                        }}
-                    >
-                        One More
-                    </button>
-                ) : sessionStatus !== 'loading' && !session ? (
-                    // 未登录：引导登录
-                    <button
-                        className="mt-[24px] flex w-fit items-center justify-center gap-[8px] rounded-[23px] bg-[#EC2E2E] px-[18px] py-[8px] text-white j-t2"
-                        onClick={() => signIn('google', { callbackUrl: pathname })}
-                    >
-                        <LogIn size={20} />
-                        Login to Generate
-                    </button>
-                ) : (
-                    // 已登录：正常生成（含次数检查）
-                    <div className="mt-[24px] flex flex-col items-start gap-[8px]">
-                        {/* 余额标签 */}
-                        {session && balances.length > 0 && (
-                            <p className="text-[12px] text-[#9b9a9d]">
-                                {totalRemaining > 0
-                                    ? <><span className="font-semibold text-gray-700">{totalRemaining}</span> counts remaining</>
-                                    : <span className="text-[#F63E48] font-medium">No counts — <a href="/subscribe" className="underline">buy more</a></span>
-                                }
-                            </p>
-                        )}
+                <div
+                    data-slot-config-action-region
+                    className="relative z-30 mt-[24px] flex w-full flex-col items-start gap-[8px] px-[16px] tablet:mt-[40px]"
+                >
+                    {isBrewing ? (
                         <button
-                            className={`mt-[4px] flex w-fit items-center justify-center gap-[4px] rounded-[23px] px-[18px] py-[8px] j-t2 ${canGenerate
-                                ? "bg-[#EC2E2E] text-white hover:bg-[#d92727]"
-                                : "bg-[#cccbce] text-white cursor-not-allowed"
-                                }`}
-                            disabled={!canGenerate}
-                            onClick={handleGenerate}
+                            className={`${actionButtonClassName} bg-cover bg-center transition-opacity hover:opacity-90`}
+                            style={{ backgroundImage: `url("${IMAGE_URL}/assets/generation-one-more-bg.png")` }}
+                            onClick={() => {
+                                setSubmittedTaskId(null);
+                                activeTaskIdRef.current = null;
+                                setError(null);
+                            }}
                         >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={20} className="animate-spin" />
-                                    Generating...
-                                </>
-                            ) : checkingPremiumAssetAccess ? (
-                                "Checking access..."
-                            ) : (
-                                "Generate"
-                            )}
+                            One More
                         </button>
-                    </div>
-                )}
+                    ) : sessionStatus !== 'loading' && !session ? (
+                        <button
+                            className={`${actionButtonClassName} bg-[#EC2E2E]`}
+                            onClick={() => signIn('google', { callbackUrl: pathname })}
+                        >
+                            <LogIn size={20} />
+                            Login to Generate
+                        </button>
+                    ) : (
+                        <>
+                            {session && balances.length > 0 && (
+                                <p className="text-[12px] text-[#9b9a9d]">
+                                    {totalRemaining > 0
+                                        ? <><span className="font-semibold text-gray-700">{totalRemaining}</span> counts remaining</>
+                                        : <span className="text-[#F63E48] font-medium">No counts — <a href="/subscribe" className="underline">buy more</a></span>
+                                    }
+                                </p>
+                            )}
+                            <button
+                                className={`${actionButtonClassName} ${canGenerate
+                                    ? "bg-[#EC2E2E] hover:bg-[#d92727]"
+                                    : "cursor-not-allowed bg-[#cccbce]"
+                                    }`}
+                                disabled={!canGenerate}
+                                onClick={handleGenerate}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={20} className="animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : checkingPremiumAssetAccess ? (
+                                    "Checking access..."
+                                ) : (
+                                    "Generate"
+                                )}
+                            </button>
+                        </>
+                    )}
+                </div>
 
                 {loading && !isBrewing && (
                     <p className="text-center text-sm text-gray-400">This may take 30–60 seconds…</p>
                 )}
-            </>
+            </div>
             {isBrewing && (
-                <div className="absolute inset-0 z-20 rounded-[8px] bg-[#080606]/[0.08]" aria-hidden="true" />
+                <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-[1px]" ><div className="w-full tablet:w-[92vw] rounded-none tablet:rounded-[8px] h-full bg-[#080606]/[0.03]" /></div>
             )}
         </div>
     );

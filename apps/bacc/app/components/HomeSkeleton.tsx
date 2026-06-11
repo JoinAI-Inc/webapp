@@ -16,9 +16,12 @@ function HeroSkeleton() {
       <SkeletonBlock className="home-sk-accent" />
       <div className="home-sk-title">
         <SkeletonBlock className="home-sk-line home-sk-line-xl" />
-        <SkeletonBlock className="home-sk-line home-sk-line-lg" />
+        <div className="home-sk-title-logo-row">
+          <SkeletonBlock className="home-sk-line home-sk-line-logo-text" />
+          <SkeletonBlock className="home-sk-line home-sk-line-logo-mark" />
+        </div>
       </div>
-      <SkeletonBlock className="home-sk-line home-sk-line-md" />
+      <SkeletonBlock className="home-sk-line home-sk-line-subtitle" />
       <SkeletonBlock className="home-sk-button" />
       <div className="home-sk-media">
         {[0, 1, 2].map((row) => (
@@ -78,6 +81,23 @@ function PetSkeleton() {
   );
 }
 
+// OOTD 三格骨架
+function OotdSkeleton() {
+  return (
+    <div className="home-sk-gallery">
+      <div className="home-sk-copy">
+        <SkeletonBlock className="home-sk-line home-sk-line-sm" />
+        <SkeletonBlock className="home-sk-line home-sk-line-md" />
+      </div>
+      <div className="home-sk-gallery-grid home-sk-gallery-grid-three">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <SkeletonBlock key={i} className="home-sk-gallery-card" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Inspiration 卡片骨架
 function CardSkeleton() {
   return (
@@ -105,8 +125,8 @@ function CardSkeleton() {
 function SplitSkeleton() {
   return (
     <div className="home-sk-split">
-      <div className="home-sk-copy">
-        <SkeletonBlock className="home-sk-line home-sk-line-sm" />
+      <div className="home-sk-copy home-sk-split-copy">
+        <SkeletonBlock className="home-sk-line home-sk-line-split-title" />
         <SkeletonBlock className="home-sk-line home-sk-line-md" />
         <SkeletonBlock className="home-sk-line home-sk-line-md" />
       </div>
@@ -119,9 +139,13 @@ function SplitSkeleton() {
 function FooterSkeleton() {
   return (
     <div className="home-sk-footer">
-      <SkeletonBlock className="home-sk-line home-sk-line-sm" />
-      <SkeletonBlock className="home-sk-button" />
+      <SkeletonBlock className="home-sk-line home-sk-line-footer-title" />
+      <SkeletonBlock className="home-sk-footer-cta" />
       <SkeletonBlock className="home-sk-footer-collage" />
+      <div className="home-sk-footer-meta">
+        <SkeletonBlock className="home-sk-line home-sk-line-meta" />
+        <SkeletonBlock className="home-sk-line home-sk-line-meta" />
+      </div>
     </div>
   );
 }
@@ -179,7 +203,7 @@ export function HomeSkeleton() {
       <YearSkeleton />
       <GallerySkeleton />
       <PetSkeleton />
-      <GallerySkeleton />
+      <OotdSkeleton />
       <CardSkeleton />
       <SplitSkeleton />
       <FooterSkeleton />

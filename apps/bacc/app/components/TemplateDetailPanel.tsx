@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft } from "lucide-react";
 import { SlotConfigPanel } from "./SlotConfigPanel";
 import { TemplateDetailSkeleton } from "./Skeletons";
+import { ProgressLostModal } from "./ProgressLostModal";
 
 interface Slot {
     id: string;
@@ -41,9 +42,96 @@ export function TemplateDetailPanel({
     const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+    const [isDirty, setIsDirty] = useState(false);
+    const [showProgressLostModal, setShowProgressLostModal] = useState(false);
+    const [pendingLeaveAction, setPendingLeaveAction] = useState<(() => void) | null>(null);
+    const originalStateRef = useRef<any>(null);
     const router = useRouter();
     const { status: sessionStatus } = useSession();
     const isAuthenticated = sessionStatus === "authenticated";
+
+    const handleDirtyChange = useCallback((dirty: boolean) => {
+        setIsDirty(dirty);
+    }, []);
+
+    const handleBackClick = () => {
+        if (isDirty) {
+            setPendingLeaveAction(() => onBack);
+            setShowProgressLostModal(true);
+        } else {
+            onBack();
+        }
+    };
+
+    const handleKeepEditing = () => {
+        setShowProgressLostModal(false);
+        setPendingLeaveAction(null);
+    };
+
+    // 浏览器级别拦截：刷新、关闭标签页、浏览器前进后退
+    useEffect(() => {
+        if (!isDirty) return;
+
+        // 1. 刷新和关闭标签页拦截
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // 2. 浏览器前进后退（SPA 内部 popstate）拦截
+        const originalState = window.history.state;
+        originalStateRef.current = originalState;
+
+        // 保证 originalState 有 myIndex = 1
+        if (!originalState || originalState.myIndex === undefined) {
+            window.history.replaceState({ ...originalState, myIndex: 1 }, "");
+        }
+
+        // push dummy state，并设置 myIndex = 2, blocked = true
+        if (window.history.state?.blocked !== true) {
+            window.history.pushState({ ...originalState, myIndex: 2, blocked: true }, "");
+        }
+
+        const handlePopState = () => {
+            const currentState = window.history.state;
+            if (!currentState || currentState.blocked !== true) {
+                const isNavigatingBack = currentState && currentState.myIndex === 1;
+
+                // 立即同步拉回位置 2，阻止 Next.js 卸载组件
+                if (isNavigatingBack) {
+                    window.history.go(1);
+                } else {
+                    window.history.go(-1);
+                }
+
+                // 被前进后退离开时，弹出我们的自定义 React 弹窗
+                setPendingLeaveAction(() => {
+                    return () => {
+                        window.removeEventListener("beforeunload", handleBeforeUnload);
+                        setIsDirty(false);
+                        // 确认后，退回真实的路由页面
+                        if (isNavigatingBack) {
+                            window.history.go(-2);
+                        } else {
+                            window.history.go(1);
+                        }
+                    };
+                });
+                setShowProgressLostModal(true);
+            }
+        };
+
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            window.removeEventListener("popstate", handlePopState);
+            // 如果组件卸载或 dirty 状态重置，且仍在 dummy 拦截状态，悄悄移除它
+            if (window.history.state && window.history.state.blocked === true) {
+                window.history.back();
+            }
+        };
+    }, [isDirty]);
 
     useEffect(() => {
         if (sessionStatus === "loading") return;
@@ -116,12 +204,12 @@ export function TemplateDetailPanel({
     };
 
     return (
-        <div className="w-full max-w-[1280px] py-[24px] tablet:py-[32px]">
+        <div className="w-full max-w-[1280px] pt-[24px] tablet:pt-[32px] flex items-center flex-col">
             {/* Header: Desktop & Tablet shows Title here. Mobile only shows Back & Stats */}
-            <div className="mb-[14px] flex items-center justify-between gap-[6px] tablet:justify-start">
+            <div className="w-[92vw] mb-[14px] max-w-[1280px] flex items-center justify-between gap-[6px] tablet:justify-start">
                 <div className="flex min-w-[0px] items-center gap-[16px]">
                     <button
-                        onClick={onBack}
+                        onClick={handleBackClick}
                         className="flex shrink-0 items-center gap-[4px] rounded-[16px] border border-[#f2f2f3] px-[12px] py-[6px] text-[#080606] transition-colors hover:bg-[#f8f8f8]"
                     >
                         <ArrowLeft size={16} />
@@ -172,8 +260,8 @@ export function TemplateDetailPanel({
             </div>
 
             {/* Content Structure */}
-            <div className="grid grid-cols-1 desktop:grid-cols-[calc(40%-16px)_60%] gap-[16px] items-start">
-                <div className="relative left-1/2 w-[92vw] -translate-x-1/2 desktop:sticky desktop:left-auto desktop:top-[24px] desktop:w-full desktop:translate-x-[0px]">
+            <div className="grid grid-cols-1 desktop:grid-cols-[calc(40%-16px)_60%] gap-[16px] items-start w-full tablet:w-[92vw] max-w-[1280px]">
+                <div className="max-w-[1280px] relative left-1/2 w-[92vw] -translate-x-1/2 desktop:sticky desktop:left-auto desktop:top-[24px] desktop:w-full desktop:translate-x-[0px]">
                     <div className="flex w-full justify-center desktop:block">
                         <div className="relative inline-flex max-w-full overflow-hidden rounded-[16px] border border-[#e8e8e8] bg-[#f2f2f3] p-[12px] tablet:flex tablet:h-[360px] tablet:w-full tablet:items-center tablet:justify-center tablet:rounded-[8px] tablet:bg-white tablet:p-[16px] desktop:block desktop:h-auto">
                             <div className="relative inline-block overflow-hidden rounded-[4px] align-top tablet:h-[328px] desktop:block desktop:h-auto desktop:w-full">
@@ -226,13 +314,13 @@ export function TemplateDetailPanel({
                                             Generating
                                         </div>
                                         <div className="absolute left-1/2 top-1/2 flex w-[75%] max-w-[354px] -translate-x-1/2 -translate-y-1/2 flex-col items-start gap-[8px] tablet:gap-[12px]">
-                                            <p className="w-full text-[17px] font-medium leading-[1.4] tracking-[0.17px] text-white tablet:text-[21px] tablet:tracking-[0.21px]">
+                                            <p className="w-full j-h7 text-white tablet:j-h6">
                                                 ✨ Your LuckyFoto is brewing！
                                             </p>
-                                            <div className="flex w-full flex-col gap-[4px] text-[14px] font-normal leading-[1.4] tracking-[0.14px] text-[#f2f2f3] tablet:gap-[8px] tablet:text-[17px] tablet:tracking-[0.17px]">
+                                            <div className="flex w-full flex-col gap-[4px] j-t2 text-[#f2f2f3] tablet:gap-[8px]">
                                                 <p>
                                                     It&apos;ll be ready in about&nbsp;30 seconds&nbsp;and automatically saved to{" "}
-                                                    <Link href="/gallery" className="font-medium text-[#ffc107] underline underline-offset-[2px] transition-opacity hover:opacity-80">
+                                                    <Link href="/gallery" className="j-t2 tablet:j-l1 text-[#ffc107] underline underline-offset-[2px] transition-opacity hover:opacity-80">
                                                         My Gallery
                                                     </Link>.
                                                 </p>
@@ -249,19 +337,32 @@ export function TemplateDetailPanel({
                     </div>
                 </div>
 
-                <div className="w-full">
-                    <SlotConfigPanel
-                        templateId={template.id}
-                        generationFeatureKey={template.generationFeatureKey}
-                        slots={template.slots}
-                        onTaskSubmitted={handleTaskSubmitted}
-                        onGeneratingChange={setIsGenerating}
-                        onGenerationComplete={setGeneratedImageUrl}
-                    />
-                </div>
+                <SlotConfigPanel
+                    templateId={template.id}
+                    generationFeatureKey={template.generationFeatureKey}
+                    slots={template.slots}
+                    onTaskSubmitted={handleTaskSubmitted}
+                    onGeneratingChange={setIsGenerating}
+                    onGenerationComplete={setGeneratedImageUrl}
+                    onDirtyChange={handleDirtyChange}
+                />
             </div>
 
 
+            {showProgressLostModal && (
+                <ProgressLostModal
+                    onKeepEditing={handleKeepEditing}
+                    onBackToTemplates={() => {
+                        setShowProgressLostModal(false);
+                        if (pendingLeaveAction) {
+                            pendingLeaveAction();
+                            setPendingLeaveAction(null);
+                        } else {
+                            onBack();
+                        }
+                    }}
+                />
+            )}
         </div>
     );
 }

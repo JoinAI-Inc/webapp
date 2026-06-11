@@ -6,6 +6,7 @@
     "main": "dist/index.js",
     "scripts": {
         "build": "tsc",
+        "backfill:gallery-slots": "dotenv -e .env -- tsx src/scripts/backfill-gallery-slot-images.ts",
         "dev": "dotenv -e .env -- tsx watch src/index.ts",
         "start": "node dist/index.js",
         "lint": "eslint src/**/*.ts"

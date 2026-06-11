@@ -102,9 +102,7 @@
   margin: 64px 0 100px;
   overflow: hidden;
   border-radius: clamp(16px, calc(9.31px + 1.39vw), 24px);
-  background: linear-gradient(180deg,
-      var(--hero-media-shell-from, #f7f4f2) 0%,
-      var(--hero-media-shell-to, #eee9e5) 100%);
+  background: #ffffff;
   contain: layout paint;
 }
 

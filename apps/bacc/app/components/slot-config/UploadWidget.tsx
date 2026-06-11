@@ -56,7 +56,7 @@ export function UploadWidget({ slot, index, isActive, upload, onFileChange }: Up
     const title = index === 0 ? "Main Character" : "Guest Star";
 
     return (
-        <div className="relative size-[138px] shrink-0">
+        <div className="relative size-[114px] tablet:size-[138px] shrink-0">
             {!upload ? (
                 <label className={`flex size-full cursor-pointer flex-col items-center justify-center rounded-[8px] border bg-[#f2f4f6] transition-colors ${isActive ? `${colorTheme.border} border-[1.5px]` : "border-dashed border-[#dadde6] hover:bg-[#eceff3]"}`}>
                     <div className="flex w-[98px] flex-col items-center gap-[8px] text-center">

@@ -14,7 +14,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const url = `${API_BASE_URL}/api/history?${searchParams.toString()}`;
 
-    const res = await fetch(url, { headers: await makeInternalHeaders(userId) });
+    const res = await fetch(url, {
+        headers: await makeInternalHeaders(userId),
+        cache: "no-store",
+    });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
 }

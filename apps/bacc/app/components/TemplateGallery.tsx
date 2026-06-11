@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Flame } from "lucide-react";
+import { resolveFavoriteState } from "./template-favorite-state";
 
-const IMAGE_URL = (process.env.NEXT_PUBLIC_IMAGE_URL || "https://pub-cfc37210b6a543b492b7f0e494faac09.r2.dev/bacc/image").replace(/\/$/, "");
-const ICON_FAVORITE_UNLIKE = `${IMAGE_URL}/new-home/icon-favorite-unlike.png`;
-const ICON_FAVORITE_UNLIKE_HOVER = `${IMAGE_URL}/new-home/icon-favorite-unlike-hover.png`;
-const ICON_FAVORITE_LIKE = `${IMAGE_URL}/new-home/icon-favorite-like.png`;
+const ICON_FAVORITE_UNLIKE = `/assets/icon-favorite-unlike.svg`;
+const ICON_FAVORITE_LIKE = `/assets/icon-favorite-like.svg`;
 
 function GatherLuckIcon() {
     return (
@@ -59,28 +58,14 @@ export function TemplateGallery({
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
     const [templates, setTemplates] = useState<Template[]>(initialTemplates);
     const [loading, setLoading] = useState(false);
-    const [colCount, setColCount] = useState(5);
-    const [mounted, setMounted] = useState(false);
+    const [favoriteStatusLoading, setFavoriteStatusLoading] = useState(true);
     const router = useRouter();
     const { status: sessionStatus } = useSession();
     const isAuthenticated = sessionStatus === "authenticated";
     // 用 ref 缓存收藏 ID 集合，避免切换标签时重复请求
     const favoritedIds = useRef<Set<string>>(new Set());
 
-    useEffect(() => {
-        setMounted(true);
-        const updateColCount = () => {
-            const w = window.innerWidth;
-            if (w >= 1440) setColCount(6);
-            else if (w >= 1068) setColCount(5);
-            else if (w >= 735) setColCount(4);
-            else if (w >= 480) setColCount(3);
-            else setColCount(2);
-        };
-        updateColCount();
-        window.addEventListener('resize', updateColCount);
-        return () => window.removeEventListener('resize', updateColCount);
-    }, []);
+
 
     const handleFavoriteChange = useCallback((id: string, isFavorited: boolean, favoriteCount: number) => {
         const ids = new Set(favoritedIds.current);
@@ -91,15 +76,20 @@ export function TemplateGallery({
     }, []);
     // 客户端挂载后同步收藏状态
     useEffect(() => {
-        if (sessionStatus === "loading") return;
+        if (sessionStatus === "loading") {
+            setFavoriteStatusLoading(true);
+            return;
+        }
 
         if (!isAuthenticated) {
             favoritedIds.current = new Set();
             setTemplates(prev => prev.map(t => ({ ...t, isFavorited: false })));
+            setFavoriteStatusLoading(false);
             return;
         }
 
         let cancelled = false;
+        setFavoriteStatusLoading(true);
         fetch("/api/templates/favorites")
             .then(r => r.ok ? r.json() : [])
             .then((data: Array<{ id: string }>) => {
@@ -108,7 +98,10 @@ export function TemplateGallery({
                 favoritedIds.current = ids;
                 setTemplates(prev => prev.map(t => ({ ...t, isFavorited: ids.has(t.id) })));
             })
-            .catch(() => { });
+            .catch(() => { })
+            .finally(() => {
+                if (!cancelled) setFavoriteStatusLoading(false);
+            });
 
         return () => {
             cancelled = true;
@@ -137,39 +130,6 @@ export function TemplateGallery({
 
     const filteredTemplates = templates;
 
-    const columns = useMemo(() => {
-        const cols: Template[][] = Array.from({ length: colCount }, () => []);
-        const colHeights = new Array(colCount).fill(0);
-
-        filteredTemplates.forEach(template => {
-            let ratio = 1;
-            if (template.resolution) {
-                const match = template.resolution.match(/(\d+)[xX*](\d+)/);
-                if (match) {
-                    const w = parseInt(match[1], 10);
-                    const h = parseInt(match[2], 10);
-                    if (w > 0 && h > 0) {
-                        ratio = Math.max(0.5, Math.min(2.5, h / w));
-                    }
-                }
-            }
-
-            let minIdx = 0;
-            let minH = colHeights[0];
-            for (let i = 1; i < colCount; i++) {
-                if (colHeights[i] < minH) {
-                    minH = colHeights[i];
-                    minIdx = i;
-                }
-            }
-
-            cols[minIdx].push(template);
-            colHeights[minIdx] += ratio + 0.04;
-        });
-
-        return cols;
-    }, [filteredTemplates, colCount]);
-
     return (
         <div>
             {/* Tag Filter */}
@@ -197,7 +157,7 @@ export function TemplateGallery({
                 ))}
             </div>
 
-            {/* JS Computed Masonry Layout */}
+            {/* CSS Grid Auto-fill Layout */}
             <div className="relative">
                 {loading && (
                     <div className="absolute inset-[0px] bg-white/60 flex items-center justify-center z-10 rounded-lg">
@@ -205,40 +165,46 @@ export function TemplateGallery({
                     </div>
                 )}
 
-                {!mounted ? (
-                    <div className="w-full columns-2 mobile-l:columns-3 tablet:columns-4 desktop:columns-5 desktop-l:columns-6 gap-x-[4px]">
-                        {filteredTemplates.map(template => (
-                            <div key={template.id} className="break-inside-avoid mb-[8px] tablet:mb-[4px]">
-                                <TemplateCard
-                                    template={template}
-                                    onLoginRequired={() => router.push("/login")}
-                                    isAuthenticated={isAuthenticated}
-                                    isAuthLoading={sessionStatus === "loading"}
-                                    onSelect={onSelect}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="w-full flex gap-[4px] items-start">
-                        {columns.map((col, i) => (
-                            <div key={i} className="flex flex-col gap-[8px] tablet:gap-[4px] flex-1 min-w-[0px]">
-                                {col.map(template => (
-                                    <div key={template.id} className="w-full">
-                                        <TemplateCard
-                                            template={template}
-                                            onLoginRequired={() => router.push("/login")}
-                                            isAuthenticated={isAuthenticated}
-                                            isAuthLoading={sessionStatus === "loading"}
-                                            onSelect={onSelect}
-                                            onFavoriteChange={handleFavoriteChange}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                <style>{`
+                    .template-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 8px;
+                    }
+                    @media (min-width: 735px) {
+                        .template-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+                    }
+                    @media (min-width: 1032px) {
+                        .template-grid { grid-template-columns: repeat(4, 1fr); }
+                    }
+                    @media (min-width: 1280px) {
+                        .template-grid { grid-template-columns: repeat(5, 1fr); }
+                    }
+                    @media (min-width: 1528px) {
+                        .template-grid { grid-template-columns: repeat(6, 1fr); }
+                    }
+                    @media (max-width: 734px) {
+                        .template-favorite-button {
+                            opacity: 1;
+                            pointer-events: auto;
+                        }
+                    }
+                `}</style>
+                <div className="template-grid w-full">
+                    {filteredTemplates.map(template => (
+                        <div key={template.id} className="template-item">
+                            <TemplateCard
+                                template={template}
+                                onLoginRequired={() => router.push("/login")}
+                                isAuthenticated={isAuthenticated}
+                                isAuthLoading={sessionStatus === "loading"}
+                                isFavoriteStatusLoading={favoriteStatusLoading}
+                                onSelect={onSelect}
+                                onFavoriteChange={handleFavoriteChange}
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {filteredTemplates.length === 0 && (
@@ -257,27 +223,23 @@ function TemplateCard({
     onFavoriteChange,
     isAuthenticated,
     isAuthLoading,
+    isFavoriteStatusLoading,
 }: {
     template: Template;
     onLoginRequired: () => void;
     onSelect?: (templateId: string) => void;
-    onFavoriteChange?: (id: string, isFavorited: boolean, count: number) => void;
+    onFavoriteChange: (id: string, isFavorited: boolean, count: number) => void;
     isAuthenticated: boolean;
     isAuthLoading: boolean;
+    isFavoriteStatusLoading: boolean;
 }) {
-    const [isFavorited, setIsFavorited] = useState(template.isFavorited ?? false);
-    const [favoriteCount, setFavoriteCount] = useState(template.favoriteCount);
     const [loading, setLoading] = useState(false);
-
-    // 当父组件同步收藏状态时更新本地 state
-    useEffect(() => {
-        setIsFavorited(template.isFavorited ?? false);
-    }, [template.isFavorited]);
+    const isFavorited = template.isFavorited ?? false;
 
     const handleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (isAuthLoading || loading) return;
+        if (isAuthLoading || isFavoriteStatusLoading || loading) return;
 
         if (!isAuthenticated) {
             onLoginRequired();
@@ -299,12 +261,14 @@ function TemplateCard({
             if (!res.ok) return;
 
             const data = await res.json();
-            const newCount = data.isFavorited ? favoriteCount + 1 : Math.max(0, favoriteCount - 1);
-            setIsFavorited(data.isFavorited);
-            setFavoriteCount(newCount);
-            if (onFavoriteChange) {
-                onFavoriteChange(template.id, data.isFavorited, newCount);
-            }
+            const nextState = resolveFavoriteState(
+                {
+                    isFavorited,
+                    favoriteCount: template.favoriteCount,
+                },
+                !!data.isFavorited,
+            );
+            onFavoriteChange(template.id, nextState.isFavorited, nextState.favoriteCount);
         } catch {
             // 静默失败
         } finally {
@@ -312,12 +276,9 @@ function TemplateCard({
         }
     };
 
-    const cardContent = (
-        <div
-            className="group relative flex flex-col cursor-pointer"
-            onClick={onSelect ? () => onSelect(template.id) : undefined}
-        >
-            <div className="relative w-full overflow-hidden rounded-[4px] mb-[0px]">
+    const cardBody = (
+        <>
+            <div className="relative w-full overflow-hidden rounded-[4px]">
                 {/* 既然不依赖 resolution 字段提前算高度，就让浏览器自动通过真实图片撑开即可 */}
                 <Image
                     src={template.imageUrl}
@@ -329,43 +290,81 @@ function TemplateCard({
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 />
                 {/* Hover Overlay */}
-                <div className="absolute inset-[0px] rounded-[4px] bg-[rgba(0,0,0,0.44)] opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
-
-                {/* Favorite Button */}
-                <button
-                    className="group/btn absolute right-[16px] top-[16px] z-10 flex size-[32px] cursor-pointer items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] opacity-0 backdrop-blur-[16px] transition-[opacity,transform] duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto active:scale-95 disabled:cursor-default"
-                    onClick={handleFavorite}
-                    disabled={isAuthLoading || loading}
-                >
-                    {isFavorited ? (
-                        <Image src={ICON_FAVORITE_LIKE} alt="Liked" width={24} height={24} priority={false} />
-                    ) : (
-                        <>
-                            <Image src={ICON_FAVORITE_UNLIKE} alt="Like" width={24} height={24} className="group-hover/btn:hidden" priority={false} />
-                            <Image src={ICON_FAVORITE_UNLIKE_HOVER} alt="Like Focus" width={24} height={24} className="hidden group-hover/btn:block" priority={false} />
-                        </>
-                    )}
-                </button>
+                <div className="pointer-events-none absolute inset-[0px] hidden rounded-[4px] bg-[rgba(0,0,0,0.44)] opacity-0 transition-opacity duration-200 tablet:block tablet:group-hover:opacity-100" />
 
                 {/* Stats and Info overlay */}
-                <div className="absolute inset-x-[16px] bottom-[13px] z-10 flex flex-col gap-[16px] text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+                <div className="pointer-events-none absolute inset-x-[16px] bottom-[13px] z-10 hidden flex-col gap-[16px] text-white opacity-0 transition-opacity duration-200 tablet:flex tablet:group-hover:opacity-100">
                     <div className="flex flex-col gap-[8px] px-[4px]">
                         <h3 className="j-l1">
                             {template.name}
                         </h3>
                         <div className="flex items-center j-t3 text-white">
-                            <Flame size={16} strokeWidth={2.5} /> <span className="flex text-center">{favoriteCount}</span>
+                            <Flame size={16} strokeWidth={2.5} />
+                            <span className="flex text-center">{template.favoriteCount}</span>
                         </div>
                     </div>
-                    <div className="flex h-[40px] w-full items-center justify-center gap-[6px] rounded-[24px] bg-[#EC2E2E] px-[16px] py-[8px] text-white pointer-events-auto active:scale-95">
+                    <div className="pointer-events-auto flex h-[40px] w-full items-center justify-center gap-[6px] rounded-[24px] bg-[#EC2E2E] px-[16px] py-[8px] text-white active:scale-95">
                         <GatherLuckIcon />
                         <span className="j-t2 whitespace-nowrap">Gather your luck</span>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div className="template-mobile-info mt-[8px] flex min-w-0 items-start justify-between gap-[8px] px-[2px] pb-[4px] tablet:hidden">
+                <h3 className="j-l1 min-w-0 flex-1 truncate text-[#080606]">
+                    {template.name}
+                </h3>
+                <div className="template-mobile-favorite-count j-t3 flex h-[16px] shrink-0 items-center gap-[3px] leading-none text-[#6A696C]">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        aria-hidden="true"
+                        className="shrink-0"
+                    >
+                        <path
+                            d="M8.00001 14.072C5.57601 14.072 3.60001 12.096 3.60001 9.67199C3.60001 8.46399 4.10401 7.29599 4.98401 6.47199C5.06401 6.39999 5.15201 6.31999 5.24801 6.23999C6.00801 5.56799 7.15201 4.55999 6.94401 2.52799C6.92001 2.31999 7.02401 2.11999 7.20001 2.00799C7.37601 1.90399 7.60001 1.90399 7.77601 2.02399C9.28801 3.03199 11.048 4.42399 11.224 6.22399C11.296 6.98399 11.104 7.75199 10.624 8.54399C10.8 8.40799 11 8.23199 11.208 8.02399C11.336 7.89599 11.528 7.83999 11.712 7.87999C11.896 7.91999 12.04 8.05599 12.096 8.23199C12.232 8.61599 12.384 9.12799 12.384 9.67999C12.384 12.104 10.408 14.08 7.98401 14.08L8.00001 14.072ZM8.02401 3.51199C7.83201 5.38399 6.64801 6.43199 5.96001 7.03999C5.87201 7.11999 5.79201 7.18399 5.72001 7.25599C5.05601 7.87999 4.67201 8.75999 4.67201 9.67199C4.67201 11.504 6.16001 12.992 7.99201 12.992C9.82401 12.992 11.312 11.504 11.312 9.67199C11.312 9.57599 11.312 9.47999 11.296 9.38399C10.232 10.208 9.49601 10.208 9.02401 10.208C8.80801 10.208 8.60801 10.08 8.52801 9.87199C8.44801 9.66399 8.48801 9.43999 8.64801 9.27999C9.75201 8.17599 10.248 7.20799 10.16 6.31999C10.072 5.43199 9.40801 4.54399 8.02401 3.50399V3.51199Z"
+                            fill="#9B9A9D"
+                        />
+                    </svg>
+                    <span className="leading-none tabular-nums">{template.favoriteCount}</span>
+                </div>
+            </div>
+        </>
     );
 
-    if (onSelect) return cardContent;
-    return <Link href={`/generate/${template.id}`}>{cardContent}</Link>;
+    return (
+        <div className="group relative flex flex-col">
+            {onSelect ? (
+                <div
+                    className="cursor-pointer"
+                    onClick={() => onSelect(template.id)}
+                >
+                    {cardBody}
+                </div>
+            ) : (
+                <Link href={`/generate/${template.id}`} className="block">
+                    {cardBody}
+                </Link>
+            )}
+
+            {/* Keep this outside the detail link so favorite clicks cannot navigate. */}
+            <button
+                type="button"
+                className="template-favorite-button absolute right-[16px] top-[16px] z-10 flex size-[32px] cursor-pointer items-center justify-center rounded-[21px] bg-[rgba(10,7,8,0.48)] p-[4px] opacity-0 backdrop-blur-[16px] transition-[background-color,opacity,transform] duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-[rgba(10,7,8,0.8)] active:scale-95 disabled:cursor-default"
+                onClick={handleFavorite}
+                aria-label={isFavorited ? "Unfavorite template" : "Favorite template"}
+                aria-pressed={isFavorited}
+                disabled={isAuthLoading || isFavoriteStatusLoading || loading}
+            >
+                {isFavorited ? (
+                    <Image src={ICON_FAVORITE_LIKE} alt="Liked" width={24} height={24} priority={false} />
+                ) : (
+                    <Image src={ICON_FAVORITE_UNLIKE} alt="Like" width={24} height={24} priority={false} />
+                )}
+            </button>
+        </div>
+    );
 }

@@ -53,9 +53,6 @@ function HeroMediaRow({
           <figure
             className="hero-media-card m-0 overflow-hidden bg-[#d0d0d0]"
             key={`${imageIndex}-${src}`}
-            style={{
-              opacity: 0.72 + ((imageIndex + rowIndex) % 4) * 0.07,
-            }}
           >
             <LandingImage
               className="hero-media-image"

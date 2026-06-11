@@ -3,8 +3,10 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Slot } from "./slot-config.types";
 import { DefaultAssetIcon } from "./UploadWidget";
+import clsx from "clsx";
 
 interface AssetSelectionWidgetProps {
+    showSidePadding?: boolean;
     slot: Slot;
     selectedAssets: Record<string, string>;
     onAssetSelect: (slotId: string, assetId: string, requiredFeatureKey: string | null) => void;
@@ -14,7 +16,9 @@ interface AssetSelectionWidgetProps {
 function HorizontalAssetScroller({
     children,
     dependencyKey,
+    showSidePadding
 }: {
+    showSidePadding?: boolean;
     children: ReactNode;
     dependencyKey: string;
 }) {
@@ -76,7 +80,7 @@ function HorizontalAssetScroller({
 
     return (
         <div className="relative w-full">
-            <div ref={scrollRef} className="flex gap-[8px] overflow-x-auto scrollbar-hide">
+            <div ref={scrollRef} className={clsx("flex gap-[8px] overflow-x-auto scrollbar-hide", showSidePadding ? "px-[16px]" : "")}>
                 {children}
             </div>
 
@@ -116,13 +120,14 @@ export function AssetSelectionWidget({
     selectedAssets,
     onAssetSelect,
     onDefaultSelect,
+    showSidePadding
 }: AssetSelectionWidgetProps) {
     const assets = slot.assets || [];
     const isSelected = (assetId: string) => selectedAssets[slot.id] === assetId;
     const isDefaultSelected = !selectedAssets[slot.id];
 
     return (
-        <HorizontalAssetScroller dependencyKey={`${slot.id}:${assets.length}`}>
+        <HorizontalAssetScroller dependencyKey={`${slot.id}:${assets.length}`} showSidePadding={showSidePadding}>
             {/* Default Option (No override/Original) */}
             <button
                 onClick={() => onDefaultSelect(slot.id)}

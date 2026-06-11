@@ -32,12 +32,10 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.72) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.72) 50%,
+      transparent 100%);
   animation: home-sk-shimmer 1.2s ease-in-out infinite;
 }
 
@@ -94,12 +92,14 @@
   flex-direction: column;
   align-items: center;
   padding-top: 70px;
+  padding-bottom: 70px;
 }
 
+/* brand icon — 横向矩形，匹配 hero-brand-icon 实际比例 */
 .home-sk-accent {
-  width: 120px;
-  height: 120px;
-  border-radius: 20px;
+  width: clamp(80px, calc(46.1px + 10.6vw), 120px);
+  height: calc(clamp(80px, calc(46.1px + 10.6vw), 120px) * 0.56);
+  border-radius: 12px;
 }
 
 .home-sk-title {
@@ -114,9 +114,37 @@
   border-radius: 8px;
 }
 
+/* 第一行标题 */
 .home-sk-line-xl {
-  width: min(87.5vw, 740px);
-  height: 64px;
+  width: min(87.5vw, 620px);
+  height: 52px;
+}
+
+/* logo 行：文字 + logo mark */
+.home-sk-title-logo-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.home-sk-line-logo-text {
+  width: 100px;
+  height: 40px;
+  border-radius: 6px;
+}
+
+.home-sk-line-logo-mark {
+  width: clamp(88px, calc(74.06px + 4.36vw), 100px);
+  height: 38px;
+  border-radius: 6px;
+}
+
+/* 副标题 */
+.home-sk-line-subtitle {
+  width: min(87.5vw, 440px);
+  height: 20px;
+  margin-top: 8px;
 }
 
 .home-sk-line-lg {
@@ -140,16 +168,27 @@
   height: 48px;
   margin-top: 40px;
   border-radius: 999px;
+  /* CTA 按钮使用品牌渐变色 */
+  background: linear-gradient(135deg, #FF5C2E 0%, #E81500 100%);
 }
 
+/* CTA 按钮的 shimmer 应更亮 */
+.home-sk-button::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%);
+}
+
+/* media shell — 匹配实际白色背景 */
 .home-sk-media {
   width: 87.5vw;
   max-width: 1600px;
   height: 600px;
   margin-top: 64px;
-  border-radius: clamp(16px, calc(6.98px + 1.05vw), 24px);
+  border-radius: clamp(16px, calc(9.31px + 1.39vw), 24px);
   overflow: hidden;
-  background: #f0eeec;
+  background: #ffffff;
   display: grid;
   align-content: center;
   gap: 16px;
@@ -170,11 +209,21 @@
   margin-left: -12px;
 }
 
+/* media 卡片使用与实际一致的渐变 */
 .home-sk-media-card {
-  width: 200px;
-  height: 264px;
-  border-radius: 16px;
+  width: clamp(150px, calc(129.82px + 6.31vw), 200px);
+  height: calc(clamp(150px, calc(129.82px + 6.31vw), 200px) * 1.32);
+  border-radius: clamp(8px, calc(1.31px + 1.39vw), 16px);
   flex: 0 0 auto;
+  background: linear-gradient(180deg, #d8d8da 0%, #cfcfd3 100%);
+}
+
+/* media 卡片 shimmer 更微妙 */
+.home-sk-media-card::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%);
 }
 
 /* ─── Year / RedBrand ──────────────────────────────────────── */
@@ -203,7 +252,7 @@
   width: 26vw;
   max-width: 360px;
   height: 70%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
@@ -225,8 +274,17 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
+/* 红色背景上的骨架条使用半透明白 */
 .home-sk-year .home-sk-line {
   background: rgba(255, 255, 255, 0.18);
+}
+
+/* 红色背景上的 shimmer 更柔和 */
+.home-sk-year .home-sk-line::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%);
 }
 
 /* ─── Gallery ──────────────────────────────────────────────── */
@@ -255,9 +313,15 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* OOTD section 使用 3 列 */
+.home-sk-gallery-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .home-sk-gallery-card {
   aspect-ratio: 342 / 512;
   border-radius: 16px;
+  background: #f5f5f5;
 }
 
 /* ─── Pet ──────────────────────────────────────────────────── */
@@ -284,8 +348,9 @@
 
 .home-sk-card-block {
   width: 100vw;
-  padding: 80px 0;
-  background: #dd1e1b;
+  padding: 100px 0 80px;
+  /* 使用与实际 InspritionSection 一致的红色渐变 */
+  background: linear-gradient(180deg, #da2524 0%, #c00b0a 100%);
 }
 
 .home-sk-card-inner {
@@ -330,41 +395,177 @@
 
 .home-sk-split {
   width: 87.5vw;
-  max-width: 1440px;
+  max-width: 1069px;
   margin: 0 auto;
   padding: 80px 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 120px;
   align-items: center;
-  gap: 48px;
+}
+
+.home-sk-split-copy {
+  align-items: flex-start;
+}
+
+.home-sk-line-split-title {
+  width: min(100%, 320px);
+  height: 40px;
 }
 
 .home-sk-split-image {
-  flex: 1;
-  height: 380px;
+  width: auto;
+  height: 480px;
+  aspect-ratio: 1;
   border-radius: 24px;
 }
 
 /* ─── Footer ───────────────────────────────────────────────── */
 
 .home-sk-footer {
-  width: 87.5vw;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 60px 0 80px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  /* 使用与实际 footer 一致的红色 */
+  background: #ec2e2e;
+  padding: 80px 0 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
 }
 
+/* footer 标题骨架 */
+.home-sk-line-footer-title {
+  width: min(87.5vw, 480px);
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.home-sk-line-footer-title::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
+}
+
+/* footer CTA 按钮 */
+.home-sk-footer-cta {
+  width: 160px;
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.home-sk-footer-cta::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
+}
+
 .home-sk-footer-collage {
-  width: 100%;
+  width: 87.5vw;
+  max-width: 1440px;
   height: 200px;
-  border-radius: 16px;
-  margin-top: 8px;
+  border-radius: 0;
+  margin-top: 32px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.home-sk-footer-collage::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%);
+}
+
+/* footer meta（版权 + 备案号）*/
+.home-sk-footer-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.home-sk-line-meta {
+  width: 160px;
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.home-sk-line-meta::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 100%);
 }
 
 /* ─── Mobile ───────────────────────────────────────────────── */
+
+@media (max-width: 1068px) {
+  .home-sk-hero {
+    padding-top: 48px;
+  }
+
+  .home-sk-line-xl {
+    height: 40px;
+  }
+
+  .home-sk-button {
+    margin-top: 32px;
+  }
+
+  .home-sk-media {
+    margin-top: 56px;
+  }
+
+  .home-sk-year {
+    padding-top: 64px;
+    padding-bottom: 74px;
+  }
+
+  .home-sk-gallery {
+    padding: 80px 0 100px;
+  }
+
+  .home-sk-gallery-grid {
+    gap: 16px;
+  }
+
+  .home-sk-pet {
+    height: 300px;
+  }
+
+  .home-sk-card-block {
+    padding: 80px 0 60px;
+  }
+
+  .home-sk-card-inner {
+    border-radius: 16px;
+  }
+
+  .home-sk-split {
+    column-gap: 60px;
+  }
+
+  .home-sk-line-split-title {
+    height: 32px;
+  }
+
+  .home-sk-split-image {
+    height: 400px;
+  }
+
+  .home-sk-footer {
+    padding-top: 60px;
+  }
+
+  .home-sk-line-footer-title {
+    height: 32px;
+  }
+}
 
 @media (max-width: 734px) {
   .home-sk-nav-links {
@@ -372,42 +573,162 @@
   }
 
   .home-sk-hero {
-    padding-top: 40px;
+    padding-top: 32px;
   }
 
   .home-sk-accent {
     width: 80px;
-    height: 80px;
+    height: 45px;
   }
 
-  .home-sk-line-xl,
-  .home-sk-line-lg {
-    height: 36px;
+  .home-sk-line-xl {
+    height: 30px;
+    width: min(87.5vw, 320px);
+  }
+
+  .home-sk-line-logo-text {
+    width: 60px;
+    height: 26px;
+  }
+
+  .home-sk-line-logo-mark {
+    width: 70px;
+    height: 26px;
+  }
+
+  .home-sk-title-logo-row {
+    gap: 8px;
+  }
+
+  .home-sk-line-subtitle {
+    width: min(87.5vw, 260px);
+    height: 16px;
+  }
+
+  .home-sk-button {
+    height: 40px;
+    width: 140px;
+    margin-top: 24px;
   }
 
   .home-sk-media {
     height: 380px;
-    margin-top: 32px;
+    margin-top: 48px;
+    border-radius: 16px;
+  }
+
+  .home-sk-media-row {
+    gap: 8px;
   }
 
   .home-sk-media-card {
     width: 120px;
     height: 158px;
+    border-radius: 8px;
+  }
+
+  .home-sk-year {
+    padding-top: 44px;
+    padding-bottom: 54px;
+  }
+
+  .home-sk-year-decor {
+    height: 50%;
+  }
+
+  .home-sk-year-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+  }
+
+  .home-sk-gallery {
+    padding: 60px 0 80px;
   }
 
   .home-sk-gallery-grid-four {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .home-sk-gallery-grid-three {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .home-sk-gallery-card {
+    border-radius: 8px;
+  }
+
+  .home-sk-pet {
+    height: auto;
+    padding: 20px 0;
+  }
+
+  .home-sk-pet-title {
+    position: static;
+    transform: none;
+    width: 100%;
+    height: 28px;
+    margin: 0 auto;
+  }
+
+  .home-sk-card-block {
+    padding: 60px 0 40px;
+  }
+
+  .home-sk-card-inner {
+    height: 480px;
+    border-radius: 0;
   }
 
   .home-sk-split {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    row-gap: 24px;
+    padding: 40px 0;
+  }
+
+  .home-sk-split-copy {
+    align-items: center;
+  }
+
+  .home-sk-line-split-title {
+    height: 24px;
   }
 
   .home-sk-split-image {
     width: 100%;
+    height: clamp(240px, calc(85.41px + 48.31vw), 440px);
   }
 
-  .home-sk-card-inner {
-    height: 340px;
+  .home-sk-footer {
+    padding-top: 40px;
+    padding-bottom: 16px;
+  }
+
+  .home-sk-line-footer-title {
+    height: 24px;
+    width: min(87.5vw, 300px);
+  }
+
+  .home-sk-footer-cta {
+    width: 120px;
+    height: 40px;
+  }
+
+  .home-sk-footer-collage {
+    height: 120px;
+    margin-top: 24px;
+  }
+
+  .home-sk-footer-meta {
+    flex-direction: column;
+    gap: 0;
+    margin-top: 16px;
+  }
+
+  .home-sk-line-meta {
+    width: 120px;
+    height: 12px;
   }
 }

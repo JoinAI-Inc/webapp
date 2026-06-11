@@ -161,7 +161,7 @@ export function GalleryGridSkeleton({ count = 12 }: SkeletonCountProps) {
                                 <div key={item} className="skeleton h-[68px] w-[48px] rounded-[4px]" />
                             ))}
                         </div>
-                        <div className="flex min-h-[44px] items-end justify-between gap-[8px] px-[3px] pb-[10px] pt-[4px]">
+                        <div className="flex min-h-[44px] items-end justify-between gap-[8px] px-[3px] pb-[4px] pt-[4px]">
                             <div className="min-w-[0px] flex-1">
                                 <div className="skeleton mb-[5px] h-[17px] w-[72%] rounded-[6px]" />
                                 <div className="skeleton h-[14px] w-[46%] rounded-[6px]" />

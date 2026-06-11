@@ -280,6 +280,35 @@
   font-family: var(--font-zh-inter);
 }
 
+.gallery-generating-dots::after {
+  content: ".";
+  animation: gallery-generating-dots 1.5s steps(1, end) infinite;
+}
+
+@keyframes gallery-generating-dots {
+  0%,
+  32% {
+    content: ".";
+  }
+
+  33%,
+  65% {
+    content: "..";
+  }
+
+  66%,
+  100% {
+    content: "...";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-generating-dots::after {
+    content: "...";
+    animation: none;
+  }
+}
+
 
 /* Safe area utilities */
 @utility screen-safe {

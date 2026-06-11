@@ -12,7 +12,7 @@ export function TemplateDetailPageClient({ templateId }: { templateId: string })
 
     return (
         <main className="w-full h-full overflow-y-auto flex justify-center bg-white">
-            <div className="w-[92vw] max-w-[1280px]">
+            <div className="w-full max-w-[1280px]">
                 <TemplateDetailPanel
                     templateId={templateId}
                     onBack={handleBackToTemplates}

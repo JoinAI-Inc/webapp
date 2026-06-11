@@ -69,7 +69,7 @@ Extend `gallery.types.test.ts` before implementation to cover:
 - invalid dates return an empty string;
 - valid dates retain the existing display format.
 
-Component semantics and visual behavior will be verified with TypeScript/build checks and a browser pass because the project does not currently include a React component test harness.
+Component semantics and visual behavior will be verified with TypeScript checks and a browser pass against the hot-reloading development server because the project does not currently include a React component test harness.
 
 ## Acceptance Criteria
 

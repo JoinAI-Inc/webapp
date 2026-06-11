@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { prisma } from '@repo/database';
 import type { Prisma } from '@prisma/client';
 import { verifyInternalRequest } from '../lib/internal-auth.js';
+import { normalizeTemplateSlots } from './template-slot-normalization.js';
 
 const router = express.Router();
 
@@ -24,25 +25,6 @@ async function getUserIdFromRequest(req: Request): Promise<string | null> {
     });
     if (!session || session.expires < new Date()) return null;
     return session.userId;
-}
-
-function getPayloadImageSource(payload: unknown): string | undefined {
-    if (typeof payload === 'string') {
-        return payload.trim() || undefined;
-    }
-    if (!payload || typeof payload !== 'object') {
-        return undefined;
-    }
-
-    const data = payload as Record<string, unknown>;
-    const candidates = [
-        data.imageSource,
-        data.imageUrl,
-        data.url,
-        data.sourceUrl,
-    ];
-
-    return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim();
 }
 
 function isSupportedImageSource(value: unknown): value is string {
@@ -329,7 +311,14 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
         const { slots } = req.body as {
-            slots: Array<{ refId: string; slotType?: string; imageSource?: string; assetId?: string }>;
+            slots: Array<{
+                refId: string;
+                slotType?: string;
+                imageSource?: string;
+                assetId?: string;
+                gender?: unknown;
+                makeup?: unknown;
+            }>;
         };
 
         if (!slots || !Array.isArray(slots) || slots.length === 0) {
@@ -448,21 +437,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
             }
         }
 
-        const normalizedSlots = slots.map((s: any) => {
-            const selectedAsset = s.assetId ? assetsMap[s.assetId] : null;
-            const directImageSource = typeof s.imageSource === 'string' ? s.imageSource.trim() : undefined;
-            const assetImageSource = selectedAsset
-                ? getPayloadImageSource(selectedAsset.payload) || selectedAsset.thumbnailUrl
-                : undefined;
-
-            return {
-                refId: s.refId,
-                slotType: s.slotType || 'IMAGE',
-                imageSource: directImageSource || assetImageSource,
-                assetId: s.assetId,
-                assetPayload: selectedAsset?.payload ?? undefined,
-            };
-        });
+        const normalizedSlots = normalizeTemplateSlots(slots, assetsMap);
 
         const invalidSlots = normalizedSlots.filter((s) => !isSupportedImageSource(s.imageSource));
         if (invalidSlots.length > 0) {

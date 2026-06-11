@@ -20,13 +20,17 @@ export async function GET(req: NextRequest) {
         if (!taskId) {
             return NextResponse.json({ error: "Missing taskId" }, { status: 400 });
         }
-        const userId = ((session as any).userId || session.user.id) as string;
+        const userId = (session as any).userId as string | undefined;
         if (!userId) {
-            return NextResponse.json({ error: "User ID not found" }, { status: 401 });
+            return NextResponse.json(
+                { error: "Unauthorized", message: "Missing backend user session" },
+                { status: 401 }
+            );
         }
 
         const response = await fetch(`${API_BASE_URL}/api/queue/status?taskId=${encodeURIComponent(taskId)}`, {
             headers: await makeInternalHeaders(userId),
+            cache: 'no-store',
         });
 
         if (!response.ok) {
